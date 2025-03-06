@@ -29,7 +29,7 @@
 
 
 import logging
-from . import epdconfig
+import epdconfig
 
 # Display resolution
 EPD_WIDTH       = 800
@@ -44,10 +44,10 @@ logger = logging.getLogger(__name__)
 
 class EPD:
     def __init__(self):
-        self.reset_pin = epdconfig.RST_PIN
-        self.dc_pin = epdconfig.DC_PIN
-        self.busy_pin = epdconfig.BUSY_PIN
-        self.cs_pin = epdconfig.CS_PIN
+        self.reset_pin = epdconfig.RaspberryPi.RST_PIN
+        self.dc_pin = epdconfig.RaspberryPi.DC_PIN
+        self.busy_pin = epdconfig.RaspberryPi.BUSY_PIN
+        self.cs_pin = epdconfig.RaspberryPi.CS_PIN
         self.width = EPD_WIDTH
         self.height = EPD_HEIGHT
         self.GRAY1  = GRAY1 #white

@@ -10,7 +10,7 @@ import logging
 import time
 import traceback
 from PIL import Image, ImageDraw, ImageFont
-from epd7in5_V2 import EPD               # Waveshare's library for their 7.5 inch screen
+import epd7in5_V2               # Waveshare's library for their 7.5 inch screen
 
 class Clock:
     get_time: datetime
@@ -26,7 +26,7 @@ class Clock:
             sys.path.append(self.libdir) # TODO: figure out what this does
         logging.basicConfig(level=logging.DEBUG) 
         self.time = datetime.now(timezone.utc)
-        self.epd = EPD()
+        self.epd = epd7in5_V2.EPD()
 
         print('clock obj was made.')
 
