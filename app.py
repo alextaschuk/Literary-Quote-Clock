@@ -97,11 +97,6 @@ class Clock:
         try:
             print('display_quote was called')
             logging.info("Book Quote Clock")
-
-            logging.info("init and Clear")
-            self.epd.init()
-            self.epd.Clear()
-
             logging.info('reading .bmp file...')
             filename = buffer.pop(0) # pop the current quote
             quote = Image.open(os.path.join(self.picdir, filename))
