@@ -25,7 +25,7 @@ class Clock:
         if os.path.exists(self.libdir):
             sys.path.append(self.libdir) # TODO: figure out what this does
         logging.basicConfig(level=logging.DEBUG) 
-        self.time = datetime.now(timezone.utc)
+        self.time = datetime.now()
         self.epd = epd7in5_V2.EPD()
 
         print('clock obj was made.')
@@ -42,7 +42,7 @@ class Clock:
         return str(hour) + str(minute)
     
     def update_time(self) -> datetime:
-        self.time = datetime.now(timezone.utc)
+        self.time = datetime.now()
                                     
     def get_quotes(self, filename) -> list: # return all possible quotes for a given minute. helper function for buffer_quotes
         quotes = []
@@ -125,6 +125,7 @@ class Clock:
 if __name__ == '__main__':
     try:
         clock = Clock() 
+        clock.epd.init() # initialize the screen
         '''
         We will use current_minute and next_minute to determine how long the program should sleep
         when it is started, because it won't start exactly at the 0th second of a minute; it will 
@@ -132,8 +133,7 @@ if __name__ == '__main__':
         '''
         while True:
             logging.info("Clear...")
-            clock.epd.init()
-            clock.epd.Clear()
+            #clock.epd.Clear()
             clock.main()
             current_seconds = time.time() # get the number of seconds since the UTC epoch for the current time
             next_minute = datetime.now(timezone.utc) # update the clock's time again just to be safe
