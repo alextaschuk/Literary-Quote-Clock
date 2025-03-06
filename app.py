@@ -13,14 +13,11 @@ from PIL import Image, ImageDraw, ImageFont
 from epd7in5_V2 import *               # Waveshare's library for their 7.5 inch screen
 
 class Clock:
-
     get_time: datetime
     curr_time: str
     quotes: list
     filename: str
     quote_buffer: list
-
-
 
     def __init__(self):
         self.picdir = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'BookQuoteClock/images') # path to .bmp files
@@ -29,7 +26,7 @@ class Clock:
             sys.path.append(self.libdir) # TODO: figure out what this does
         logging.basicConfig(level=logging.DEBUG) 
         self.time = datetime.now(timezone.utc)
-        self.epd = self.epd7in5_V2.EPD()
+        self.epd = self.EPD()
 
         print('clock obj was made.')
 
@@ -134,6 +131,9 @@ if __name__ == '__main__':
         start when the Rpi is plugged in and boots up.
         '''
         while True:
+            logging.info("Clear...")
+            clock.epd.init()
+            clock.epd.Clear()
             clock.main()
             current_seconds = time.time() # get the number of seconds since the UTC epoch for the current time
             next_minute = datetime.now(timezone.utc) # update the clock's time again just to be safe
