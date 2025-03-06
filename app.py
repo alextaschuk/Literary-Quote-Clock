@@ -26,7 +26,7 @@ class Clock:
             sys.path.append(self.libdir) # TODO: figure out what this does
         logging.basicConfig(level=logging.DEBUG) 
         self.time = datetime.now(timezone.utc)
-        self.epd = self.EPD()
+        self.epd = EPD()
 
         print('clock obj was made.')
 
