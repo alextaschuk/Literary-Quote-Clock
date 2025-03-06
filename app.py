@@ -145,5 +145,5 @@ if __name__ == '__main__':
 
     except KeyboardInterrupt as e:
         logging.info(e)
-        clock.epd7in5_V2.epdconfig.module_exit(cleanup=True)
+        epd7in5_V2.epdconfig.module_exit(cleanup=True)
         exit()
