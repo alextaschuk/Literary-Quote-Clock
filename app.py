@@ -118,8 +118,8 @@ class Clock:
         print('main finish')
 
 if __name__ == '__main__':
+    clock = Clock() 
     try:
-        clock = Clock() 
         clock.epd.init_fast() # initialize the screen
         '''
         We will use current_minute and next_minute to determine how long the program should sleep
@@ -140,6 +140,6 @@ if __name__ == '__main__':
 
     except KeyboardInterrupt as e:
         logging.info(e)
-        epd7in5_V2.EPD.Clear()
+        clock.epd.Clear()
         epd7in5_V2.epdconfig.module_exit(cleanup=True)
         exit()
