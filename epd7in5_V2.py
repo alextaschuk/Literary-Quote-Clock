@@ -47,8 +47,8 @@ class EPD:
         self.epdconfig = epdconfig.RaspberryPi()
         self.reset_pin = self.epdconfig.RST_PIN
         self.dc_pin = self.epdconfig.DC_PIN
-        self.busy_pin = epdconfig.RaspberryPi.BUSY_PIN
-        self.cs_pin = epdconfig.RaspberryPi.CS_PIN
+        self.busy_pin = self.epdconfig.BUSY_PIN
+        self.cs_pin = self.epdconfig.CS_PIN
         self.width = EPD_WIDTH
         self.height = EPD_HEIGHT
         self.GRAY1  = GRAY1 #white
