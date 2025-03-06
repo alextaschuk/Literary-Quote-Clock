@@ -29,7 +29,7 @@
 
 
 import logging
-from epdconfig import RaspberryPi # change from 'epdconfig' to '*' 
+from . import epdconfig
 
 # Display resolution
 EPD_WIDTH       = 800
@@ -44,11 +44,10 @@ logger = logging.getLogger(__name__)
 
 class EPD:
     def __init__(self):
-        self.epdconfig = RaspberryPi()
-        self.reset_pin = self.epdconfig.RST_PIN
-        self.dc_pin = self.epdconfig.DC_PIN
-        self.busy_pin = self.epdconfig.BUSY_PIN
-        self.cs_pin = self.epdconfig.CS_PIN
+        self.reset_pin = epdconfig.RST_PIN
+        self.dc_pin = epdconfig.DC_PIN
+        self.busy_pin = epdconfig.BUSY_PIN
+        self.cs_pin = epdconfig.CS_PIN
         self.width = EPD_WIDTH
         self.height = EPD_HEIGHT
         self.GRAY1  = GRAY1 #white
@@ -58,43 +57,43 @@ class EPD:
     
     # Hardware reset
     def reset(self):
-        self.epdconfig.digital_write(self.reset_pin, 1)
-        self.epdconfig.delay_ms(20) 
-        self.epdconfig.digital_write(self.reset_pin, 0)
-        self.epdconfig.delay_ms(2)
-        self.epdconfig.digital_write(self.reset_pin, 1)
-        self.epdconfig.delay_ms(20)   
+        epdconfig.digital_write(self.reset_pin, 1)
+        epdconfig.delay_ms(20) 
+        epdconfig.digital_write(self.reset_pin, 0)
+        epdconfig.delay_ms(2)
+        epdconfig.digital_write(self.reset_pin, 1)
+        epdconfig.delay_ms(20)   
 
     def send_command(self, command):
-        self.epdconfig.digital_write(self.dc_pin, 0)
-        self.epdconfig.digital_write(self.cs_pin, 0)
-        self.epdconfig.spi_writebyte([command])
-        self.epdconfig.digital_write(self.cs_pin, 1)
+        epdconfig.digital_write(self.dc_pin, 0)
+        epdconfig.digital_write(self.cs_pin, 0)
+        epdconfig.spi_writebyte([command])
+        epdconfig.digital_write(self.cs_pin, 1)
 
     def send_data(self, data):
-        self.epdconfig.digital_write(self.dc_pin, 1)
-        self.epdconfig.digital_write(self.cs_pin, 0)
-        self.epdconfig.spi_writebyte([data])
-        self.epdconfig.digital_write(self.cs_pin, 1)
+        epdconfig.digital_write(self.dc_pin, 1)
+        epdconfig.digital_write(self.cs_pin, 0)
+        epdconfig.spi_writebyte([data])
+        epdconfig.digital_write(self.cs_pin, 1)
 
     def send_data2(self, data):
-        self.epdconfig.digital_write(self.dc_pin, 1)
-        self.epdconfig.digital_write(self.cs_pin, 0)
-        self.epdconfig.SPI.writebytes2(data)
-        self.epdconfig.digital_write(self.cs_pin, 1)
+        epdconfig.digital_write(self.dc_pin, 1)
+        epdconfig.digital_write(self.cs_pin, 0)
+        epdconfig.SPI.writebytes2(data)
+        epdconfig.digital_write(self.cs_pin, 1)
 
     def ReadBusy(self):
         logger.debug("e-Paper busy")
         self.send_command(0x71)
-        busy = self.epdconfig.digital_read(self.busy_pin)
+        busy = epdconfig.digital_read(self.busy_pin)
         while(busy == 0):
             self.send_command(0x71)
-            busy = self.epdconfig.digital_read(self.busy_pin)
-        self.epdconfig.delay_ms(20)
+            busy = epdconfig.digital_read(self.busy_pin)
+        epdconfig.delay_ms(20)
         logger.debug("e-Paper busy release")
         
     def init(self):
-        if (self.epdconfig.module_init() != 0):
+        if (epdconfig.module_init() != 0):
             return -1
         # EPD hardware init start
         self.reset()
@@ -112,7 +111,7 @@ class EPD:
         self.send_data(0x17)		#VDL=-15V
 
         self.send_command(0x04) #POWER ON
-        self.epdconfig.delay_ms(100)
+        epdconfig.delay_ms(100)
         self.ReadBusy()
 
         self.send_command(0X00)			#PANNEL SETTING
@@ -144,7 +143,7 @@ class EPD:
         return 0
     
     def init_fast(self):
-        if (self.epdconfig.module_init() != 0):
+        if (epdconfig.module_init() != 0):
             return -1
         # EPD hardware init start
         self.reset()
@@ -163,7 +162,7 @@ class EPD:
         # self.send_data(0x03)
 
         self.send_command(0x04) #POWER ON
-        self.epdconfig.delay_ms(100) 
+        epdconfig.delay_ms(100) 
         self.ReadBusy()        #waiting for the electronic paper IC to release the idle signal
 
         #Enhanced display drive(Add 0x06 command)
@@ -182,7 +181,7 @@ class EPD:
         return 0
     
     def init_part(self):
-        if (self.epdconfig.module_init() != 0):
+        if (epdconfig.module_init() != 0):
             return -1
         # EPD hardware init start
         self.reset()
@@ -191,7 +190,7 @@ class EPD:
         self.send_data(0x1F)   #KW-3f   KWR-2F	BWROTP 0f	BWOTP 1f
 
         self.send_command(0x04) #POWER ON
-        self.epdconfig.delay_ms(100) 
+        epdconfig.delay_ms(100) 
         self.ReadBusy()        #waiting for the electronic paper IC to release the idle signal
 
         self.send_command(0xE0)
@@ -204,7 +203,7 @@ class EPD:
     
     # The feature will only be available on screens sold after 24/10/23
     def init_4Gray(self):
-        if (self.epdconfig.module_init() != 0):
+        if (epdconfig.module_init() != 0):
             return -1
         # EPD hardware init start
         self.reset()
@@ -217,7 +216,7 @@ class EPD:
         self.send_data(0x07)
 
         self.send_command(0x04) #POWER ON
-        self.epdconfig.delay_ms(100) 
+        epdconfig.delay_ms(100) 
         self.ReadBusy()        #waiting for the electronic paper IC to release the idle signal
 
         #Enhanced display drive(Add 0x06 command)
@@ -308,7 +307,7 @@ class EPD:
         self.send_data2(image)
 
         self.send_command(0x12)
-        self.epdconfig.delay_ms(100)
+        epdconfig.delay_ms(100)
         self.ReadBusy()
 
     def Clear(self):
@@ -318,7 +317,7 @@ class EPD:
         self.send_data2([0x00] * int(self.width * self.height / 8))
 
         self.send_command(0x12)
-        self.epdconfig.delay_ms(100)
+        epdconfig.delay_ms(100)
         self.ReadBusy()
 
     def display_Partial(self, Image, Xstart, Ystart, Xend, Yend):
@@ -363,7 +362,7 @@ class EPD:
         self.send_data2(image1)
 
         self.send_command(0x12)
-        self.epdconfig.delay_ms(100)
+        epdconfig.delay_ms(100)
         self.ReadBusy()
 
     def display_4Gray(self, image):
@@ -432,7 +431,7 @@ class EPD:
             self.send_data(temp3)
         
         self.send_command(0x12)
-        self.epdconfig.delay_ms(100)
+        epdconfig.delay_ms(100)
         self.ReadBusy()
 
     def sleep(self):
@@ -445,6 +444,6 @@ class EPD:
         self.send_command(0x07) # DEEP_SLEEP
         self.send_data(0XA5)
         
-        self.epdconfig.delay_ms(2000)
-        self.epdconfig.module_exit()
+        epdconfig.delay_ms(2000)
+        epdconfig.module_exit()
 ### END OF FILE ###
