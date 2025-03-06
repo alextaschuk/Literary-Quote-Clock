@@ -10,7 +10,7 @@ import logging
 import time
 import traceback
 from PIL import Image, ImageDraw, ImageFont
-#from epd7in5_V2 import *               # Waveshare's library for their 7.5 inch screen
+from epd7in5_V2 import *               # Waveshare's library for their 7.5 inch screen
 
 class Clock:
 
@@ -98,16 +98,16 @@ class Clock:
         try:
             print('display_quote was called')
             logging.info("Book Quote Clock")
-            #epd = self.epd7in5_V2.EPD()
+            epd = self.epd7in5_V2.EPD()
 
             logging.info("init and Clear")
-            #epd.init()
-            #epd.Clear()
+            epd.init()
+            epd.Clear()
 
             logging.info('reading .bmp file...')
             filename = buffer.pop(0) # pop the current quote
             quote = Image.open(os.path.join(self.picdir, filename))
-            #epd.display(epd.getbuffer(quote))
+            epd.display(epd.getbuffer(quote))
             time.sleep(2)
             print('display_quote finish')
         except IOError as e:
@@ -146,5 +146,5 @@ if __name__ == '__main__':
 
     except KeyboardInterrupt as e:
         logging.info(e)
-        #clock.epd7in5_V2.epdconfig.module_exit(cleanup=True)
+        clock.epd7in5_V2.epdconfig.module_exit(cleanup=True)
         exit()
