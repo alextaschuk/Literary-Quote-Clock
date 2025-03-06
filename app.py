@@ -120,7 +120,7 @@ class Clock:
 if __name__ == '__main__':
     try:
         clock = Clock() 
-        clock.epd.init() # initialize the screen
+        clock.epd.init_fast() # initialize the screen
         '''
         We will use current_minute and next_minute to determine how long the program should sleep
         when it is started, because it won't start exactly at the 0th second of a minute; it will 
@@ -128,7 +128,7 @@ if __name__ == '__main__':
         '''
         while True:
             logging.info("Clear...")
-            #clock.epd.Clear()
+
             clock.main()
             current_seconds = time.time() # get the number of seconds since the UTC epoch for the current time
             next_minute = datetime.now(timezone.utc) # update the clock's time again just to be safe
@@ -140,5 +140,6 @@ if __name__ == '__main__':
 
     except KeyboardInterrupt as e:
         logging.info(e)
+        epd7in5_V2.Clear()
         epd7in5_V2.epdconfig.module_exit(cleanup=True)
         exit()
