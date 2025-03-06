@@ -44,8 +44,9 @@ logger = logging.getLogger(__name__)
 
 class EPD:
     def __init__(self):
-        self.reset_pin = epdconfig.RaspberryPi.RST_PIN
-        self.dc_pin = epdconfig.RaspberryPi.DC_PIN
+        self.epdconfig = epdconfig.RaspberryPi()
+        self.reset_pin = self.epdconfig.RST_PIN
+        self.dc_pin = self.epdconfig.DC_PIN
         self.busy_pin = epdconfig.RaspberryPi.BUSY_PIN
         self.cs_pin = epdconfig.RaspberryPi.CS_PIN
         self.width = EPD_WIDTH
