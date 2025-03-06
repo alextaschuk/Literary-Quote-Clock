@@ -10,7 +10,7 @@ import logging
 import time
 import traceback
 from PIL import Image, ImageDraw, ImageFont
-from epd7in5_V2 import *               # Waveshare's library for their 7.5 inch screen
+from epd7in5_V2 import EPD               # Waveshare's library for their 7.5 inch screen
 
 class Clock:
     get_time: datetime
