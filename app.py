@@ -26,6 +26,8 @@ class Clock:
             sys.path.append(self.libdir) # TODO: figure out what this does
         logging.basicConfig(level=logging.DEBUG) 
         self.time = datetime.now()
+        self.quote_buffer = []
+        self.quotes = []
         self.epd = epd7in5_V2.EPD()
 
         print('clock obj was made.')
@@ -38,69 +40,75 @@ class Clock:
 
     def get_time(self, hour: int, minute: int) -> str: # e.g. if it's 1:30 PM, this returns '1330'
         if(minute < 10):
-            minute = '0' + str(minute)         # e.g 4 becomes 04
-        return str(hour) + str(minute)
+            return str(hour) + '0' + str(minute)
+        else:
+            return str(hour) + str(minute)
     
     def update_time(self) -> datetime:
         self.time = datetime.now()
+        return self.time
                                     
     def get_quotes(self, filename) -> list: # return all possible quotes for a given minute. helper function for buffer_quotes
-        quotes = []
         filename = 'images/' + filename
         if glob.glob(filename):  # get all quotes for the current time
-            quotes = glob.glob(filename)    # stores all quotes for the current time; we will choose a random quote from the list
-        return quotes
+            self.quotes = glob.glob(filename)    # stores all quotes for the current time; we will choose a random quote from the list
+        return self.quotes
 
     # Initializes and/or updates the buffer
     def buffer_quotes(self) -> list:
         print('buffer_quote called')
-        self.update_time()
+        print('len of quote_buffer: ' + str(len(self.quote_buffer)))
+        self.time = self.update_time()
         curr_minute = self.get_minute()
         curr_hour = self.get_hour()
         curr_time = self.get_time(curr_hour, curr_minute)
-        if 'quote_buffer' not in locals(): # we need to initialize buffer when the clock is turned on
-            quote_buffer = []
-            while len(quote_buffer) < 3: 
-                quotes = self.get_quotes('quote_' + curr_time + '_*' + '.bmp') # used to find all quotes for a specific time e.g. 'quote_1510_*.bmp'
-                filename = 'quote_' + curr_time + '_' + str(random.randrange(0, len(quotes))) + '.bmp'        
-                quote_buffer.append(filename)
+        if len(self.quote_buffer) < 2: # we need to initialize buffer when the clock is turned on
+            while len(self.quote_buffer) < 3: 
+                self.quotes = self.get_quotes('quote_' + curr_time + '_*' + '.bmp') # used to find all quotes for a specific time e.g. 'quote_1510_*.bmp'
+                filename = 'quote_' + curr_time + '_' + str(random.randrange(0, len(self.quotes))) + '.bmp'        
+                image_quote = Image.open(os.path.join(self.picdir, filename))
+                self.quote_buffer.append(image_quote)
 
                 # get the quotes that will be displayed one and two minutes after current quote
                 if(curr_minute == 59): # if we are on the 59th minute of the hour (e.g. 11:59)
-                    self.time = self.time.replace(second=0, microsecond=0) + timedelta(minutes=1) + timedelta(hours=1)
+                    self.time = self.time.replace(second=0, microsecond=0) + timedelta(hours=1) - timedelta(minutes=59)
                     curr_hour = self.get_hour() # set current hour to next hour
                     curr_minute = self.get_minute() # set current minute to next minute
-
+                    print('quote_buffer initalization @ 59th minute')
                 else: # we are not on the 59 minute, so we only need to get the next minute
                     self.time = self.time.replace(second=0) + timedelta(minutes=1)
                     curr_minute = self.get_minute()  # set current minute to next minute
                 
                 curr_time = self.get_time(curr_hour, curr_minute) # update the time
-                print(quote_buffer)
-        else: # otherwise, our buffer is already initialized, so we only need to buffer the quote that's 2 minutes ahead
-            if(curr_minute == 59): 
-                self.time = self.time.replace(second=0) + timedelta(hours=1) + timedelta(minutes=2)
-                curr_hour = self.get_hour()
-                curr_minute = self.get_minute()  # set current minute to 2 minutes ahead
+            print('quote buffer initialized')
+            print('the quote buffer after initialization: ' + str(self.quote_buffer))
 
-            else: # we are not on the 59th minute, so we don't need the next hour
-                self.time = self.time.replace(second=0) + timedelta(minutes=2)
-                curr_minute = self.get_minute()
-            curr_time = self.get_time(curr_hour, curr_time) # update the time
-            quotes = self.get_quotes('quote_' + curr_time + '_*' + '.bmp') # get the list of quotes for the 2-minutes-ahead of current quote
-            filename = 'quote_' + curr_time + '_' + str(random.randrange(0, len(quotes))) + '.bmp' # get the .bmp file for the 2-minutes-ahead quote
-            quote_buffer.append(filename) # add 2-minutes-ahead quote to buffer
-            print('buffer quote finish')
-        return quote_buffer
+        # otherwise, our buffer is already initialized, so we only need to buffer the quote that's 2 minutes ahead
+        # we do this by adding 3 minutes because the next quote to be added is 3 minutes ahead of the current quote
+        # that is being removed
+        else:
+            self.time = self.time.replace(second=0) + timedelta(minutes=3) 
+            curr_minute = self.get_minute()
+            curr_time = self.get_time(curr_hour, curr_minute)
+            self.quotes = self.get_quotes('quote_' + curr_time + '_*' + '.bmp') 
+            filename = 'quote_' + curr_time + '_' + str(random.randrange(0, len(self.quotes))) + '.bmp' 
+            image_quote = Image.open(os.path.join(self.picdir, filename))
+            self.quote_buffer.append(image_quote)
+            print('quote buffer updated, self.time is: ' + str(self.time))
+            print('quote buffer after update: ' + str(self.quote_buffer))
+        print('buffer quote finish')
+        return self.quote_buffer
+    
 
-    def display_quote(self, buffer):
+    
+
+    def display_quote(self):
         try:
             print('display_quote was called')
             logging.info("Book Quote Clock")
             logging.info('reading .bmp file...')
-            filename = buffer.pop(0) # pop the current quote
-            quote = Image.open(os.path.join(self.picdir, filename))
-            self.epd.display(self.epd.getbuffer(quote))
+            quote_to_display = self.quote_buffer[0]
+            self.epd.display(self.epd.getbuffer(quote_to_display))
             time.sleep(2)
             print('display_quote finish')
         except IOError as e:
@@ -113,8 +121,9 @@ class Clock:
         in main, we call buffer_quotes and display_quote
         """ 
         print('main was called.')
-        quote_buffer = self.buffer_quotes()               # buffer the current quote, and the following two quotes to display
-        self.display_quote(quote_buffer)                          # display the current quote
+        self.quote_buffer = self.buffer_quotes()               # buffer the current quote, and the following two quotes to display
+        self.display_quote()                          # display the current quote
+        self.quote_buffer.pop(0)                           # remove the current quote from buffer
         print('main finish')
 
 if __name__ == '__main__':
@@ -137,7 +146,6 @@ if __name__ == '__main__':
             sleep_time = int(next_minute - current_seconds) # get the difference between the two and sleep (i.e., wait until the next minute to display the next quote)
             print("sleep for: " + str(sleep_time) + " seconds")
             time.sleep(sleep_time) # sleep until next minute
-
     except KeyboardInterrupt as e:
         logging.info(e)
         clock.epd.Clear()
