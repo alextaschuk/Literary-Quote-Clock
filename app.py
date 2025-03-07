@@ -41,7 +41,7 @@ class Clock:
     def get_time(self, hour: int, minute: int) -> str: # e.g. if it's 1:30 PM, this returns '1330'
         if(minute < 10):
             return str(hour) + '0' + str(minute)
-        if hour == 0: # if it is midnight
+        if hour == 0: # if it is midnight, append 00
             return '00' + str(minute)
         else:
             return str(hour) + str(minute)
