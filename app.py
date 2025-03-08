@@ -12,6 +12,8 @@ import traceback
 from PIL import Image, ImageDraw, ImageFont
 import epd7in5_V2               # Waveshare's library for their 7.5 inch screen
 
+logging.basicConfig(level=logging.DEBUG) 
+
 class Clock:
     get_time: datetime
     curr_time: str
@@ -24,7 +26,6 @@ class Clock:
         self.libdir = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'lib') # path to 
         if os.path.exists(self.libdir):
             sys.path.append(self.libdir) # TODO: figure out what this does
-        logging.basicConfig(level=logging.INFO) 
         self.time = datetime.now()
         self.quote_buffer = []
         self.quotes = []
