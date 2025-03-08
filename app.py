@@ -179,6 +179,7 @@ if __name__ == '__main__':
     clock = Clock() 
     try:
         clock.epd.init_fast() # initialize the screen
+        clock.epd.Clear() # clear screen just to be safe
         '''
         We will use current_minute and next_minute to determine how long the program should sleep
         when it is started, because it won't start exactly at the 0th second of a minute; it will 
