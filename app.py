@@ -63,7 +63,7 @@ class Clock:
         curr_minute = self.get_minute()
         curr_hour = self.get_hour()
         curr_time = self.get_time(curr_hour, curr_minute)
-        logging.info(f"time: {self.time}\ncurr_minute: {curr_minute}\ncurr_hour: {curr_hour}\ncurr_time: {curr_time}")
+        logging.info(f"time: {str(self.time)}\ncurr_minute: {curr_minute}\ncurr_hour: {curr_hour}\ncurr_time: {curr_time}")
         if len(self.quote_buffer) < 2: # we need to initialize buffer when the clock is turned on
             logging.info('initializing quote_buffer')
             while len(self.quote_buffer) < 3: 
@@ -76,18 +76,18 @@ class Clock:
                 # get the quotes that will be displayed one and two minutes after current quote
                 if(curr_minute == 59): # if we are on the 59th minute of the hour (e.g. 11:59)
                     logging.info(f'it is the 59th minute of the hour, so we must update time to roll over to the next hour')
-                    logging.info(f'time, curr_hour, curr_minute before rolling over to the next hour:\ntime: {self.time}\ncurr_hour:{curr_hour}\ncurr_minute: {curr_minute}')
+                    logging.info(f'time, curr_hour, curr_minute before rolling over to the next hour:\ntime: {str(self.time)}\ncurr_hour:{curr_hour}\ncurr_minute: {curr_minute}')
                     self.time = self.time.replace(second=0, microsecond=0) + timedelta(hours=1) - timedelta(minutes=59)
                     curr_hour = self.get_hour() # set current hour to next hour
                     curr_minute = self.get_minute() # set current minute to next minute
-                    logging.info(f'time, curr_hour, curr_minute after rolling over to the next hour:\ntime: {self.time}\ncurr_hour:{curr_hour}\ncurr_minute: {curr_minute}')
+                    logging.info(f'time, curr_hour, curr_minute after rolling over to the next hour:\ntime: {str(self.time)}\ncurr_hour:{curr_hour}\ncurr_minute: {curr_minute}')
                     print('quote_buffer initalization @ 59th minute')
                 else: # we are not on the 59 minute, so we only need to get the next minute
                     logging.info('updating the time during initialization to get the quote for the next minute...')
-                    logging.info(f'time, curr_minute before update:\ntime: {self.time}\ncurr_minute: {curr_minute}')
+                    logging.info(f'time, curr_minute before update:\ntime: {str(self.time)}\ncurr_minute: {curr_minute}')
                     self.time = self.time.replace(second=0) + timedelta(minutes=1)
                     curr_minute = self.get_minute()  # set current minute to next minute
-                    logging.info(f'time, curr_minute after update:\ntime: {self.time}\ncurr_minute: {curr_minute}')
+                    logging.info(f'time, curr_minute after update:\ntime: {str(self.time)}\ncurr_minute: {curr_minute}')
                 logging.info('a quote has been added to quote_buffer.\nupdating curr_time...')
                 logging.info(f'curr_time before update: {curr_time}')
                 curr_time = self.get_time(curr_hour, curr_minute) # update the time
@@ -99,11 +99,11 @@ class Clock:
         # that is being removed
         else:
             logging.info('updating quote_buffer...')
-            logging.info(f"time,curr_minute,curr_hour, curr_time before adding 3 mintues:\ntime: {self.time}\ncurr_minute: {curr_minute}\ncurr_hour: {curr_hour}\ncurr_time: {curr_time}")
+            logging.info(f"time,curr_minute,curr_hour, curr_time before adding 3 mintues:\ntime: {str(self.time)}\ncurr_minute: {curr_minute}\ncurr_hour: {curr_hour}\ncurr_time: {curr_time}")
             self.time = self.time.replace(second=0) + timedelta(minutes=3)
             curr_minute = self.get_minute()
             curr_time = self.get_time(curr_hour, curr_minute)
-            logging.info(f"time,curr_minute,curr_hour, curr_time after adding 3 mintues:\ntime: {self.time}\ncurr_minute: {curr_minute}\ncurr_hour: {curr_hour}\ncurr_time: {curr_time}")
+            logging.info(f"time,curr_minute,curr_hour, curr_time after adding 3 mintues:\ntime: {str(self.time)}\ncurr_minute: {curr_minute}\ncurr_hour: {curr_hour}\ncurr_time: {curr_time}")
             self.quotes = self.get_quotes('quote_' + curr_time + '_*' + '.bmp') 
             filename = 'quote_' + curr_time + '_' + str(random.randrange(0, len(self.quotes))) + '.bmp' 
             logging.info(f'the filename for the quote being added during update: {filename}')        
@@ -118,7 +118,7 @@ class Clock:
         try:
             logging.info('display_quote was called')
             logging.info('reading .bmp file from quote_buffer...')
-            logging.info('the current time is: ' + self.time)
+            logging.info('the current time is: ' + str(self.time))
             quote_to_display = self.quote_buffer[0]
             self.epd.display(self.epd.getbuffer(quote_to_display))
             time.sleep(2)
