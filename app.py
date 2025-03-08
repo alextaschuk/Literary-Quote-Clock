@@ -199,6 +199,7 @@ if __name__ == '__main__':
     except KeyboardInterrupt as e:
         logging.info('program interrupted:')
         logging.info(e)
+        clock.epd.init() # wake the screen so that it can be cleared
         clock.epd.Clear()
         logging.info("clearing screen and shutting down...\n")
         epd7in5_V2.epdconfig.module_exit(cleanup=True)
