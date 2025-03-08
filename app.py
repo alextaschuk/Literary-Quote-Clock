@@ -57,77 +57,85 @@ class Clock:
 
     # Initializes and/or updates the buffer
     def buffer_quotes(self) -> list:
-        print('buffer_quote called')
-        print('len of quote_buffer: ' + str(len(self.quote_buffer)))
+        logging.info('buffer_quotes called.')
+        logging.info('len of quote_buffer: ' + str(len(self.quote_buffer)))
         self.time = self.update_time()
         curr_minute = self.get_minute()
         curr_hour = self.get_hour()
         curr_time = self.get_time(curr_hour, curr_minute)
+        logging.info(f"time: {self.time}\ncurr_minute: {curr_minute}\ncurr_hour: {curr_hour}\ncurr_time: {curr_time}")
         if len(self.quote_buffer) < 2: # we need to initialize buffer when the clock is turned on
+            logging.info('initializing quote_buffer')
             while len(self.quote_buffer) < 3: 
                 self.quotes = self.get_quotes('quote_' + curr_time + '_*' + '.bmp') # used to find all quotes for a specific time e.g. 'quote_1510_*.bmp'
-                filename = 'quote_' + curr_time + '_' + str(random.randrange(0, len(self.quotes))) + '.bmp'        
+                filename = 'quote_' + curr_time + '_' + str(random.randrange(0, len(self.quotes))) + '.bmp'
+                logging.info(f'the filename for the quote being added during intialization: {filename}')        
                 image_quote = Image.open(os.path.join(self.picdir, filename))
                 self.quote_buffer.append(image_quote)
 
                 # get the quotes that will be displayed one and two minutes after current quote
                 if(curr_minute == 59): # if we are on the 59th minute of the hour (e.g. 11:59)
+                    logging.info(f'it is the 59th minute of the hour, so we must update time to roll over to the next hour')
+                    logging.info(f'time, curr_hour, curr_minute before rolling over to the next hour:\ntime: {self.time}\ncurr_hour:{curr_hour}\ncurr_minute: {curr_minute}')
                     self.time = self.time.replace(second=0, microsecond=0) + timedelta(hours=1) - timedelta(minutes=59)
                     curr_hour = self.get_hour() # set current hour to next hour
                     curr_minute = self.get_minute() # set current minute to next minute
+                    logging.info(f'time, curr_hour, curr_minute after rolling over to the next hour:\ntime: {self.time}\ncurr_hour:{curr_hour}\ncurr_minute: {curr_minute}')
                     print('quote_buffer initalization @ 59th minute')
                 else: # we are not on the 59 minute, so we only need to get the next minute
+                    logging.info('updating the time during initialization to get the quote for the next minute...')
+                    logging.info(f'time, curr_minute before update:\ntime: {self.time}\ncurr_minute: {curr_minute}')
                     self.time = self.time.replace(second=0) + timedelta(minutes=1)
                     curr_minute = self.get_minute()  # set current minute to next minute
-                
+                    logging.info(f'time, curr_minute after update:\ntime: {self.time}\ncurr_minute: {curr_minute}')
+                logging.info('a quote has been added to quote_buffer.\nupdating curr_time...')
+                logging.info(f'curr_time before update: {curr_time}')
                 curr_time = self.get_time(curr_hour, curr_minute) # update the time
-            print('quote buffer initialized')
-            print('the quote buffer after initialization: ' + str(self.quote_buffer))
+                logging.info(f'curr_time after update: {curr_time}')
+            logging.info(f'quote_buffer initialized: {str(self.quote_buffer)}')
 
         # otherwise, our buffer is already initialized, so we only need to buffer the quote that's 2 minutes ahead
         # we do this by adding 3 minutes because the next quote to be added is 3 minutes ahead of the current quote
         # that is being removed
         else:
-            self.time = self.time.replace(second=0) + timedelta(minutes=3) 
+            logging.info('updating quote_buffer...')
+            logging.info(f"time,curr_minute,curr_hour, curr_time before adding 3 mintues:\ntime: {self.time}\ncurr_minute: {curr_minute}\ncurr_hour: {curr_hour}\ncurr_time: {curr_time}")
+            self.time = self.time.replace(second=0) + timedelta(minutes=3)
             curr_minute = self.get_minute()
             curr_time = self.get_time(curr_hour, curr_minute)
+            logging.info(f"time,curr_minute,curr_hour, curr_time after adding 3 mintues:\ntime: {self.time}\ncurr_minute: {curr_minute}\ncurr_hour: {curr_hour}\ncurr_time: {curr_time}")
             self.quotes = self.get_quotes('quote_' + curr_time + '_*' + '.bmp') 
             filename = 'quote_' + curr_time + '_' + str(random.randrange(0, len(self.quotes))) + '.bmp' 
+            logging.info(f'the filename for the quote being added during update: {filename}')        
             image_quote = Image.open(os.path.join(self.picdir, filename))
             self.quote_buffer.append(image_quote)
             print('quote buffer updated, self.time is: ' + str(self.time))
             print('quote buffer after update: ' + str(self.quote_buffer))
         print('buffer quote finish')
         return self.quote_buffer
-    
-
-    
 
     def display_quote(self):
         try:
-            print('display_quote was called')
-            logging.info("Book Quote Clock")
-            logging.info('reading .bmp file...')
+            logging.info('display_quote was called')
+            logging.info('reading .bmp file from quote_buffer...')
+            logging.info('the current time is: ' + self.time)
             quote_to_display = self.quote_buffer[0]
             self.epd.display(self.epd.getbuffer(quote_to_display))
             time.sleep(2)
-            print('display_quote finish')
+            logging.info('display_quote finish')
         except IOError as e:
-            logging.info(e)
+            logging.info(f'error in display_quote:\n{e}')
     
 
     def main(self):
-        """
-        use the python crontab library to schedule main to be called once a minute
-        in main, we call buffer_quotes and display_quote
-        """ 
-        print('main was called.')
+        logging.info('main was called.')
         self.quote_buffer = self.buffer_quotes()               # buffer the current quote, and the following two quotes to display
         self.display_quote()                          # display the current quote
         self.quote_buffer.pop(0)                           # remove the current quote from buffer
         print('main finish')
 
 if __name__ == '__main__':
+    logging.info("Book Quote Clock")
     clock = Clock() 
     try:
         clock.epd.init_fast() # initialize the screen
@@ -137,7 +145,7 @@ if __name__ == '__main__':
         start when the Rpi is plugged in and boots up.
         '''
         while True:
-            logging.info("Clear...")
+            
 
             clock.main()
             current_seconds = time.time() # get the number of seconds since the UTC epoch for the current time
@@ -148,7 +156,9 @@ if __name__ == '__main__':
             print("sleep for: " + str(sleep_time) + " seconds")
             time.sleep(sleep_time) # sleep until next minute
     except KeyboardInterrupt as e:
+        logging.info('program interrupted:')
         logging.info(e)
         clock.epd.Clear()
+        logging.info("clearing screen and shutting down...")
         epd7in5_V2.epdconfig.module_exit(cleanup=True)
         exit()
