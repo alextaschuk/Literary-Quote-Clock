@@ -24,7 +24,7 @@ class Clock:
         self.libdir = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'lib') # path to 
         if os.path.exists(self.libdir):
             sys.path.append(self.libdir) # TODO: figure out what this does
-        logging.basicConfig() 
+        logging.basicConfig(level=logging.INFO) 
         self.time = datetime.now()
         self.quote_buffer = []
         self.quotes = []
