@@ -160,42 +160,42 @@ class Clock:
             logging.info('reading .bmp file from quote_buffer...')
             logging.info('the current time is: ' + str(self.time))
             quote_to_display = self.quote_buffer[0]
+            self.epd.init_fast()
             self.epd.display(self.epd.getbuffer(quote_to_display))
             time.sleep(2)
             logging.info('display_quote finish\n')
         except IOError as e:
-            logging.info(f'error in display_quote:\n{e}\n')
-    
+            logging.info(f'error in display_quote: {e}\n')
 
     def main(self):
         logging.info('main was called.')
-        self.quote_buffer = self.buffer_quotes()               # buffer the current quote, and the following two quotes to display
-        self.display_quote()                          # display the current quote
-        self.quote_buffer.pop(0)                           # remove the current quote from buffer
+        self.quote_buffer = self.buffer_quotes()    # buffer the current quote, and the following two quotes to display
+        self.display_quote()                        # display the current quote
+        self.quote_buffer.pop(0)                    # remove the current quote from buffer
         print('main finish\n')
 
 if __name__ == '__main__':
     logging.info("Book Quote Clock\n")
     clock = Clock() 
     try:
-        clock.epd.init_fast() # initialize the screen
-        clock.epd.Clear() # clear screen just to be safe
+        logging.info('initializing and clearing the screen')
+        clock.epd.init() # initialize the screen
+        clock.epd.Clear() # clear screen
         '''
         We will use current_minute and next_minute to determine how long the program should sleep
         when it is started, because it won't start exactly at the 0th second of a minute; it will 
-        start when the Rpi is plugged in and boots up.
+        start when the rpi is plugged in and boots up.
         '''
         while True:
-            
-
             clock.main()
-            current_seconds = time.time() # get the number of seconds since the UTC epoch for the current time
-            next_minute = datetime.now(timezone.utc) # update the clock's time again just to be safe
+            clock.epd.sleep()                               # put the screen to sleep once the quote is displayed to increase screen's longevity
+            current_seconds = time.time()                   # get the number of seconds since the UTC epoch for the current time
+            next_minute = datetime.now(timezone.utc)        # update the clock's time again just to be safe
             next_minute= next_minute.replace(second=0, microsecond=0) + timedelta(minutes=1) # the next minute
-            next_minute = datetime.timestamp(next_minute) # get the number of seconds since the UTC epoch for the next minute
+            next_minute = datetime.timestamp(next_minute)   # get the number of seconds since the UTC epoch for the next minute
             sleep_time = int(next_minute - current_seconds) # get the difference between the two and sleep (i.e., wait until the next minute to display the next quote)
             print("sleep for: " + str(sleep_time) + " seconds")
-            time.sleep(sleep_time) # sleep until next minute
+            time.sleep(sleep_time)                          # sleep until next minute
     except KeyboardInterrupt as e:
         logging.info('program interrupted:')
         logging.info(e)
