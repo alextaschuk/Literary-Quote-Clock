@@ -10,7 +10,7 @@ import logging
 import time
 import traceback
 from PIL import Image, ImageDraw, ImageFont
-#import epd7in5_V2               # Waveshare's library for their 7.5 inch screen
+import epd7in5_V2               # Waveshare's library for their 7.5 inch screen
 
 logging.basicConfig(level=logging.DEBUG) 
 
@@ -29,7 +29,7 @@ class Clock:
         self.time = datetime.now()
         self.quote_buffer = []
         self.quotes = []
-        #self.epd = epd7in5_V2.EPD()
+        self.epd = epd7in5_V2.EPD()
 
         print('clock obj was made.')
 
@@ -160,7 +160,7 @@ class Clock:
             logging.info('reading .bmp file from quote_buffer...')
             logging.info('the current time is: ' + str(self.time))
             quote_to_display = self.quote_buffer[0]
-            #self.epd.display(self.epd.getbuffer(quote_to_display))
+            self.epd.display(self.epd.getbuffer(quote_to_display))
             time.sleep(2)
             logging.info('display_quote finish\n')
         except IOError as e:
@@ -178,7 +178,7 @@ if __name__ == '__main__':
     logging.info("Book Quote Clock\n")
     clock = Clock() 
     try:
-        #clock.epd.init_fast() # initialize the screen
+        clock.epd.init_fast() # initialize the screen
         '''
         We will use current_minute and next_minute to determine how long the program should sleep
         when it is started, because it won't start exactly at the 0th second of a minute; it will 
@@ -198,7 +198,7 @@ if __name__ == '__main__':
     except KeyboardInterrupt as e:
         logging.info('program interrupted:')
         logging.info(e)
-        #clock.epd.Clear()
+        clock.epd.Clear()
         logging.info("clearing screen and shutting down...\n")
-        #epd7in5_V2.epdconfig.module_exit(cleanup=True)
+        epd7in5_V2.epdconfig.module_exit(cleanup=True)
         exit()
