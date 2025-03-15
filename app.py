@@ -187,12 +187,19 @@ if __name__ == '__main__':
         start when the rpi is plugged in and boots up.
         '''
         while True:
-            clock.main()
+            # Every two hours, fully reinitialize the screen. This helps prevent image burn-in and increases the screen's lifespan.
+            time = datetime.now()
+            if time.hour % 2 == 0 and time.min == 0:
+                clock.epd.init()
+
+            clock.main()                                    # call the clock's main function
             clock.epd.sleep()                               # put the screen to sleep once the quote is displayed to increase screen's longevity
+            
             current_seconds = time.time()                   # get the number of seconds since the UTC epoch for the current time
             next_minute = datetime.now(timezone.utc)        # update the clock's time again just to be safe
             next_minute= next_minute.replace(second=0, microsecond=0) + timedelta(minutes=1) # the next minute
             next_minute = datetime.timestamp(next_minute)   # get the number of seconds since the UTC epoch for the next minute
+
             sleep_time = int(next_minute - current_seconds) # get the difference between the two and sleep (i.e., wait until the next minute to display the next quote)
             print("sleep for: " + str(sleep_time) + " seconds")
             time.sleep(sleep_time)                          # sleep until next minute
