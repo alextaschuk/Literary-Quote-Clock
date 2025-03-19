@@ -34,19 +34,35 @@ class Clock:
         print('clock obj was made.')
 
     def get_minute(self) -> int:
+        '''
+        Returns the current minute as an integer
+            - For example, at 1:30 PM, 30 is returned
+        '''
         return self.time.minute
     
-    def get_hour(self) -> str: 
+    def get_hour(self) -> int:
+        '''
+        Returns the current hour as an integer
+            - For example, at 1:30 PM, 13 is returned
+            - For example, at 1:30 AM, 01 is returned
+        ''' 
         return self.time.hour
 
     def get_time(self, hour: int, minute: int) -> str: # e.g. if it's 1:30 PM, this returns '1330'
+        '''
+        Returns the current time as a string in the 24-hour format.
+            - For example, if the current time is 1:30 PM, '1330' is returned.
+        '''
         if(minute < 10):
             minute = '0' + str(minute)
-        if hour < 10: # if it is midnight, append 00
+        if hour < 10: # if it is midnight, get_hour() returns 0, so we need to append another 0 to have '00'
             hour = '0' + str(hour)
         return str(hour) + str(minute)
     
     def update_time(self) -> datetime:
+        '''
+        Updates the object's time (an instance of datetime) variable
+        ''' 
         self.time = datetime.now()
         return self.time
                                     
@@ -58,26 +74,25 @@ class Clock:
 
     # Initializes and/or updates the buffer
     def buffer_quotes(self) -> list:
-        logging.info('buffer_quotes called.')
-        logging.info('len of quote_buffer: ' + str(len(self.quote_buffer)))
+        logging.info('buffer_quotes called. length of quote_buffer: ' + str(len(self.quote_buffer)))
         self.time = self.update_time()
         curr_minute = self.get_minute()
         curr_hour = self.get_hour()
         curr_time = self.get_time(curr_hour, curr_minute)
-        logging.info(f"time: {str(self.time)}\ncurr_minute: {curr_minute}\ncurr_hour: {curr_hour}\ncurr_time: {curr_time}")
+        logging.info(f"time: {str(self.time)}\ncurr_minute: {curr_minute}\ncurr_hour: {curr_hour}\ncurr_time: {curr_time}") # prints time, curr_minute, curr_hour, and curr_time vars 
         if len(self.quote_buffer) < 2: # we need to initialize buffer when the clock is turned on
-            logging.info('initializing quote_buffer...\n')
+            logging.info('Initializing quote_buffer...\n')
             while len(self.quote_buffer) < 3: 
                 self.quotes = self.get_quotes('quote_' + curr_time + '_*' + '.bmp') # used to find all quotes for a specific time e.g. 'quote_1510_*.bmp'
                 filename = 'quote_' + curr_time + '_' + str(random.randrange(0, len(self.quotes))) + '.bmp'
-                logging.info(f'the filename for the quote being added during intialization: {filename}\n')        
+                logging.info(f'The filename for the quote being added during intialization: {filename}\n')        
                 image_quote = Image.open(os.path.join(self.picdir, filename))
                 self.quote_buffer.append(image_quote)
 
                 # get the quotes that will be displayed one and two minutes after current quote
                 if(curr_minute == 59): # if we are on the 59th minute of the hour (e.g. 11:59)
-                    logging.info(f'it is the 59th minute of the hour, so we must update time to roll over to the next hour')
-                    logging.info(f'time, curr_hour, curr_minute before rolling over to the next hour:\ntime: {str(self.time)}\ncurr_hour:{curr_hour}\ncurr_minute: {curr_minute}')
+                    logging.info(f'It is the 59th minute of the hour, so we must update time to roll over to the next hour')
+                    logging.info(f'Before rolling over to the next hour:\ntime: {str(self.time)}\ncurr_hour:{curr_hour}\ncurr_minute: {curr_minute}')
                     self.time = self.time.replace(minute=0,second=0, microsecond=0) + timedelta(hours=1)
                     curr_hour = self.get_hour() # set current hour to next hour
                     curr_minute = self.get_minute() # set current minute to next minute
@@ -156,29 +171,30 @@ class Clock:
 
     def display_quote(self):
         try:
-            logging.info('display_quote was called')
-            logging.info('reading .bmp file from quote_buffer...')
+            logging.info('display_quote was called. Reading .bmp file from quote_buffer...')
             logging.info('the current time is: ' + str(self.time))
-            quote_to_display = self.quote_buffer[0]
-            self.epd.init_fast()
-            self.epd.display(self.epd.getbuffer(quote_to_display))
-            time.sleep(2)
+            quote_to_display = self.quote_buffer[0]                 # get the quote for the current time
+            self.epd.init_fast()                                    # speeds up updates, according to waveshare support
+            self.epd.display(self.epd.getbuffer(quote_to_display))  # display the quote
+            time.sleep(2)                               # idk if necessary 
             logging.info('display_quote finish\n')
         except IOError as e:
             logging.info(f'error in display_quote: {e}\n')
 
     def main(self):
         logging.info('main was called.')
-        self.quote_buffer = self.buffer_quotes()    # buffer the current quote, and the following two quotes to display
         self.display_quote()                        # display the current quote
         self.quote_buffer.pop(0)                    # remove the current quote from buffer
+        # update the quote buffer AFTER the current quote processed and displayed, reducing processing time.
+        self.quote_buffer = self.buffer_quotes()    
         print('main finish\n')
 
 if __name__ == '__main__':
     logging.info("Book Quote Clock\n")
-    clock = Clock() 
+    clock = Clock()
+    clock.quote_buffer = clock.buffer_quotes() # initialize the quote buffer with the first 3 quotes
     try:
-        logging.info('initializing and clearing the screen')
+        logging.info('Initializing and clearing the screen')
         clock.epd.init() # initialize the screen
         clock.epd.Clear() # clear screen
         '''
