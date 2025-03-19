@@ -203,8 +203,8 @@ if __name__ == '__main__':
         '''
         while True:
             # Every two hours, fully reinitialize the screen. This helps prevent image burn-in and increases the screen's lifespan.
-            time = datetime.now()
-            if time.hour % 2 == 0 and time.min == 0:
+            init_time = datetime.now()
+            if init_time.hour % 2 == 0 and init_time.min == 0:
                 clock.epd.init()
 
             clock.main()                                    # call the clock's main function
