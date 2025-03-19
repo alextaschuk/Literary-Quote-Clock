@@ -9,7 +9,9 @@ import sys
 import logging
 import time
 import traceback
+import numpy as np
 from PIL import Image, ImageDraw, ImageFont
+from make_images import main
 import epd7in5_V2               # Waveshare's library for their 7.5 inch screen
 
 logging.basicConfig(level=logging.DEBUG) 
@@ -85,9 +87,15 @@ class Clock:
         while len(self.quote_buffer) < 3: 
             self.quotes = self.get_quotes('quote_' + curr_time + '_*' + '.bmp') # used to find all quotes for a specific time e.g. 'quote_1510_*.bmp'
             filename = 'quote_' + curr_time + '_' + str(random.randrange(0, len(self.quotes))) + '.bmp'
-            logging.info(f'The filename for the quote being added during intialization: {filename}\n')        
-            image_quote = Image.open(os.path.join(self.picdir, filename))
-            self.quote_buffer.append(image_quote)
+            try:   
+                image_quote = Image.open(os.path.join(self.picdir, filename))
+                self.quote_buffer.append(image_quote)
+            except FileNotFoundError:
+                logging.info(f'Error! File {filename} for the time {curr_time} does not exist.')
+                self.quote_buffer.append(self.quote_buffer[0]) # add the current time back into the buffer to fill the gap
+                # this try-except solution is not the best (e.g. wont work if the first quote during init doesn't exist) but it
+                # works in the meantime until I manually go through every time and make sure none are missing.
+            logging.info(f'The filename for the quote being added during intialization: {filename}\n')     
             # get the quotes that will be displayed one and two minutes after current quote
             if(curr_minute == 59): # if we are on the 59th minute of the hour (e.g. 11:59)
                 logging.info(f'It is the 59th minute of the hour, so we must update time to roll over to the next hour')
@@ -132,8 +140,14 @@ class Clock:
             self.quotes = self.get_quotes('quote_' + curr_time + '_*' + '.bmp') 
             filename = 'quote_' + curr_time + '_' + str(random.randrange(0, len(self.quotes))) + '.bmp' 
             logging.info(f'the filename for the quote being added during update: {filename}')        
-            image_quote = Image.open(os.path.join(self.picdir, filename))
-            self.quote_buffer.append(image_quote)
+            try:   
+                image_quote = Image.open(os.path.join(self.picdir, filename))
+                self.quote_buffer.append(image_quote)
+            except FileNotFoundError:
+                logging.info(f'Error! File {filename} for the time {curr_time} does not exist.')
+                self.quote_buffer.append(self.quote_buffer[0]) # add the current time back into the buffer to fill the gap
+                # this try-except solution is not the best (e.g. wont work if the first quote during init doesn't exist) but it
+                # works in the meantime until I manually go through every time and make sure none are missing.
             print('quote buffer updated, self.time is: ' + str(self.time))
         elif curr_minute + 3 == 61: # minute of the hour is 58
             logging.info('minute of the hour is 58. increasing hour by 1 and setting minutes to 1...')
@@ -145,8 +159,14 @@ class Clock:
             self.quotes = self.get_quotes('quote_' + curr_time + '_*' + '.bmp') 
             filename = 'quote_' + curr_time + '_' + str(random.randrange(0, len(self.quotes))) + '.bmp' 
             logging.info(f'the filename for the quote being added during update: {filename}')        
-            image_quote = Image.open(os.path.join(self.picdir, filename))
-            self.quote_buffer.append(image_quote)
+            try:   
+                image_quote = Image.open(os.path.join(self.picdir, filename))
+                self.quote_buffer.append(image_quote)
+            except FileNotFoundError:
+                logging.info(f'Error! File {filename} for the time {curr_time} does not exist.')
+                self.quote_buffer.append(self.quote_buffer[0]) # add the current time back into the buffer to fill the gap
+                # this try-except solution is not the best (e.g. wont work if the first quote during init doesn't exist) but it
+                # works in the meantime until I manually go through every time and make sure none are missing.
             print('quote buffer updated, self.time is: ' + str(self.time))
         elif curr_minute + 3 == 62: # minute of the hour is 59
             logging.info('the minute of the hour is 59. increasing hour by 1 and setting minutes to 2...')
@@ -158,8 +178,14 @@ class Clock:
             self.quotes = self.get_quotes('quote_' + curr_time + '_*' + '.bmp') 
             filename = 'quote_' + curr_time + '_' + str(random.randrange(0, len(self.quotes))) + '.bmp' 
             logging.info(f'the filename for the quote being added during update: {filename}')        
-            image_quote = Image.open(os.path.join(self.picdir, filename))
-            self.quote_buffer.append(image_quote)
+            try:   
+                image_quote = Image.open(os.path.join(self.picdir, filename))
+                self.quote_buffer.append(image_quote)
+            except FileNotFoundError:
+                logging.info(f'Error! File {filename} for the time {curr_time} does not exist.')
+                self.quote_buffer.append(self.quote_buffer[0]) # add the current time back into the buffer to fill the gap
+                # this try-except solution is not the best (e.g. wont work if the first quote during init doesn't exist) but it
+                # works in the meantime until I manually go through every time and make sure none are missing.
             print('quote buffer updated, self.time is: ' + str(self.time))
         else: # minute of the hour is not 57, 58, 59
             logging.info(f"time,curr_minute,curr_hour, curr_time before adding 3 mintues:\ntime: {str(self.time)}\ncurr_minute: {curr_minute}\ncurr_hour: {curr_hour}\ncurr_time: {curr_time}")
@@ -170,8 +196,14 @@ class Clock:
             self.quotes = self.get_quotes('quote_' + curr_time + '_*' + '.bmp') 
             filename = 'quote_' + curr_time + '_' + str(random.randrange(0, len(self.quotes))) + '.bmp' 
             logging.info(f'the filename for the quote being added during update: {filename}')        
-            image_quote = Image.open(os.path.join(self.picdir, filename))
-            self.quote_buffer.append(image_quote)
+            try:   
+                image_quote = Image.open(os.path.join(self.picdir, filename))
+                self.quote_buffer.append(image_quote)
+            except FileNotFoundError:
+                logging.info(f'Error! File {filename} for the time {curr_time} does not exist.')
+                self.quote_buffer.append(self.quote_buffer[0]) # add the current time back into the buffer to fill the gap
+                # this try-except solution is not the best (e.g. wont work if the first quote during init doesn't exist) but it
+                # works in the meantime until I manually go through every time and make sure none are missing.
             print('quote buffer updated, self.time is: ' + str(self.time))
         print('buffer quote finish\n')
         return self.quote_buffer
