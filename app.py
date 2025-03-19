@@ -71,101 +71,103 @@ class Clock:
         if glob.glob(filename):  # get all quotes for the current time
             self.quotes = glob.glob(filename)    # stores all quotes for the current time; we will choose a random quote from the list
         return self.quotes
-
-    # Initializes and/or updates the buffer
-    def buffer_quotes(self) -> list:
-        logging.info('buffer_quotes called. length of quote_buffer: ' + str(len(self.quote_buffer)))
+    
+    def init_buffer(self) -> list:
+        '''
+        Initializes the buffer with the first 3 quotes
+        '''
+        logging.info('init_buffer called. Initializing quote_buffer...\n')
         self.time = self.update_time()
         curr_minute = self.get_minute()
         curr_hour = self.get_hour()
         curr_time = self.get_time(curr_hour, curr_minute)
         logging.info(f"time: {str(self.time)}\ncurr_minute: {curr_minute}\ncurr_hour: {curr_hour}\ncurr_time: {curr_time}") # prints time, curr_minute, curr_hour, and curr_time vars 
-        if len(self.quote_buffer) < 2: # we need to initialize buffer when the clock is turned on
-            logging.info('Initializing quote_buffer...\n')
-            while len(self.quote_buffer) < 3: 
-                self.quotes = self.get_quotes('quote_' + curr_time + '_*' + '.bmp') # used to find all quotes for a specific time e.g. 'quote_1510_*.bmp'
-                filename = 'quote_' + curr_time + '_' + str(random.randrange(0, len(self.quotes))) + '.bmp'
-                logging.info(f'The filename for the quote being added during intialization: {filename}\n')        
-                image_quote = Image.open(os.path.join(self.picdir, filename))
-                self.quote_buffer.append(image_quote)
-
-                # get the quotes that will be displayed one and two minutes after current quote
-                if(curr_minute == 59): # if we are on the 59th minute of the hour (e.g. 11:59)
-                    logging.info(f'It is the 59th minute of the hour, so we must update time to roll over to the next hour')
-                    logging.info(f'Before rolling over to the next hour:\ntime: {str(self.time)}\ncurr_hour:{curr_hour}\ncurr_minute: {curr_minute}')
-                    self.time = self.time.replace(minute=0,second=0, microsecond=0) + timedelta(hours=1)
-                    curr_hour = self.get_hour() # set current hour to next hour
-                    curr_minute = self.get_minute() # set current minute to next minute
-                    logging.info(f'time, curr_hour, curr_minute after rolling over to the next hour:\ntime: {str(self.time)}\ncurr_hour:{curr_hour}\ncurr_minute: {curr_minute}')
-                    print('quote_buffer initalization @ 59th minute')
-                else: # we are not on the 59 minute, so we only need to get the next minute
-                    logging.info('updating the time during initialization to get the quote for the next minute...')
-                    logging.info(f'time, curr_minute before update:\ntime: {str(self.time)}\ncurr_minute: {curr_minute}')
-                    self.time = self.time.replace(second=0) + timedelta(minutes=1)
-                    curr_minute = self.get_minute()  # set current minute to next minute
-                    logging.info(f'time, curr_minute after update:\ntime: {str(self.time)}\ncurr_minute: {curr_minute}')
-                logging.info('a quote has been added to quote_buffer.\nupdating curr_time...')
-                logging.info(f'curr_time before update: {curr_time}')
-                curr_time = self.get_time(curr_hour, curr_minute) # update the time
-                logging.info(f'curr_time after update: {curr_time}')
-            logging.info(f'quote_buffer initialized\n')
-
-        # otherwise, our buffer is already initialized, so we only need to buffer the quote that's 2 minutes ahead
-        # we do this by adding 3 minutes because the next quote to be added is 3 minutes ahead of the current quote
-        # that is being removed
-        else:
-            logging.info('updating quote_buffer...\n')
-            if curr_minute + 3 == 60: # minute of the hour is 57
-                logging.info('minute of the hour is 57. increasing hour by 1 and setting minutes to 0...')
-                self.time = self.time.replace(second=0, minute=0) + timedelta(hours=1)
-                curr_minute = self.get_minute()
-                curr_hour= self.get_hour()
-                curr_time = self.get_time(curr_hour, curr_minute)
-                logging.info(f"time,curr_minute,curr_hour, curr_time after rolling over to next hour:\ntime: {str(self.time)}\ncurr_minute: {curr_minute}\ncurr_hour: {curr_hour}\ncurr_time: {curr_time}")
-                self.quotes = self.get_quotes('quote_' + curr_time + '_*' + '.bmp') 
-                filename = 'quote_' + curr_time + '_' + str(random.randrange(0, len(self.quotes))) + '.bmp' 
-                logging.info(f'the filename for the quote being added during update: {filename}')        
-                image_quote = Image.open(os.path.join(self.picdir, filename))
-                self.quote_buffer.append(image_quote)
-                print('quote buffer updated, self.time is: ' + str(self.time))
-            elif curr_minute + 3 == 61: # minute of the hour is 58
-                logging.info('minute of the hour is 58. increasing hour by 1 and setting minutes to 1...')
-                self.time = self.time.replace(second=0, minute=1) + timedelta(hours=1)
-                curr_minute = self.get_minute()
-                curr_hour= self.get_hour()
-                curr_time = self.get_time(curr_hour, curr_minute)
-                logging.info(f"time,curr_minute,curr_hour, curr_time after rolling over to next hour:\ntime: {str(self.time)}\ncurr_minute: {curr_minute}\ncurr_hour: {curr_hour}\ncurr_time: {curr_time}")
-                self.quotes = self.get_quotes('quote_' + curr_time + '_*' + '.bmp') 
-                filename = 'quote_' + curr_time + '_' + str(random.randrange(0, len(self.quotes))) + '.bmp' 
-                logging.info(f'the filename for the quote being added during update: {filename}')        
-                image_quote = Image.open(os.path.join(self.picdir, filename))
-                self.quote_buffer.append(image_quote)
-                print('quote buffer updated, self.time is: ' + str(self.time))
-            elif curr_minute + 3 == 62: # minute of the hour is 59
-                logging.info('the minute of the hour is 59. increasing hour by 1 and setting minutes to 2...')
-                self.time = self.time.replace(second=0, minute=2) + timedelta(hours=1)
-                curr_minute = self.get_minute()
-                curr_hour= self.get_hour()
-                curr_time = self.get_time(curr_hour, curr_minute)
-                logging.info(f"time,curr_minute,curr_hour, curr_time after rolling over to next hour:\ntime: {str(self.time)}\ncurr_minute: {curr_minute}\ncurr_hour: {curr_hour}\ncurr_time: {curr_time}")
-                self.quotes = self.get_quotes('quote_' + curr_time + '_*' + '.bmp') 
-                filename = 'quote_' + curr_time + '_' + str(random.randrange(0, len(self.quotes))) + '.bmp' 
-                logging.info(f'the filename for the quote being added during update: {filename}')        
-                image_quote = Image.open(os.path.join(self.picdir, filename))
-                self.quote_buffer.append(image_quote)
-                print('quote buffer updated, self.time is: ' + str(self.time))
-            else: # minute of the hour is not 57, 58, 59
-                logging.info(f"time,curr_minute,curr_hour, curr_time before adding 3 mintues:\ntime: {str(self.time)}\ncurr_minute: {curr_minute}\ncurr_hour: {curr_hour}\ncurr_time: {curr_time}")
-                self.time = self.time.replace(second=0) + timedelta(minutes=3)
-                curr_minute = self.get_minute()
-                curr_time = self.get_time(curr_hour, curr_minute)
-                logging.info(f"time,curr_minute,curr_hour, curr_time after adding 3 mintues:\ntime: {str(self.time)}\ncurr_minute: {curr_minute}\ncurr_hour: {curr_hour}\ncurr_time: {curr_time}")
-                self.quotes = self.get_quotes('quote_' + curr_time + '_*' + '.bmp') 
-                filename = 'quote_' + curr_time + '_' + str(random.randrange(0, len(self.quotes))) + '.bmp' 
-                logging.info(f'the filename for the quote being added during update: {filename}')        
-                image_quote = Image.open(os.path.join(self.picdir, filename))
-                self.quote_buffer.append(image_quote)
-                print('quote buffer updated, self.time is: ' + str(self.time))
+        while len(self.quote_buffer) < 3: 
+            self.quotes = self.get_quotes('quote_' + curr_time + '_*' + '.bmp') # used to find all quotes for a specific time e.g. 'quote_1510_*.bmp'
+            filename = 'quote_' + curr_time + '_' + str(random.randrange(0, len(self.quotes))) + '.bmp'
+            logging.info(f'The filename for the quote being added during intialization: {filename}\n')        
+            image_quote = Image.open(os.path.join(self.picdir, filename))
+            self.quote_buffer.append(image_quote)
+            # get the quotes that will be displayed one and two minutes after current quote
+            if(curr_minute == 59): # if we are on the 59th minute of the hour (e.g. 11:59)
+                logging.info(f'It is the 59th minute of the hour, so we must update time to roll over to the next hour')
+                logging.info(f'Before rolling over to the next hour:\ntime: {str(self.time)}\ncurr_hour:{curr_hour}\ncurr_minute: {curr_minute}')
+                self.time = self.time.replace(minute=0,second=0, microsecond=0) + timedelta(hours=1)
+                curr_hour = self.get_hour() # set current hour to next hour
+                curr_minute = self.get_minute() # set current minute to next minute
+                logging.info(f'time, curr_hour, curr_minute after rolling over to the next hour:\ntime: {str(self.time)}\ncurr_hour:{curr_hour}\ncurr_minute: {curr_minute}')
+                print('quote_buffer initalization @ 59th minute')
+            else: # we are not on the 59 minute, so we only need to get the next minute
+                logging.info('updating the time during initialization to get the quote for the next minute...')
+                logging.info(f'time, curr_minute before update:\ntime: {str(self.time)}\ncurr_minute: {curr_minute}')
+                self.time = self.time.replace(second=0) + timedelta(minutes=1)
+                curr_minute = self.get_minute()  # set current minute to next minute
+                logging.info(f'time, curr_minute after update:\ntime: {str(self.time)}\ncurr_minute: {curr_minute}')
+            logging.info('a quote has been added to quote_buffer.\nupdating curr_time...')
+            logging.info(f'curr_time before update: {curr_time}')
+            curr_time = self.get_time(curr_hour, curr_minute) # update the time
+            logging.info(f'curr_time after update: {curr_time}')
+        logging.info(f'init_buffer finish.\n')
+        return self.quote_buffer
+    
+    def update_buffer(self) -> list:
+        '''
+        Our buffer is already initialized, so we only need to buffer the quote that's 2 minutes ahead  
+        we do this by adding 3 minutes because the next quote to be added is 3 minutes ahead of the current quote
+        that is being removed
+        '''
+        logging.info('updating quote_buffer...\n')
+        if curr_minute + 3 == 60: # minute of the hour is 57
+            logging.info('minute of the hour is 57. increasing hour by 1 and setting minutes to 0...')
+            self.time = self.time.replace(second=0, minute=0) + timedelta(hours=1)
+            curr_minute = self.get_minute()
+            curr_hour= self.get_hour()
+            curr_time = self.get_time(curr_hour, curr_minute)
+            logging.info(f"time,curr_minute,curr_hour, curr_time after rolling over to next hour:\ntime: {str(self.time)}\ncurr_minute: {curr_minute}\ncurr_hour: {curr_hour}\ncurr_time: {curr_time}")
+            self.quotes = self.get_quotes('quote_' + curr_time + '_*' + '.bmp') 
+            filename = 'quote_' + curr_time + '_' + str(random.randrange(0, len(self.quotes))) + '.bmp' 
+            logging.info(f'the filename for the quote being added during update: {filename}')        
+            image_quote = Image.open(os.path.join(self.picdir, filename))
+            self.quote_buffer.append(image_quote)
+            print('quote buffer updated, self.time is: ' + str(self.time))
+        elif curr_minute + 3 == 61: # minute of the hour is 58
+            logging.info('minute of the hour is 58. increasing hour by 1 and setting minutes to 1...')
+            self.time = self.time.replace(second=0, minute=1) + timedelta(hours=1)
+            curr_minute = self.get_minute()
+            curr_hour= self.get_hour()
+            curr_time = self.get_time(curr_hour, curr_minute)
+            logging.info(f"time,curr_minute,curr_hour, curr_time after rolling over to next hour:\ntime: {str(self.time)}\ncurr_minute: {curr_minute}\ncurr_hour: {curr_hour}\ncurr_time: {curr_time}")
+            self.quotes = self.get_quotes('quote_' + curr_time + '_*' + '.bmp') 
+            filename = 'quote_' + curr_time + '_' + str(random.randrange(0, len(self.quotes))) + '.bmp' 
+            logging.info(f'the filename for the quote being added during update: {filename}')        
+            image_quote = Image.open(os.path.join(self.picdir, filename))
+            self.quote_buffer.append(image_quote)
+            print('quote buffer updated, self.time is: ' + str(self.time))
+        elif curr_minute + 3 == 62: # minute of the hour is 59
+            logging.info('the minute of the hour is 59. increasing hour by 1 and setting minutes to 2...')
+            self.time = self.time.replace(second=0, minute=2) + timedelta(hours=1)
+            curr_minute = self.get_minute()
+            curr_hour= self.get_hour()
+            curr_time = self.get_time(curr_hour, curr_minute)
+            logging.info(f"time,curr_minute,curr_hour, curr_time after rolling over to next hour:\ntime: {str(self.time)}\ncurr_minute: {curr_minute}\ncurr_hour: {curr_hour}\ncurr_time: {curr_time}")
+            self.quotes = self.get_quotes('quote_' + curr_time + '_*' + '.bmp') 
+            filename = 'quote_' + curr_time + '_' + str(random.randrange(0, len(self.quotes))) + '.bmp' 
+            logging.info(f'the filename for the quote being added during update: {filename}')        
+            image_quote = Image.open(os.path.join(self.picdir, filename))
+            self.quote_buffer.append(image_quote)
+            print('quote buffer updated, self.time is: ' + str(self.time))
+        else: # minute of the hour is not 57, 58, 59
+            logging.info(f"time,curr_minute,curr_hour, curr_time before adding 3 mintues:\ntime: {str(self.time)}\ncurr_minute: {curr_minute}\ncurr_hour: {curr_hour}\ncurr_time: {curr_time}")
+            self.time = self.time.replace(second=0) + timedelta(minutes=3)
+            curr_minute = self.get_minute()
+            curr_time = self.get_time(curr_hour, curr_minute)
+            logging.info(f"time,curr_minute,curr_hour, curr_time after adding 3 mintues:\ntime: {str(self.time)}\ncurr_minute: {curr_minute}\ncurr_hour: {curr_hour}\ncurr_time: {curr_time}")
+            self.quotes = self.get_quotes('quote_' + curr_time + '_*' + '.bmp') 
+            filename = 'quote_' + curr_time + '_' + str(random.randrange(0, len(self.quotes))) + '.bmp' 
+            logging.info(f'the filename for the quote being added during update: {filename}')        
+            image_quote = Image.open(os.path.join(self.picdir, filename))
+            self.quote_buffer.append(image_quote)
+            print('quote buffer updated, self.time is: ' + str(self.time))
         print('buffer quote finish\n')
         return self.quote_buffer
 
@@ -184,14 +186,13 @@ class Clock:
         logging.info('main was called.')
         self.display_quote()                        # display the current quote
         self.quote_buffer.pop(0)                    # remove the current quote from buffer
-        # update the quote buffer AFTER the current quote processed and displayed, reducing processing time.
-        self.quote_buffer = self.buffer_quotes()    
+        self.quote_buffer = self.update_buffer()    # call AFTER the current quote is displayed to reduce processing time.
         print('main finish\n')
 
 if __name__ == '__main__':
     logging.info("Book Quote Clock\n")
     clock = Clock()
-    clock.quote_buffer = clock.buffer_quotes() # initialize the quote buffer with the first 3 quotes
+    clock.quote_buffer = clock.init_buffer() # initialize the quote buffer with the first 3 quotes
     try:
         logging.info('Initializing and clearing the screen')
         clock.epd.init() # initialize the screen
