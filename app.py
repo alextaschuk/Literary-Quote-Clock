@@ -117,6 +117,11 @@ class Clock:
         that is being removed
         '''
         logging.info('updating quote_buffer...\n')
+        self.time = self.update_time()
+        curr_minute = self.get_minute()
+        curr_hour = self.get_hour()
+        curr_time = self.get_time(curr_hour, curr_minute)
+        logging.info(f"time: {str(self.time)}\ncurr_minute: {curr_minute}\ncurr_hour: {curr_hour}\ncurr_time: {curr_time}") # prints time, curr_minute, curr_hour, and curr_time vars 
         if curr_minute + 3 == 60: # minute of the hour is 57
             logging.info('minute of the hour is 57. increasing hour by 1 and setting minutes to 0...')
             self.time = self.time.replace(second=0, minute=0) + timedelta(hours=1)
