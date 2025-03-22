@@ -238,9 +238,9 @@ if __name__ == '__main__':
         start when the rpi is plugged in and boots up.
         '''
         while True:
-            main_time = datetime.now() # get the current time
             clock.main() # display the quote and update buffer
             clock.epd.sleep # put screen to sleep to increase its lifespan
+            main_time = datetime.now() # get the current time
             if (main_time.hour == 0 or main_time.hour % 2 == 0) and main_time.min == 0:
                 clock.epd.init # Fully reinitialize the screen every two hours. This helps prevent image burn-in and increases the screen's lifespan.
             time.sleep(60 - main_time.second) # sleep until the next minute
@@ -255,3 +255,9 @@ if __name__ == '__main__':
         logging.info("clearing screen and shutting down...\n")
         epd7in5_V2.epdconfig.module_exit(cleanup=True)
         exit()
+
+
+# How to stop python systemd service cleanly: https://alexandra-zaharia.github.io/posts/stopping-python-systemd-service-cleanly/
+# systemd tutorial: https://github.com/thagrol/Guides/blob/main/boot.pdf
+# python systemd tutorial: https://github.com/torfsen/python-systemd-tutorial
+# alternative using a shell script: https://stackoverflow.com/questions/12973777/how-to-run-a-shell-script-at-startup
