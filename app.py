@@ -234,7 +234,7 @@ class Clock:
         removes it from the buffer, and updates the buffer.
         '''
         logging.info('main was called.')
-        if self.get_hour == 0 or self.get_hour % 2 == 0 and self.get_minute == 0:
+        if self.get_hour() == 0 or self.get_hour() % 2 == 0 and self.get_minute() == 0:
             logging.info('Reintialize screen every other hour.')
             self.epd.init # Fully reinitialize the screen every two hours. This helps prevent image burn-in and increases the screen's lifespan.
         self.display_quote()                        # display the current quote
