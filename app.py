@@ -66,147 +66,158 @@ class Clock:
         self.time = datetime.now()
         return self.time
                                     
-    def get_quotes(self, filename) -> list: # return all possible quotes for a given minute. helper function for buffer_quotes
+    def get_quotes(self, filename) -> list: 
+        '''
+        A helper function for buffer_quotes that returns all possible quotes for a given minute.
+        Returns a list of all filepaths for a given minute.
+        '''
         filename = 'images/' + filename
-        if glob.glob(filename):  # get all quotes for the current time
-            self.quotes = glob.glob(filename)    # stores all quotes for the current time; we will choose a random quote from the list
+        if glob.glob(filename):                 # get all quotes for the current time
+            self.quotes = glob.glob(filename)   # stores all quotes for the current time; we will choose a random quote from the list
         return self.quotes
     
     def init_buffer(self) -> list:
         '''
-        Initializes the buffer with the first 3 quotes
+        Initializes the buffer with the first 3 quotes.
+        The first element in the buffer will be the quote for the current time (e.g., 9:40)
+        The second element in the buffer will be the quote for the time in one minute (9:41)
+        The third element in the buffer will be the quote for the time in two minutes (9:42)
+
+        Returns a list of three Image objects
         '''
         logging.info('init_buffer called. Initializing quote_buffer...\n')
+
         self.time = self.update_time()
         curr_minute = self.get_minute()
         curr_hour = self.get_hour()
         curr_time = self.get_time(curr_hour, curr_minute)
-        logging.info(f"time: {str(self.time)}\ncurr_minute: {curr_minute}\ncurr_hour: {curr_hour}\ncurr_time: {curr_time}") # prints time, curr_minute, curr_hour, and curr_time vars 
+        logging.info(f"time: {str(self.time)} curr_minute: {curr_minute} curr_hour: {curr_hour} curr_time: {curr_time}")
+
         while len(self.quote_buffer) < 3: 
             self.quotes = self.get_quotes('quote_' + curr_time + '_*' + '.bmp') # used to find all quotes for a specific time e.g. 'quote_1510_*.bmp'
             filename = 'quote_' + curr_time + '_' + str(random.randrange(0, len(self.quotes))) + '.bmp'
+
+            # this try-except solution is not the best (e.g. wont work if the first quote during init doesn't exist) but it
+            # is a short-term soultion for the meantime until I manually go through every time and make sure none are missing.
             try:   
                 image_quote = Image.open(os.path.join(self.picdir, filename))
                 self.quote_buffer.append(image_quote)
             except FileNotFoundError:
                 logging.info(f'Error! File {filename} for the time {curr_time} does not exist.')
                 self.quote_buffer.append(self.quote_buffer[0]) # add the current time back into the buffer to fill the gap
-                # this try-except solution is not the best (e.g. wont work if the first quote during init doesn't exist) but it
-                # works in the meantime until I manually go through every time and make sure none are missing.
             logging.info(f'The filename for the quote being added during intialization: {filename}\n')     
+
             # get the quotes that will be displayed one and two minutes after current quote
-            if(curr_minute == 59): # if we are on the 59th minute of the hour (e.g. 11:59)
-                logging.info(f'It is the 59th minute of the hour, so we must update time to roll over to the next hour')
-                logging.info(f'Before rolling over to the next hour:\ntime: {str(self.time)}\ncurr_hour:{curr_hour}\ncurr_minute: {curr_minute}')
-                self.time = self.time.replace(minute=0,second=0, microsecond=0) + timedelta(hours=1)
+            if(curr_minute == 59): # if it's the 59th minute of the hour (e.g. 11:59)
+                self.time = self.time.replace(minute=0,second=0, microsecond=0) + timedelta(hours=1) # set the time to the next hour (e.g. 12:00)
                 curr_hour = self.get_hour() # set current hour to next hour
-                curr_minute = self.get_minute() # set current minute to next minute
-                logging.info(f'time, curr_hour, curr_minute after rolling over to the next hour:\ntime: {str(self.time)}\ncurr_hour:{curr_hour}\ncurr_minute: {curr_minute}')
-                print('quote_buffer initalization @ 59th minute')
-            else: # we are not on the 59 minute, so we only need to get the next minute
-                logging.info('updating the time during initialization to get the quote for the next minute...')
-                logging.info(f'time, curr_minute before update:\ntime: {str(self.time)}\ncurr_minute: {curr_minute}')
-                self.time = self.time.replace(second=0) + timedelta(minutes=1)
+                curr_minute = self.get_minute() # set current minute to next minute (00)
+            else: # it is not the 59 minute, so we only need the next minute
+                self.time = self.time.replace(second=0) + timedelta(minutes=1) # set the time to one minute from now
                 curr_minute = self.get_minute()  # set current minute to next minute
-                logging.info(f'time, curr_minute after update:\ntime: {str(self.time)}\ncurr_minute: {curr_minute}')
-            logging.info('a quote has been added to quote_buffer.\nupdating curr_time...')
-            logging.info(f'curr_time before update: {curr_time}')
             curr_time = self.get_time(curr_hour, curr_minute) # update the time
-            logging.info(f'curr_time after update: {curr_time}')
+
         logging.info(f'init_buffer finish.\n')
         return self.quote_buffer
     
     def update_buffer(self) -> list:
         '''
-        Our buffer is already initialized, so we only need to buffer the quote that's 2 minutes ahead  
-        we do this by adding 3 minutes because the next quote to be added is 3 minutes ahead of the current quote
-        that is being removed
+        To update the buffer, we need to add the quote that's 2 minutes ahead of the currently displayed quote.  
+        Because the next quote to be added is 3 minutes ahead of the current quote that is being removed, we 
+        add 3 minutes rather than 2 to get the new quote. Due to this logic, we need to check if the current 
+        minute is 57,58, or 59 because the hour also needs to get updated when this is the case. 
+
+        Returns an updated list of three Image objects
+        
         '''
         logging.info('updating quote_buffer...\n')
+
         self.time = self.update_time()
         curr_minute = self.get_minute()
         curr_hour = self.get_hour()
         curr_time = self.get_time(curr_hour, curr_minute)
-        logging.info(f"time: {str(self.time)}\ncurr_minute: {curr_minute}\ncurr_hour: {curr_hour}\ncurr_time: {curr_time}") # prints time, curr_minute, curr_hour, and curr_time vars 
+        logging.info(f"time: {str(self.time)} curr_minute: {curr_minute} curr_hour: {curr_hour} curr_time: {curr_time}")
+
         if curr_minute + 3 == 60: # minute of the hour is 57
-            logging.info('minute of the hour is 57. increasing hour by 1 and setting minutes to 0...')
             self.time = self.time.replace(second=0, minute=0) + timedelta(hours=1)
             curr_minute = self.get_minute()
             curr_hour= self.get_hour()
             curr_time = self.get_time(curr_hour, curr_minute)
-            logging.info(f"time,curr_minute,curr_hour, curr_time after rolling over to next hour:\ntime: {str(self.time)}\ncurr_minute: {curr_minute}\ncurr_hour: {curr_hour}\ncurr_time: {curr_time}")
+
             self.quotes = self.get_quotes('quote_' + curr_time + '_*' + '.bmp') 
             filename = 'quote_' + curr_time + '_' + str(random.randrange(0, len(self.quotes))) + '.bmp' 
-            logging.info(f'the filename for the quote being added during update: {filename}')        
+
             try:   
                 image_quote = Image.open(os.path.join(self.picdir, filename))
                 self.quote_buffer.append(image_quote)
             except FileNotFoundError:
                 logging.info(f'Error! File {filename} for the time {curr_time} does not exist.')
                 self.quote_buffer.append(self.quote_buffer[0]) # add the current time back into the buffer to fill the gap
-                # this try-except solution is not the best (e.g. wont work if the first quote during init doesn't exist) but it
-                # works in the meantime until I manually go through every time and make sure none are missing.
-            print('quote buffer updated, self.time is: ' + str(self.time))
+
+            logging.info(f'The filename for the quote being added during intialization: {filename}\n')     
+
         elif curr_minute + 3 == 61: # minute of the hour is 58
-            logging.info('minute of the hour is 58. increasing hour by 1 and setting minutes to 1...')
             self.time = self.time.replace(second=0, minute=1) + timedelta(hours=1)
             curr_minute = self.get_minute()
             curr_hour= self.get_hour()
             curr_time = self.get_time(curr_hour, curr_minute)
-            logging.info(f"time,curr_minute,curr_hour, curr_time after rolling over to next hour:\ntime: {str(self.time)}\ncurr_minute: {curr_minute}\ncurr_hour: {curr_hour}\ncurr_time: {curr_time}")
+            logging.info(f"time: {str(self.time)} curr_minute: {curr_minute} curr_hour: {curr_hour} curr_time: {curr_time}")
+
             self.quotes = self.get_quotes('quote_' + curr_time + '_*' + '.bmp') 
             filename = 'quote_' + curr_time + '_' + str(random.randrange(0, len(self.quotes))) + '.bmp' 
-            logging.info(f'the filename for the quote being added during update: {filename}')        
+
             try:   
                 image_quote = Image.open(os.path.join(self.picdir, filename))
                 self.quote_buffer.append(image_quote)
             except FileNotFoundError:
                 logging.info(f'Error! File {filename} for the time {curr_time} does not exist.')
                 self.quote_buffer.append(self.quote_buffer[0]) # add the current time back into the buffer to fill the gap
-                # this try-except solution is not the best (e.g. wont work if the first quote during init doesn't exist) but it
-                # works in the meantime until I manually go through every time and make sure none are missing.
-            print('quote buffer updated, self.time is: ' + str(self.time))
+            logging.info(f'the filename for the quote being added during update: {filename}') 
+                   
         elif curr_minute + 3 == 62: # minute of the hour is 59
-            logging.info('the minute of the hour is 59. increasing hour by 1 and setting minutes to 2...')
             self.time = self.time.replace(second=0, minute=2) + timedelta(hours=1)
             curr_minute = self.get_minute()
             curr_hour= self.get_hour()
             curr_time = self.get_time(curr_hour, curr_minute)
-            logging.info(f"time,curr_minute,curr_hour, curr_time after rolling over to next hour:\ntime: {str(self.time)}\ncurr_minute: {curr_minute}\ncurr_hour: {curr_hour}\ncurr_time: {curr_time}")
+            logging.info(f"time: {str(self.time)} curr_minute: {curr_minute} curr_hour: {curr_hour} curr_time: {curr_time}")
+            
             self.quotes = self.get_quotes('quote_' + curr_time + '_*' + '.bmp') 
             filename = 'quote_' + curr_time + '_' + str(random.randrange(0, len(self.quotes))) + '.bmp' 
-            logging.info(f'the filename for the quote being added during update: {filename}')        
+            
             try:   
                 image_quote = Image.open(os.path.join(self.picdir, filename))
                 self.quote_buffer.append(image_quote)
             except FileNotFoundError:
                 logging.info(f'Error! File {filename} for the time {curr_time} does not exist.')
                 self.quote_buffer.append(self.quote_buffer[0]) # add the current time back into the buffer to fill the gap
-                # this try-except solution is not the best (e.g. wont work if the first quote during init doesn't exist) but it
-                # works in the meantime until I manually go through every time and make sure none are missing.
-            print('quote buffer updated, self.time is: ' + str(self.time))
+            logging.info(f'the filename for the quote being added during update: {filename}')        
+
         else: # minute of the hour is not 57, 58, 59
-            logging.info(f"time,curr_minute,curr_hour, curr_time before adding 3 mintues:\ntime: {str(self.time)}\ncurr_minute: {curr_minute}\ncurr_hour: {curr_hour}\ncurr_time: {curr_time}")
             self.time = self.time.replace(second=0) + timedelta(minutes=3)
             curr_minute = self.get_minute()
             curr_time = self.get_time(curr_hour, curr_minute)
-            logging.info(f"time,curr_minute,curr_hour, curr_time after adding 3 mintues:\ntime: {str(self.time)}\ncurr_minute: {curr_minute}\ncurr_hour: {curr_hour}\ncurr_time: {curr_time}")
+            logging.info(f"time: {str(self.time)} curr_minute: {curr_minute} curr_hour: {curr_hour} curr_time: {curr_time}")
+
             self.quotes = self.get_quotes('quote_' + curr_time + '_*' + '.bmp') 
             filename = 'quote_' + curr_time + '_' + str(random.randrange(0, len(self.quotes))) + '.bmp' 
-            logging.info(f'the filename for the quote being added during update: {filename}')        
+
             try:   
                 image_quote = Image.open(os.path.join(self.picdir, filename))
                 self.quote_buffer.append(image_quote)
             except FileNotFoundError:
                 logging.info(f'Error! File {filename} for the time {curr_time} does not exist.')
                 self.quote_buffer.append(self.quote_buffer[0]) # add the current time back into the buffer to fill the gap
-                # this try-except solution is not the best (e.g. wont work if the first quote during init doesn't exist) but it
-                # works in the meantime until I manually go through every time and make sure none are missing.
-            print('quote buffer updated, self.time is: ' + str(self.time))
-        print('buffer quote finish\n')
+            logging.info(f'the filename for the quote being added during update: {filename}')        
+
+        logging.info('update_buffer finish.\n')
         return self.quote_buffer
 
     def display_quote(self):
+        '''
+        This function reads the Image object at the front of
+        the buffer and uses the epd.display() function to show
+        it on the e-ink screen.
+        '''
         try:
             logging.info('display_quote was called. Reading .bmp file from quote_buffer...')
             logging.info('the current time is: ' + str(self.time))
@@ -218,34 +229,39 @@ class Clock:
             logging.info(f'error in display_quote: {e}\n')
 
     def main(self):
+        '''
+        This function displays the current time's quote, 
+        removes it from the buffer, and updates the buffer.
+        '''
         logging.info('main was called.')
+        if self.get_hour == 0 or self.get_hour % 2 == 0 and self.get_minute == 0:
+            logging.info('Reintialize screen every other hour.')
+            self.epd.init # Fully reinitialize the screen every two hours. This helps prevent image burn-in and increases the screen's lifespan.
         self.display_quote()                        # display the current quote
         self.quote_buffer.pop(0)                    # remove the current quote from buffer
         self.quote_buffer = self.update_buffer()    # call AFTER the current quote is displayed to reduce processing time.
-        print('main finish\n')
+        print('main finish. Quote was displayed and quote_buffer was updated.\n')
 
 if __name__ == '__main__':
-    logging.info("Book Quote Clock\n")
-    clock = Clock()
-    clock.quote_buffer = clock.init_buffer() # initialize the quote buffer with the first 3 quotes
     try:
+        logging.info("Book Quote Clock\n")
+        clock = Clock()     # create clock object
+
         logging.info('Initializing and clearing the screen')
-        clock.epd.init() # initialize the screen
-        clock.epd.Clear() # clear screen
-        '''
-        We will use current_minute and next_minute to determine how long the program should sleep
-        when it is started, because it won't start exactly at the 0th second of a minute; it will 
-        start when the rpi is plugged in and boots up.
-        '''
-        while True:
+        clock.epd.init()    # initialize the screen
+        clock.epd.Clear()   # clear screen
+
+        logging.info('Displaying startup screen')
+        clock.epd.display(clock.epd.getbuffer('BookQuoteClock/images/startup.bmp')) # display a startup screen
+        time.sleep(30) # wait for the PI's system clock to update
+
+        clock.quote_buffer = clock.init_buffer() # initialize the quote buffer with the first 3 quotes
+        
+        while True: 
             clock.main() # display the quote and update buffer
             clock.epd.sleep # put screen to sleep to increase its lifespan
             main_time = datetime.now() # get the current time
-            if (main_time.hour == 0 or main_time.hour % 2 == 0) and main_time.min == 0:
-                clock.epd.init # Fully reinitialize the screen every two hours. This helps prevent image burn-in and increases the screen's lifespan.
             time.sleep(60 - main_time.second) # sleep until the next minute
-            
-            
 
     except KeyboardInterrupt as e:
         logging.info('program interrupted:')
@@ -255,9 +271,3 @@ if __name__ == '__main__':
         logging.info("clearing screen and shutting down...\n")
         epd7in5_V2.epdconfig.module_exit(cleanup=True)
         exit()
-
-
-# How to stop python systemd service cleanly: https://alexandra-zaharia.github.io/posts/stopping-python-systemd-service-cleanly/
-# systemd tutorial: https://github.com/thagrol/Guides/blob/main/boot.pdf
-# python systemd tutorial: https://github.com/torfsen/python-systemd-tutorial
-# alternative using a shell script: https://stackoverflow.com/questions/12973777/how-to-run-a-shell-script-at-startup
