@@ -9,9 +9,7 @@ import sys
 import logging
 import time
 import traceback
-import numpy as np
 from PIL import Image, ImageDraw, ImageFont
-from make_images import main
 import epd7in5_V2               # Waveshare's library for their 7.5 inch screen
 
 logging.basicConfig(level=logging.DEBUG) 
@@ -240,22 +238,15 @@ if __name__ == '__main__':
         start when the rpi is plugged in and boots up.
         '''
         while True:
-            # Every two hours, fully reinitialize the screen. This helps prevent image burn-in and increases the screen's lifespan.
-            init_time = datetime.now()
-            if init_time.hour % 2 == 0 and init_time.min == 0:
-                clock.epd.init()
-
-            clock.main()                                    # call the clock's main function
-            clock.epd.sleep()                               # put the screen to sleep once the quote is displayed to increase screen's longevity
+            main_time = datetime.now() # get the current time
+            clock.main() # display the quote and update buffer
+            clock.epd.sleep # put screen to sleep to increase its lifespan
+            if (main_time.hour == 0 or main_time.hour % 2 == 0) and main_time.min == 0:
+                clock.epd.init # Fully reinitialize the screen every two hours. This helps prevent image burn-in and increases the screen's lifespan.
+            time.sleep(60 - main_time.second) # sleep until the next minute
             
-            current_seconds = time.time()                   # get the number of seconds since the UTC epoch for the current time
-            next_minute = datetime.now(timezone.utc)        # update the clock's time again just to be safe
-            next_minute= next_minute.replace(second=0, microsecond=0) + timedelta(minutes=1) # the next minute
-            next_minute = datetime.timestamp(next_minute)   # get the number of seconds since the UTC epoch for the next minute
+            
 
-            sleep_time = int(next_minute - current_seconds) # get the difference between the two and sleep (i.e., wait until the next minute to display the next quote)
-            print("sleep for: " + str(sleep_time) + " seconds")
-            time.sleep(sleep_time)                          # sleep until next minute
     except KeyboardInterrupt as e:
         logging.info('program interrupted:')
         logging.info(e)
