@@ -252,7 +252,8 @@ if __name__ == '__main__':
         clock.epd.Clear()   # clear screen
 
         logging.info('Displaying startup screen')
-        clock.epd.display(clock.epd.getbuffer('BookQuoteClock/images/startup.bmp')) # display a startup screen
+        startup_img = Image.open(os.path.join(clock.picdir, 'startup.bmp'))
+        clock.epd.display(clock.epd.getbuffer(startup_img)) # display a startup screen
         time.sleep(30) # wait for the PI's system clock to update
 
         clock.quote_buffer = clock.init_buffer() # initialize the quote buffer with the first 3 quotes
