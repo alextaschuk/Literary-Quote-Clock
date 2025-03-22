@@ -85,7 +85,7 @@ class Clock:
 
         Returns a list of three Image objects
         '''
-        logging.info('init_buffer called. Initializing quote_buffer...\n')
+        logging.info('\ninit_buffer called. Initializing quote_buffer...')
 
         self.time = self.update_time()
         curr_minute = self.get_minute()
@@ -105,7 +105,7 @@ class Clock:
             except FileNotFoundError:
                 logging.info(f'Error! File {filename} for the time {curr_time} does not exist.')
                 self.quote_buffer.append(self.quote_buffer[0]) # add the current time back into the buffer to fill the gap
-            logging.info(f'The filename for the quote being added during intialization: {filename}\n')     
+            logging.info(f'The filename for the quote being added during intialization: {filename}')     
 
             # get the quotes that will be displayed one and two minutes after current quote
             if(curr_minute == 59): # if it's the 59th minute of the hour (e.g. 11:59)
@@ -117,7 +117,7 @@ class Clock:
                 curr_minute = self.get_minute()  # set current minute to next minute
             curr_time = self.get_time(curr_hour, curr_minute) # update the time
 
-        logging.info(f'init_buffer finish.\n')
+        logging.info(f'init_buffer finish.')
         return self.quote_buffer
     
     def update_buffer(self) -> list:
@@ -130,13 +130,13 @@ class Clock:
         Returns an updated list of three Image objects
         
         '''
-        logging.info('updating quote_buffer...\n')
+        logging.info('\nupdating quote_buffer...')
 
         self.time = self.update_time()
         curr_minute = self.get_minute()
         curr_hour = self.get_hour()
         curr_time = self.get_time(curr_hour, curr_minute)
-        logging.info(f"time: {str(self.time)} curr_minute: {curr_minute} curr_hour: {curr_hour} curr_time: {curr_time}")
+        logging.info(f"time:{str(self.time)} curr_minute:{curr_minute} curr_hour:{curr_hour} curr_time:{curr_time}")
 
         if curr_minute + 3 == 60: # minute of the hour is 57
             self.time = self.time.replace(second=0, minute=0) + timedelta(hours=1)
@@ -153,7 +153,6 @@ class Clock:
             except FileNotFoundError:
                 logging.info(f'Error! File {filename} for the time {curr_time} does not exist.')
                 self.quote_buffer.append(self.quote_buffer[0]) # add the current time back into the buffer to fill the gap
-
             logging.info(f'The filename for the quote being added during intialization: {filename}\n')     
 
         elif curr_minute + 3 == 61: # minute of the hour is 58
@@ -161,7 +160,6 @@ class Clock:
             curr_minute = self.get_minute()
             curr_hour= self.get_hour()
             curr_time = self.get_time(curr_hour, curr_minute)
-            logging.info(f"time: {str(self.time)} curr_minute: {curr_minute} curr_hour: {curr_hour} curr_time: {curr_time}")
 
             self.quotes = self.get_quotes('quote_' + curr_time + '_*' + '.bmp') 
             filename = 'quote_' + curr_time + '_' + str(random.randrange(0, len(self.quotes))) + '.bmp' 
@@ -179,7 +177,6 @@ class Clock:
             curr_minute = self.get_minute()
             curr_hour= self.get_hour()
             curr_time = self.get_time(curr_hour, curr_minute)
-            logging.info(f"time: {str(self.time)} curr_minute: {curr_minute} curr_hour: {curr_hour} curr_time: {curr_time}")
             
             self.quotes = self.get_quotes('quote_' + curr_time + '_*' + '.bmp') 
             filename = 'quote_' + curr_time + '_' + str(random.randrange(0, len(self.quotes))) + '.bmp' 
@@ -196,7 +193,6 @@ class Clock:
             self.time = self.time.replace(second=0) + timedelta(minutes=3)
             curr_minute = self.get_minute()
             curr_time = self.get_time(curr_hour, curr_minute)
-            logging.info(f"time: {str(self.time)} curr_minute: {curr_minute} curr_hour: {curr_hour} curr_time: {curr_time}")
 
             self.quotes = self.get_quotes('quote_' + curr_time + '_*' + '.bmp') 
             filename = 'quote_' + curr_time + '_' + str(random.randrange(0, len(self.quotes))) + '.bmp' 
@@ -209,7 +205,7 @@ class Clock:
                 self.quote_buffer.append(self.quote_buffer[0]) # add the current time back into the buffer to fill the gap
             logging.info(f'the filename for the quote being added during update: {filename}')        
 
-        logging.info('update_buffer finish.\n')
+        logging.info('update_buffer finish.')
         return self.quote_buffer
 
     def display_quote(self):
@@ -219,21 +215,21 @@ class Clock:
         it on the e-ink screen.
         '''
         try:
-            logging.info('display_quote was called. Reading .bmp file from quote_buffer...')
+            logging.info('\ndisplay_quote was called. Reading .bmp file from quote_buffer...')
             logging.info('the current time is: ' + str(self.time))
             quote_to_display = self.quote_buffer[0]                 # get the quote for the current time
             self.epd.init_fast()                                    # speeds up updates, according to waveshare support
             self.epd.display(self.epd.getbuffer(quote_to_display))  # display the quote
-            logging.info('display_quote finish\n')
+            logging.info('display_quote finish')
         except IOError as e:
-            logging.info(f'error in display_quote: {e}\n')
+            logging.info(f'error in display_quote: {e}')
 
     def main(self):
         '''
         This function displays the current time's quote, 
         removes it from the buffer, and updates the buffer.
         '''
-        logging.info('main was called.')
+        logging.info('\nmain was called.')
         if self.get_hour() == 0 or self.get_hour() % 2 == 0 and self.get_minute() == 0:
             logging.info('Reintialize screen every other hour.')
             self.epd.init # Fully reinitialize the screen every two hours. This helps prevent image burn-in and increases the screen's lifespan.
@@ -244,10 +240,10 @@ class Clock:
 
 if __name__ == '__main__':
     try:
-        logging.info("Book Quote Clock\n")
+        logging.info("Book Quote Clock")
         clock = Clock()     # create clock object
 
-        logging.info('Initializing and clearing the screen')
+        logging.info('\nInitializing and clearing the screen')
         clock.epd.init()    # initialize the screen
         clock.epd.Clear()   # clear screen
 
