@@ -258,7 +258,7 @@ if __name__ == '__main__':
             clock.main() # display the quote and update buffer
             clock.epd.sleep # put screen to sleep to increase its lifespan
             main_time = datetime.now() # get the current time
-            time.sleep(60 - main_time.second) # sleep until the next minute
+            time.sleep(59 - main_time.second) # sleep until the next minute
 
     except KeyboardInterrupt as e:
         logging.info('program interrupted:')
