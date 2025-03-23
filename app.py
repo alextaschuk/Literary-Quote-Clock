@@ -232,11 +232,11 @@ class Clock:
         logging.info('main was called.')
         if self.get_hour() == 0 or self.get_hour() % 2 == 0 and self.get_minute() == 0:
             logging.info('Reintialize screen every other hour.')
-            self.epd.init # Fully reinitialize the screen every two hours. This helps prevent image burn-in and increases the screen's lifespan.
+            self.epd.init # Fully reinitialize the screen every two hours. This helps prevent "ghosting" and increases the screen's lifespan.
         self.display_quote()                        # display the current quote
         self.quote_buffer.pop(0)                    # remove the current quote from buffer
         self.quote_buffer = self.update_buffer()    # call AFTER the current quote is displayed to reduce processing time.
-        print('main finish. Quote was displayed and quote_buffer was updated.\n')
+        logging.info('main finish.\n')
 
 if __name__ == '__main__':
     try:
