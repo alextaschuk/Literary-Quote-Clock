@@ -3,12 +3,12 @@ from datetime import datetime, timedelta, timezone                   # for getti
 import os
 import glob
 import random
+import signal
 
 # Libraries for displaying image on screen 
 import sys
 import logging
 import time
-import traceback
 from PIL import Image, ImageDraw, ImageFont
 import epd7in5_V2               # Waveshare's library for their 7.5 inch screen
 
@@ -206,6 +206,16 @@ class Clock:
         self.quote_buffer = self.update_buffer()    # call AFTER the current quote is displayed to reduce processing time.
         logging.info('main finish.\n')
 
+
+def signal_handler(sig, frame):
+    logging.info('sigint called.')
+    signal.signal(sig, signal.SIG_IGN) # ignore additional signals
+    clock.epd.init() # wake the screen so that it can be cleared
+    clock.epd.Clear()
+    logging.info("clearing screen and shutting down...\n")
+    epd7in5_V2.epdconfig.module_exit(cleanup=True)
+    sys.exit(0)
+
 if __name__ == '__main__':
     try:
         logging.info("Book Quote Clock")
@@ -223,10 +233,11 @@ if __name__ == '__main__':
         clock.quote_buffer = clock.init_buffer() # initialize the quote buffer with the first 3 quotes
         
         while True: 
+            signal.signal(signal.SIGINT, signal_handler)
             clock.main() # display the quote and update buffer
             clock.epd.sleep # put screen to sleep to increase its lifespan
             main_time = datetime.now() # get the current time
-            time.sleep(59 - main_time.second) # sleep until the next minute
+            time.sleep(59 - main_time.second) # sleep until the next minute (this is called 1 sec early because of processing time to show the image)
 
     except KeyboardInterrupt as e:
         logging.info('program interrupted:')
@@ -238,3 +249,4 @@ if __name__ == '__main__':
         exit()
 
 # ghosting explanation: https://electronics.stackexchange.com/questions/20276/why-does-flashing-prevent-ghosting-on-e-ink-displays
+# journalctl help: https://www.loggly.com/ultimate-guide/linux-logging-with-systemd/
