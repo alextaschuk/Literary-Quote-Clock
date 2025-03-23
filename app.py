@@ -131,80 +131,48 @@ class Clock:
         
         '''
         logging.info('updating quote_buffer...')
-
-        self.time = self.update_time()
-        curr_minute = self.get_minute()
-        curr_hour = self.get_hour()
-        curr_time = self.get_time(curr_hour, curr_minute)
-        logging.info(f"time:{str(self.time)} curr_minute:{curr_minute} curr_hour:{curr_hour} curr_time:{curr_time}")
-
-        if curr_minute + 3 == 60: # minute of the hour is 57
-            self.time = self.time.replace(second=0, minute=0) + timedelta(hours=1)
+        try:
+            self.time = self.update_time()
             curr_minute = self.get_minute()
-            curr_hour= self.get_hour()
+            curr_hour = self.get_hour()
             curr_time = self.get_time(curr_hour, curr_minute)
+            logging.info(f"time:{str(self.time)} curr_minute:{curr_minute} curr_hour:{curr_hour} curr_time:{curr_time}")
+
+            if curr_minute + 3 == 60: # minute of the hour is 57
+                self.time = self.time.replace(second=0, minute=0) + timedelta(hours=1)
+                curr_minute = self.get_minute()
+                curr_hour= self.get_hour()
+                curr_time = self.get_time(curr_hour, curr_minute)
+            
+            elif curr_minute + 3 == 61: # minute of the hour is 58
+                self.time = self.time.replace(second=0, minute=1) + timedelta(hours=1)
+                curr_minute = self.get_minute()
+                curr_hour= self.get_hour()
+                curr_time = self.get_time(curr_hour, curr_minute)
+            
+            elif curr_minute + 3 == 62: # minute of the hour is 59
+                self.time = self.time.replace(second=0, minute=2) + timedelta(hours=1)
+                curr_minute = self.get_minute()
+                curr_hour= self.get_hour()
+                curr_time = self.get_time(curr_hour, curr_minute)
+
+            else: # minute of the hour is not 57, 58, 59
+                self.time = self.time.replace(second=0) + timedelta(minutes=3)
+                curr_minute = self.get_minute()
+                curr_time = self.get_time(curr_hour, curr_minute)
 
             self.quotes = self.get_quotes('quote_' + curr_time + '_*' + '.bmp') 
             filename = 'quote_' + curr_time + '_' + str(random.randrange(0, len(self.quotes))) + '.bmp' 
 
-            try:   
-                image_quote = Image.open(os.path.join(self.picdir, filename))
-                self.quote_buffer.append(image_quote)
-            except FileNotFoundError:
-                logging.info(f'Error! File {filename} for the time {curr_time} does not exist.\n')
-                self.quote_buffer.append(self.quote_buffer[0]) # add the current time back into the buffer to fill the gap
-            logging.info(f'The filename for the quote being added during intialization: {filename}')     
+            image_quote = Image.open(os.path.join(self.picdir, filename))
+            self.quote_buffer.append(image_quote)
 
-        elif curr_minute + 3 == 61: # minute of the hour is 58
-            self.time = self.time.replace(second=0, minute=1) + timedelta(hours=1)
-            curr_minute = self.get_minute()
-            curr_hour= self.get_hour()
-            curr_time = self.get_time(curr_hour, curr_minute)
-
-            self.quotes = self.get_quotes('quote_' + curr_time + '_*' + '.bmp') 
-            filename = 'quote_' + curr_time + '_' + str(random.randrange(0, len(self.quotes))) + '.bmp' 
-
-            try:   
-                image_quote = Image.open(os.path.join(self.picdir, filename))
-                self.quote_buffer.append(image_quote)
-            except FileNotFoundError:
-                logging.info(f'Error! File {filename} for the time {curr_time} does not exist.\n')
-                self.quote_buffer.append(self.quote_buffer[0]) # add the current time back into the buffer to fill the gap
             logging.info(f'the filename for the quote being added during update: {filename}') 
-                   
-        elif curr_minute + 3 == 62: # minute of the hour is 59
-            self.time = self.time.replace(second=0, minute=2) + timedelta(hours=1)
-            curr_minute = self.get_minute()
-            curr_hour= self.get_hour()
-            curr_time = self.get_time(curr_hour, curr_minute)
-            
-            self.quotes = self.get_quotes('quote_' + curr_time + '_*' + '.bmp') 
-            filename = 'quote_' + curr_time + '_' + str(random.randrange(0, len(self.quotes))) + '.bmp' 
-            
-            try:   
-                image_quote = Image.open(os.path.join(self.picdir, filename))
-                self.quote_buffer.append(image_quote)
-            except FileNotFoundError:
-                logging.info(f'Error! File {filename} for the time {curr_time} does not exist.\n')
-                self.quote_buffer.append(self.quote_buffer[0]) # add the current time back into the buffer to fill the gap
-            logging.info(f'the filename for the quote being added during update: {filename}')        
 
-        else: # minute of the hour is not 57, 58, 59
-            self.time = self.time.replace(second=0) + timedelta(minutes=3)
-            curr_minute = self.get_minute()
-            curr_time = self.get_time(curr_hour, curr_minute)
-
-            self.quotes = self.get_quotes('quote_' + curr_time + '_*' + '.bmp') 
-            filename = 'quote_' + curr_time + '_' + str(random.randrange(0, len(self.quotes))) + '.bmp' 
-
-            try:   
-                image_quote = Image.open(os.path.join(self.picdir, filename))
-                self.quote_buffer.append(image_quote)
-            except FileNotFoundError:
-                logging.info(f'Error! File {filename} for the time {curr_time} does not exist.\n')
-                self.quote_buffer.append(self.quote_buffer[0]) # add the current time back into the buffer to fill the gap
-            logging.info(f'the filename for the quote being added during update: {filename}')        
-
+        except FileNotFoundError:
+            logging.info(f'Error! File {filename} for the time {curr_time} does not exist.\n')
+            self.quote_buffer.append(self.quote_buffer[0]) # add the current time back into the buffer to fill the gap
+        
         logging.info('update_buffer finish.\n')
         return self.quote_buffer
 
@@ -268,3 +236,5 @@ if __name__ == '__main__':
         logging.info("clearing screen and shutting down...\n")
         epd7in5_V2.epdconfig.module_exit(cleanup=True)
         exit()
+
+# ghosting explanation: https://electronics.stackexchange.com/questions/20276/why-does-flashing-prevent-ghosting-on-e-ink-displays
