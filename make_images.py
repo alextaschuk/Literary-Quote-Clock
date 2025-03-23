@@ -75,7 +75,7 @@ def TurnQuoteIntoImage(index:int, time:str, quote:str, timestring:str,
             metadata = wrap_lines(metadata, font_mdata, mdatalength - 23)
         for line in metadata.splitlines():
             mdatastart_y -= font_mdata.getbbox("A")[3] + 4
-        quoteheight = mdatastart_y - 35
+        quoteheight = mdatastart_y - 10
         mdata_y = mdatastart_y
         for line in metadata.splitlines():
             ariandel.text((mdatastart_x, mdata_y), line, time_color,
