@@ -1,6 +1,6 @@
-# BookQuoteClock
+# Literary Quote Clock
 
-Program to display the time using quotes from various books
+A project that uses a [Raspberry PI Zero 2WH](https://www.raspberrypi.com/products/raspberry-pi-zero-2-w/) and Waveshare's [7.5 inch E-ink display](https://www.waveshare.com/7.5inch-e-paper-hat.htm) to display the time using quotes from various books
 
 ## PI and SSH Info
 
