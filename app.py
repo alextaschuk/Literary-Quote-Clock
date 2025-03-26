@@ -208,6 +208,16 @@ class Clock:
 
 
 def signal_handler(sig, frame):
+    '''
+    This function listens for `SIGINT` signals from the user.
+    We use this because sending a `sudo shutdown -h now`
+    command over SSH to the PI doesn't sent a `SIGINT` signal
+    to the program, telling it to shutdown (i.e., clear the
+    screen). I'm not totally sure why `sudo shutdown -h now`
+    doesn't trigger the program's shutdown process when sent
+    over SSH, but does when sent directly from the PI, but
+    this is a workaround to the issue.
+    '''
     logging.info('sigint called.')
     signal.signal(sig, signal.SIG_IGN) # ignore additional signals
     clock.epd.init() # wake the screen so that it can be cleared
@@ -219,7 +229,7 @@ def signal_handler(sig, frame):
 if __name__ == '__main__':
     try:
         logging.info("Book Quote Clock")
-        clock = Clock()     # create clock object
+        clock = Clock()     # create Clock object
 
         logging.info('Initializing and clearing the screen')
         clock.epd.init()    # initialize the screen
@@ -247,6 +257,3 @@ if __name__ == '__main__':
         logging.info("clearing screen and shutting down...\n")
         epd7in5_V2.epdconfig.module_exit(cleanup=True)
         exit()
-
-# ghosting explanation: https://electronics.stackexchange.com/questions/20276/why-does-flashing-prevent-ghosting-on-e-ink-displays
-# journalctl help: https://www.loggly.com/ultimate-guide/linux-logging-with-systemd/
