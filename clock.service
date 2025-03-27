@@ -1,0 +1,16 @@
+# The startup script for the clock.
+# This should go into /etc/systemd/service
+
+[Unit]
+Description = Book Quote Clock
+After=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/alex/Desktop/BookQuoteClock/
+ExecStart=sudo python3 /home/alex/Desktop/BookQuoteClock/app.py
+KillSignal=SIGINT
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
