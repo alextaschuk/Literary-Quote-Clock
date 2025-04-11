@@ -191,25 +191,7 @@ class Clock:
             logging.info('display_quote finish\n')
         except IOError as e:
             logging.info(f'error in display_quote: {e}\n')
-
-    def signal_handler(sig, frame):
-        '''
-        This function listens for `SIGINT` signals from the user.
-        We use this because sending a `sudo shutdown -h now`
-        command over SSH to the PI doesn't sent a `SIGINT` signal
-        to the program, telling it to shutdown (i.e., clear the
-        screen). I'm not totally sure why `sudo shutdown -h now`
-        doesn't trigger the program's shutdown process when sent
-        over SSH, but does when sent directly from the PI, but
-        this is a workaround to the issue.
-        '''
-        logging.info('sigint called.')
-        signal.signal(sig, signal.SIG_IGN) # ignore additional signals
-        clock.epd.init() # wake the screen so that it can be cleared
-        clock.epd.Clear()
-        logging.info("clearing screen and shutting down...\n")
-        epd7in5_V2.epdconfig.module_exit(cleanup=True)
-        sys.exit(0)
+        
     def main(self):
         '''
         This function displays the current time's quote, 
@@ -223,6 +205,25 @@ class Clock:
         self.quote_buffer.pop(0)                    # remove the current quote from buffer
         self.quote_buffer = self.update_buffer()    # call AFTER the current quote is displayed to reduce processing time.
         logging.info('main finish.\n')
+
+def signal_handler(sig, frame):
+    '''
+    This function listens for `SIGINT` signals from the user.
+    We use this because sending a `sudo shutdown -h now`
+    command over SSH to the PI doesn't sent a `SIGINT` signal
+    to the program, telling it to shutdown (i.e., clear the
+    screen). I'm not totally sure why `sudo shutdown -h now`
+    doesn't trigger the program's shutdown process when sent
+    over SSH, but does when sent directly from the PI, but
+    this is a workaround to the issue.
+    '''
+    logging.info('sigint called.')
+    signal.signal(sig, signal.SIG_IGN) # ignore additional signals
+    clock.epd.init() # wake the screen so that it can be cleared
+    clock.epd.Clear()
+    logging.info("clearing screen and shutting down...\n")
+    epd7in5_V2.epdconfig.module_exit(cleanup=True)
+    sys.exit(0)
 
 if __name__ == '__main__':
     try:
