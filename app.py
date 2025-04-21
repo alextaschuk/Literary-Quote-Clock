@@ -205,7 +205,6 @@ class Clock:
             logging.info('Reintialize screen every other hour.')
             self.epd.init # Fully reinitialize the screen every two hours. This helps prevent "ghosting" and increases the screen's lifespan.
         self.display_quote()                        # display the current quote
-        self.quote_buffer[0].close()                # close the Image obj of the current quote
         self.quote_buffer.pop(0)                    # remove the current quote from buffer
         self.quote_buffer = self.update_buffer()    # call AFTER the current quote is displayed to reduce processing time.
         logging.info('main finish.\n')
