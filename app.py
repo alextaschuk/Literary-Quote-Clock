@@ -188,6 +188,7 @@ class Clock:
             quote_to_display = self.quote_buffer[0]                 # get the quote for the current time
             self.epd.init_fast()                                    # speeds up updates, according to waveshare support
             self.epd.display(self.epd.getbuffer(quote_to_display))  # display the quote
+            quote_to_display.close()
             self.epd.sleep() # put screen to sleep to increase its lifespan
             logging.info('display_quote finish\n')
         except IOError as e:
@@ -238,6 +239,7 @@ if __name__ == '__main__':
         logging.info('Displaying startup screen\n')
         startup_img = Image.open(os.path.join(clock.picdir, 'startup.bmp'))
         clock.epd.display(clock.epd.getbuffer(startup_img)) # display a startup screen
+        startup_img.close() # close the startup image
         time.sleep(30) # wait for the PI's system clock to update
 
         clock.quote_buffer = clock.init_buffer() # initialize the quote buffer with the first 3 quotes
