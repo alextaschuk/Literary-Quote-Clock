@@ -240,6 +240,7 @@ if __name__ == '__main__':
         logging.info('Displaying startup screen\n')
         startup_img = Image.open(os.path.join(clock.picdir, 'startup.bmp'))
         clock.epd.display(clock.epd.getbuffer(startup_img)) # display a startup screen
+        clock.epd.sleep() # put the screen to sleep
         startup_img.close() # close the startup image
         time.sleep(30) # wait for the PI's system clock to update
 
