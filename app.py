@@ -100,8 +100,8 @@ class Clock:
             # this try-except solution is not the best (e.g. wont work if the first quote during init doesn't exist) but it
             # is a short-term soultion for the meantime until I manually go through every time and make sure none are missing.
             try:   
-                with Image.open(os.path.join(self.picdir, filename)) as image_quote:
-                    self.quote_buffer.append(image_quote)
+                image_quote = Image.open(os.path.join(self.picdir, filename))
+                self.quote_buffer.append(image_quote)
             except FileNotFoundError:
                 logging.info(f'Error! File {filename} for the time {curr_time} does not exist.\n')
                 self.quote_buffer.append(self.quote_buffer[0]) # add the current time back into the buffer to fill the gap
@@ -164,8 +164,8 @@ class Clock:
             self.quotes = self.get_quotes('quote_' + curr_time + '_*' + '.bmp') 
             filename = 'quote_' + curr_time + '_' + str(random.randrange(0, len(self.quotes))) + '.bmp' 
 
-            with Image.open(os.path.join(self.picdir, filename)) as image_quote:
-                self.quote_buffer.append(image_quote)
+            image_quote = Image.open(os.path.join(self.picdir, filename))
+            self.quote_buffer.append(image_quote)
 
             logging.info(f'the filename for the quote being added during update: {filename}') 
 
@@ -236,9 +236,9 @@ if __name__ == '__main__':
         clock.epd.Clear()   # clear screen
 
         logging.info('Displaying startup screen\n')
-        with Image.open(os.path.join(clock.picdir, 'startup.bmp')) as startup_img:
-            clock.epd.display(clock.epd.getbuffer(startup_img)) # display a startup screen
-            time.sleep(30) # wait for the PI's system clock to update
+        startup_img = Image.open(os.path.join(clock.picdir, 'startup.bmp'))
+        clock.epd.display(clock.epd.getbuffer(startup_img)) # display a startup screen
+        time.sleep(30) # wait for the PI's system clock to update
 
         clock.quote_buffer = clock.init_buffer() # initialize the quote buffer with the first 3 quotes
         
