@@ -186,8 +186,8 @@ class Clock:
             logging.info('display_quote was called. Reading .bmp file from quote_buffer...')
             logging.info('the current time is: ' + str(self.time))
             quote_to_display = self.quote_buffer[0]                 # get the quote for the current time
-            #self.epd.init_fast()                                    # speeds up updates, according to waveshare support
-            self.epd.init()                     
+            self.epd.init_fast()                                    # speeds up updates, according to waveshare support                   
+            self.epd.Clear()
             self.epd.display(self.epd.getbuffer(quote_to_display))  # display the quote
             self.epd.sleep() # put screen to sleep to increase its lifespan
             self.quote_buffer[0].close() # close the image
