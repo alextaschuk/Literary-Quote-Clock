@@ -190,7 +190,6 @@ class Clock:
             self.epd.Clear()    # clear the screen before displaying new quote
             self.epd.display(self.epd.getbuffer(quote_to_display))  # display the quote
             self.epd.sleep() # put screen to sleep to increase its lifespan
-            self.quote_buffer[0].close() # close the image
             logging.info('display_quote finish\n')
         except IOError as e:
             logging.info(f'error in display_quote: {e}\n')
@@ -205,6 +204,7 @@ class Clock:
             logging.info('Reintialize screen every other hour.')
             self.epd.init # Fully reinitialize the screen every two hours. This helps prevent "ghosting" and increases the screen's lifespan.
         self.display_quote()                        # display the current quote
+        self.quote_buffer[0].close()                # close the Image obj of the current quote
         self.quote_buffer.pop(0)                    # remove the current quote from buffer
         self.quote_buffer = self.update_buffer()    # call AFTER the current quote is displayed to reduce processing time.
         logging.info('main finish.\n')
@@ -241,10 +241,10 @@ if __name__ == '__main__':
         startup_img = Image.open(os.path.join(clock.picdir, 'startup.bmp'))
         clock.epd.display(clock.epd.getbuffer(startup_img)) # display a startup screen
         clock.epd.sleep() # put the screen to sleep
-        startup_img.close() # close the startup image
         time.sleep(30) # wait for the PI's system clock to update
 
         clock.quote_buffer = clock.init_buffer() # initialize the quote buffer with the first 3 quotes
+        startup_img.close() # close the startup image
         
         while True: 
             signal.signal(signal.SIGINT, signal_handler)
