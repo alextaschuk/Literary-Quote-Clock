@@ -3,13 +3,12 @@
  found at https://github.com/elegantalchemist/literaryclock/blob/main/quote%20to%20image/quote_to_image.py.
 
  My modified version will generate .bmp files to be displayed on Waveshare's 7.5 inch
- E-ink display. To generate the .bmp files, I parse a folder that contains a JSON file
- for each quote, and will generate a png for each quote, then convert the images to 
- .bmp files. Some other changes (may) include the color of the image, and the font.
+ E-ink display. To generate the .bmp files, I parse a CSV file that contains the quotes
+ Some other changes include the color of the image, and the font.
 
  Things that come from elegantalchemist that I modified:
     image generation program
-    csv file with quotes- fixed (so far) one quote to inlude correct info
+    csv file with quotes
 
     I used this csv file https://github.com/JohannesNE/literature-clock/blob/master/litclock_annotated.csv 
     instead of elegantalchemist's as it seemed more refined and has more quotes.

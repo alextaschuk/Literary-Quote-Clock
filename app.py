@@ -188,6 +188,7 @@ class Clock:
             quote_to_display = self.quote_buffer[0]                 # get the quote for the current time
             self.epd.init_fast()                                    # speeds up updates, according to waveshare support
             self.epd.display(self.epd.getbuffer(quote_to_display))  # display the quote
+            self.epd.sleep() # put screen to sleep to increase its lifespan
             logging.info('display_quote finish\n')
         except IOError as e:
             logging.info(f'error in display_quote: {e}\n')
@@ -244,7 +245,6 @@ if __name__ == '__main__':
         while True: 
             signal.signal(signal.SIGINT, signal_handler)
             clock.main() # display the quote and update buffer
-            clock.epd.sleep # put screen to sleep to increase its lifespan
             main_time = datetime.now() # get the current time
             time.sleep(59 - main_time.second) # sleep until the next minute (this is called 1 sec early because of processing time to show the image)
 
