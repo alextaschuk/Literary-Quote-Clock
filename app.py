@@ -185,9 +185,13 @@ class Clock:
         try:
             logging.info('display_quote was called. Reading .bmp file from quote_buffer...')
             logging.info('the current time is: ' + str(self.time))
-            quote_to_display = self.quote_buffer[0]                 # get the quote for the current time
-            self.epd.init_fast()                                    # speeds up updates, according to waveshare support                   
-            #self.epd.Clear()    # clear the screen before displaying new quote
+            quote_to_display = self.quote_buffer[0] # get the quote for the current time
+            if (self.get_minute % 5) == 0:
+                self.epd.init()             # do a full refresh every 5 minutes
+                self.epd.Clear()            # then, clear the screen before displaying new quote
+            else:
+                self.epd.init_fast()                # speeds up updates, according to waveshare support
+
             self.epd.display(self.epd.getbuffer(quote_to_display))  # display the quote
             self.epd.sleep() # put screen to sleep to increase its lifespan
             logging.info('display_quote finish\n')
