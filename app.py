@@ -185,19 +185,13 @@ class Clock:
         try:
             logging.info('display_quote was called. Reading .bmp file from quote_buffer...')
             logging.info('the current time is: ' + str(self.time))
-            quote_to_display = self.quote_buffer[0] # get the quote for the current time
-            if (self.get_minute % 5) == 0:
-                self.epd.init()             # do a full refresh every 5 minutes
-                self.epd.Clear()            # then, clear the screen before displaying new quote
-            else:
-                self.epd.init_fast()                # speeds up updates, according to waveshare support
-
+            quote_to_display = self.quote_buffer[0]                 # get the quote for the current time
+            self.epd.init_fast()                                    # speeds up updates, according to waveshare support
             self.epd.display(self.epd.getbuffer(quote_to_display))  # display the quote
-            self.epd.sleep() # put screen to sleep to increase its lifespan
             logging.info('display_quote finish\n')
         except IOError as e:
             logging.info(f'error in display_quote: {e}\n')
-        
+
     def main(self):
         '''
         This function displays the current time's quote, 
@@ -208,10 +202,10 @@ class Clock:
             logging.info('Reintialize screen every other hour.')
             self.epd.init # Fully reinitialize the screen every two hours. This helps prevent "ghosting" and increases the screen's lifespan.
         self.display_quote()                        # display the current quote
-        self.quote_buffer[0].close()                # close the Image obj of the current quote
         self.quote_buffer.pop(0)                    # remove the current quote from buffer
         self.quote_buffer = self.update_buffer()    # call AFTER the current quote is displayed to reduce processing time.
         logging.info('main finish.\n')
+
 
 def signal_handler(sig, frame):
     '''
@@ -242,16 +236,16 @@ if __name__ == '__main__':
         clock.epd.Clear()   # clear screen
 
         logging.info('Displaying startup screen\n')
-        with Image.open(os.path.join(clock.picdir, 'startup.bmp')) as startup_img:
-            clock.epd.display(clock.epd.getbuffer(startup_img)) # display a startup screen
-        
-        clock.epd.sleep() # put the screen to sleep
+        startup_img = Image.open(os.path.join(clock.picdir, 'startup.bmp'))
+        clock.epd.display(clock.epd.getbuffer(startup_img)) # display a startup screen
         time.sleep(30) # wait for the PI's system clock to update
+
         clock.quote_buffer = clock.init_buffer() # initialize the quote buffer with the first 3 quotes
         
         while True: 
             signal.signal(signal.SIGINT, signal_handler)
             clock.main() # display the quote and update buffer
+            clock.epd.sleep # put screen to sleep to increase its lifespan
             main_time = datetime.now() # get the current time
             time.sleep(59 - main_time.second) # sleep until the next minute (this is called 1 sec early because of processing time to show the image)
 
