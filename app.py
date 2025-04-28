@@ -186,7 +186,7 @@ class Clock:
             logging.info('display_quote() called. Reading .bmp file from quote_buffer...')
             logging.info('the current time is: ' + str(self.time))
             quote_to_display = self.quote_buffer[0] # get the quote for the current time
-            if (self.get_minute % 10) == 0:
+            if (self.get_minute() % 10) == 0:
                 logging.info('10 minutes have passed. Performing full refresh on screen.')
                 self.epd.init()             # Do a full refresh every 5 minutes. This helps prevent "ghosting" and increases the screen's lifespan.
                 self.epd.Clear()            # then, clear the screen before displaying new quote
