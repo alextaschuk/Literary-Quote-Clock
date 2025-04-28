@@ -85,7 +85,7 @@ class Clock:
 
         Returns a list of three Image objects
         '''
-        logging.info('init_buffer called. Initializing quote_buffer...')
+        logging.info('init_buffer() called. Initializing quote_buffer...')
 
         self.time = self.update_time()
         curr_minute = self.get_minute()
@@ -117,7 +117,7 @@ class Clock:
                 curr_minute = self.get_minute()  # set current minute to next minute
             curr_time = self.get_time(curr_hour, curr_minute) # update the time
 
-        logging.info(f'init_buffer finish.\n')
+        logging.info(f'init_buffer() finish.\n')
         return self.quote_buffer
     
     def update_buffer(self) -> list:
@@ -130,7 +130,7 @@ class Clock:
         Returns an updated list of three Image objects
         
         '''
-        logging.info('updating quote_buffer...')
+        logging.info('update_buffer() called. Updating quote_buffer...')
         try:
             self.time = self.update_time()
             curr_minute = self.get_minute()
@@ -173,39 +173,43 @@ class Clock:
             logging.info(f'Error! File {filename} for the time {curr_time} does not exist.\n')
             self.quote_buffer.append(self.quote_buffer[0]) # add the current time back into the buffer to fill the gap
         
-        logging.info('update_buffer finish.\n')
+        logging.info('update_buffer() finish.\n')
         return self.quote_buffer
 
     def display_quote(self):
         '''
         This function reads the Image object at the front of
-        the buffer and uses the epd.display() function to show
-        it on the e-ink screen.
+        the buffer and uses epd.display() to show it on the
+        e-ink screen.
         '''
         try:
-            logging.info('display_quote was called. Reading .bmp file from quote_buffer...')
+            logging.info('display_quote() called. Reading .bmp file from quote_buffer...')
             logging.info('the current time is: ' + str(self.time))
-            quote_to_display = self.quote_buffer[0]                 # get the quote for the current time
-            self.epd.init_fast()                                    # speeds up updates, according to waveshare support
+            quote_to_display = self.quote_buffer[0] # get the quote for the current time
+            if (self.get_minute % 10) == 0:
+                logging.info('10 minutes have passed. Performing full refresh on screen.')
+                self.epd.init()             # Do a full refresh every 5 minutes. This helps prevent "ghosting" and increases the screen's lifespan.
+                self.epd.Clear()            # then, clear the screen before displaying new quote
+            else:
+                self.epd.init_fast()        # speeds up updates, according to waveshare support
+
             self.epd.display(self.epd.getbuffer(quote_to_display))  # display the quote
+            self.epd.sleep() # put screen to sleep to increase its lifespan
             logging.info('display_quote finish\n')
         except IOError as e:
             logging.info(f'error in display_quote: {e}\n')
-
+        
     def main(self):
         '''
         This function displays the current time's quote, 
         removes it from the buffer, and updates the buffer.
         '''
-        logging.info('main was called.')
-        if self.get_hour() == 0 or self.get_hour() % 2 == 0 and self.get_minute() == 0:
-            logging.info('Reintialize screen every other hour.')
-            self.epd.init # Fully reinitialize the screen every two hours. This helps prevent "ghosting" and increases the screen's lifespan.
+        logging.info('main() called.')
         self.display_quote()                        # display the current quote
+        self.quote_buffer[0].close()                # close the Image obj of the current quote
         self.quote_buffer.pop(0)                    # remove the current quote from buffer
         self.quote_buffer = self.update_buffer()    # call AFTER the current quote is displayed to reduce processing time.
-        logging.info('main finish.\n')
-
+        logging.info('main() finish.\n')
 
 def signal_handler(sig, frame):
     '''
@@ -218,11 +222,11 @@ def signal_handler(sig, frame):
     over SSH, but does when sent directly from the PI, but
     this is a workaround to the issue.
     '''
-    logging.info('sigint called.')
+    logging.info('sigint() called.')
     signal.signal(sig, signal.SIG_IGN) # ignore additional signals
     clock.epd.init() # wake the screen so that it can be cleared
     clock.epd.Clear()
-    logging.info("clearing screen and shutting down...\n")
+    logging.info("clearing screen and shutting clock down...\n")
     epd7in5_V2.epdconfig.module_exit(cleanup=True)
     sys.exit(0)
 
@@ -236,16 +240,16 @@ if __name__ == '__main__':
         clock.epd.Clear()   # clear screen
 
         logging.info('Displaying startup screen\n')
-        startup_img = Image.open(os.path.join(clock.picdir, 'startup.bmp'))
-        clock.epd.display(clock.epd.getbuffer(startup_img)) # display a startup screen
+        with Image.open(os.path.join(clock.picdir, 'startup.bmp')) as startup_img:
+            clock.epd.display(clock.epd.getbuffer(startup_img)) # display a startup screen
+        
+        clock.epd.sleep() # put the screen to sleep
         time.sleep(30) # wait for the PI's system clock to update
-
         clock.quote_buffer = clock.init_buffer() # initialize the quote buffer with the first 3 quotes
         
         while True: 
             signal.signal(signal.SIGINT, signal_handler)
             clock.main() # display the quote and update buffer
-            clock.epd.sleep # put screen to sleep to increase its lifespan
             main_time = datetime.now() # get the current time
             time.sleep(59 - main_time.second) # sleep until the next minute (this is called 1 sec early because of processing time to show the image)
 
@@ -254,6 +258,6 @@ if __name__ == '__main__':
         logging.info(e)
         clock.epd.init() # wake the screen so that it can be cleared
         clock.epd.Clear()
-        logging.info("clearing screen and shutting down...\n")
+        logging.info("clearing screen and shutting clock down...\n")
         epd7in5_V2.epdconfig.module_exit(cleanup=True)
         exit()
