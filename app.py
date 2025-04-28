@@ -186,13 +186,6 @@ class Clock:
             logging.info('display_quote() called. Reading .bmp file from quote_buffer...')
             logging.info('the current time is: ' + str(self.time))
             quote_to_display = self.quote_buffer[0] # get the quote for the current time
-            if (self.get_minute() % 10) == 0:
-                logging.info('10 minutes have passed. Performing full refresh on screen.')
-                self.epd.init()             # Do a full refresh every 5 minutes. This helps prevent "ghosting" and increases the screen's lifespan.
-                self.epd.Clear()            # then, clear the screen before displaying new quote
-            else:
-                self.epd.init_fast()        # speeds up updates, according to waveshare support
-
             self.epd.display(self.epd.getbuffer(quote_to_display))  # display the quote
             self.epd.sleep() # put screen to sleep to increase its lifespan
             logging.info('display_quote finish\n')
@@ -205,6 +198,13 @@ class Clock:
         removes it from the buffer, and updates the buffer.
         '''
         logging.info('main() called.')
+        self.time = self.update_time() # update the time
+        if (self.get_minute() % 10) == 0:
+                logging.info('10 minutes have passed. Performing full refresh on screen.')
+                self.epd.init()             # Do a full refresh every 5 minutes. This helps prevent "ghosting" and increases the screen's lifespan.
+                self.epd.Clear()            # Then, clear the screen before displaying new quote
+        else:
+                self.epd.init_fast()        # speeds up updates, according to waveshare support
         self.display_quote()                        # display the current quote
         self.quote_buffer[0].close()                # close the Image obj of the current quote
         self.quote_buffer.pop(0)                    # remove the current quote from buffer
