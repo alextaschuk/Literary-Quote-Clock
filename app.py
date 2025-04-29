@@ -198,11 +198,11 @@ class Clock:
         removes it from the buffer, and updates the buffer.
         '''
         logging.info('main() called.')
-        self.time = self.update_time() # update the time
         if (self.get_minute() % 10) == 0:
                 logging.info('10 minutes have passed. Performing full refresh on screen.')
                 self.epd.init()             # Do a full refresh every 5 minutes. This helps prevent "ghosting" and increases the screen's lifespan.
                 self.epd.Clear()            # Then, clear the screen before displaying new quote
+                self.time = self.update_time() # update the time
         else:
                 self.epd.init_fast()        # speeds up updates, according to waveshare support
         self.display_quote()                        # display the current quote
