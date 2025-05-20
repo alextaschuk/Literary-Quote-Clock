@@ -59,12 +59,11 @@ class Clock:
             hour = '0' + str(hour)
         return str(hour) + str(minute)
     
-    def update_time(self) -> datetime:
+    def update_time(self):
         '''
         Updates the object's time (an instance of datetime) variable
         ''' 
         self.time = datetime.now()
-        return self.time
                                     
     def get_quotes(self, filename) -> list: 
         '''
@@ -87,7 +86,7 @@ class Clock:
         '''
         logging.info('init_buffer() called. Initializing quote_buffer...')
 
-        self.time = self.update_time()
+        self.update_time() # update the time
         curr_minute = self.get_minute()
         curr_hour = self.get_hour()
         curr_time = self.get_time(curr_hour, curr_minute)
@@ -95,7 +94,7 @@ class Clock:
 
         while len(self.quote_buffer) < 3: 
             self.quotes = self.get_quotes('quote_' + curr_time + '_*' + '.bmp') # used to find all quotes for a specific time e.g. 'quote_1510_*.bmp'
-            filename = 'quote_' + curr_time + '_' + str(random.randrange(0, len(self.quotes))) + '.bmp'
+            filename = 'quote_' + curr_time + '_' + str(random.randrange(0, len(self.quotes))) + '.bmp' # pick 1 quote at random from the get_quotes() call
 
             # this try-except solution is not the best (e.g. wont work if the first quote during init doesn't exist) but it
             # is a short-term soultion for the meantime until I manually go through every time and make sure none are missing.
@@ -132,7 +131,7 @@ class Clock:
         '''
         logging.info('update_buffer() called. Updating quote_buffer...')
         try:
-            self.time = self.update_time()
+            self.update_time() # update the time
             curr_minute = self.get_minute()
             curr_hour = self.get_hour()
             curr_time = self.get_time(curr_hour, curr_minute)
@@ -166,6 +165,8 @@ class Clock:
 
             image_quote = Image.open(os.path.join(self.picdir, filename))
             self.quote_buffer.append(image_quote)
+            self.quote_buffer[0].close()                # close the Image obj of the current quote
+            self.quote_buffer.pop(0)                    # remove the current quote from buffer
 
             logging.info(f'the filename for the quote being added during update: {filename}') 
 
@@ -174,7 +175,6 @@ class Clock:
             self.quote_buffer.append(self.quote_buffer[0]) # add the current time back into the buffer to fill the gap
         
         logging.info('update_buffer() finish.\n')
-        return self.quote_buffer
 
     def display_quote(self):
         '''
@@ -200,15 +200,12 @@ class Clock:
         logging.info('main() called.')
         if (self.get_minute() % 10) == 0:
                 logging.info('10 minutes have passed. Performing full refresh on screen.')
-                self.epd.init()             # Do a full refresh every 5 minutes. This helps prevent "ghosting" and increases the screen's lifespan.
+                self.epd.init()             # Do a full refresh every 10 minutes. This helps prevent "ghosting" and increases the screen's lifespan.
                 self.epd.Clear()            # Then, clear the screen before displaying new quote
-                self.time = self.update_time() # update the time
         else:
                 self.epd.init_fast()        # speeds up updates, according to waveshare support
         self.display_quote()                        # display the current quote
-        self.quote_buffer[0].close()                # close the Image obj of the current quote
-        self.quote_buffer.pop(0)                    # remove the current quote from buffer
-        self.quote_buffer = self.update_buffer()    # call AFTER the current quote is displayed to reduce processing time.
+        self.update_buffer()    # call AFTER the current quote is displayed to reduce processing time.
         logging.info('main() finish.\n')
 
 def signal_handler(sig, frame):
@@ -250,8 +247,9 @@ if __name__ == '__main__':
         while True: 
             signal.signal(signal.SIGINT, signal_handler)
             clock.main() # display the quote and update buffer
-            main_time = datetime.now() # get the current time
-            time.sleep(59 - main_time.second) # sleep until the next minute (this is called 1 sec early because of processing time to show the image)
+            curr_time = datetime.now() # get the current time
+            time.sleep(59 - curr_time.second) # sleep until the next minute (this is called 1 sec early because of processing time to show the next image)
+            logging.info(f'sleeping for {59 - curr_time.second} seconds before displaying next quote.')
 
     except KeyboardInterrupt as e:
         logging.info('program interrupted:')
