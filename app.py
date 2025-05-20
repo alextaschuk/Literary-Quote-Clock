@@ -15,7 +15,6 @@ import epd7in5_V2               # Waveshare's library for their 7.5 inch screen
 logging.basicConfig(level=logging.DEBUG) 
 
 class Clock:
-    get_time: datetime
     curr_time: str
     quotes: list
     filename: str
@@ -89,7 +88,7 @@ class Clock:
         self.update_time() # update the time
         curr_minute = self.get_minute()
         curr_hour = self.get_hour()
-        curr_time = self.get_time(curr_hour, curr_minute)
+        curr_time = self.get_time(hour=curr_hour, minute=curr_minute)
         logging.info(f"time: {str(self.time)} curr_minute: {curr_minute} curr_hour: {curr_hour} curr_time: {curr_time}")
 
         while len(self.quote_buffer) < 3: 
@@ -114,7 +113,7 @@ class Clock:
             else: # it is not the 59 minute, so we only need the next minute
                 self.time = self.time.replace(second=0) + timedelta(minutes=1) # set the time to one minute from now
                 curr_minute = self.get_minute()  # set current minute to next minute
-            curr_time = self.get_time(curr_hour, curr_minute) # update the time
+            curr_time = self.get_time(hour=curr_hour, minute=curr_minute)
 
         logging.info(f'init_buffer() finish.\n')
         return self.quote_buffer
@@ -134,31 +133,31 @@ class Clock:
             self.update_time() # update the time
             curr_minute = self.get_minute()
             curr_hour = self.get_hour()
-            curr_time = self.get_time(curr_hour, curr_minute)
+            curr_time = self.get_time(hour=curr_hour, minute=curr_minute)
             logging.info(f"time:{str(self.time)} curr_minute:{curr_minute} curr_hour:{curr_hour} curr_time:{curr_time}")
 
             if curr_minute + 3 == 60: # minute of the hour is 57
                 self.time = self.time.replace(second=0, minute=0) + timedelta(hours=1)
                 curr_minute = self.get_minute()
                 curr_hour= self.get_hour()
-                curr_time = self.get_time(curr_hour, curr_minute)
+                curr_time = self.get_time(hour=curr_hour, minute=curr_minute)
             
             elif curr_minute + 3 == 61: # minute of the hour is 58
                 self.time = self.time.replace(second=0, minute=1) + timedelta(hours=1)
                 curr_minute = self.get_minute()
                 curr_hour= self.get_hour()
-                curr_time = self.get_time(curr_hour, curr_minute)
+                curr_time = self.get_time(hour=curr_hour, minute=curr_minute)
             
             elif curr_minute + 3 == 62: # minute of the hour is 59
                 self.time = self.time.replace(second=0, minute=2) + timedelta(hours=1)
                 curr_minute = self.get_minute()
                 curr_hour= self.get_hour()
-                curr_time = self.get_time(curr_hour, curr_minute)
+                curr_time = self.get_time(hour=curr_hour, minute=curr_minute)
 
             else: # minute of the hour is not 57, 58, 59
                 self.time = self.time.replace(second=0) + timedelta(minutes=3)
                 curr_minute = self.get_minute()
-                curr_time = self.get_time(curr_hour, curr_minute)
+                curr_time = self.get_time(hour=curr_hour, minute=curr_minute)
 
             self.quotes = self.get_quotes('quote_' + curr_time + '_*' + '.bmp') 
             filename = 'quote_' + curr_time + '_' + str(random.randrange(0, len(self.quotes))) + '.bmp' 
