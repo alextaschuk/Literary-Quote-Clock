@@ -58,3 +58,11 @@ Tech issues
 - At 12AM every even minute will cause a full init
 - Maybe update journalctl config to clear once a week if it will cause storage issues
 - Implement a check for if the author and book title are longer than threshold, it changes the coordinates the start at
+
+
+- Pi's localization settings need to be changed every time timezone is changed. Maybe automate this using IP?
+
+How to add a crontab that reboots the PI everyday at 4AM as a workaround for desync issues:
+
+    1. `sudo crontab -e`
+    2. `0 4 * * * /usr/sbin/reboot
