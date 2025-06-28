@@ -1,0 +1,8 @@
+times/
+images/
+venv/
+waveshareteam e-Paper master RaspberryPi_JetsonNano-python/
+.DS_STORE
+Literary-Quote-Clock.docx
+__pycache__/
+venv
