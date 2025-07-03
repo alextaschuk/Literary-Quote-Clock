@@ -168,7 +168,7 @@ def draw_quote(drawobj, anchors:tuple, text:str, substr:str,
                     chars_to_skip = [233, 8212, 8217, 8220, 8221,] #latin small letter E with acute, em dash, right single quotation mark, left double quotation mark, right double quotation mark,
                     if ord(letter) in chars_to_skip:
                         #word = word.replace(letter, "")
-                        if letter == word[0]:
+                        if letter == word[0] or letter == word[len(word) - 1]:
                             font_norm = create_fnt(quote_font, fntsize)
                             font_high = create_fnt(time_font, fntsize)
                             fntstyle_norm = (quote_color2, font_norm)
