@@ -53,6 +53,7 @@ A project that uses a [Raspberry PI Zero 2WH](https://www.raspberrypi.com/produc
 - Improve quote formatting
 - Go through CSVs, fix/improve quotes, and combine them
 - Special Messages
+- In `make_images.py`, it should check if `/images ` directory exists before starting image generation. If it doesn't, make one.
 
 Tech issues
 - At 12AM every even minute will cause a full init
