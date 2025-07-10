@@ -1,5 +1,5 @@
 '''
- This is a modified version of elegantalchemist's quote_to_image.py program. The file can be
+ This is a modified version of elegantalchemist's quote_to_image.py program. The original file can be
  found at https://github.com/elegantalchemist/literaryclock/blob/main/quote%20to%20image/quote_to_image.py.
 
  My modified version will generate .bmp files to be displayed on Waveshare's 7.5 inch
@@ -18,8 +18,11 @@
 from sys import argv, exit
 from os import path
 import csv
+csv.field_size_limit(100000000)
 from PIL import Image, ImageFont, ImageDraw
 from time import sleep
+import unicodedata
+
 
 # Stuff for read and writing files
 SCREEN_WIDTH = 800
@@ -39,9 +42,11 @@ quote_color1 = 192                              # set the color of text to light
 quote_color2 = 128                              # set the color of the text to grey (Hex equivalent is #0x808080) *color_norm
 time_color = 0                                  # bold the color of the time in the quote (Hex equivalent is #0x000000, black) *color_high
 
-quote_font = 'bookerly.ttf'                     # the font the quote will be written in *fntname_norm
-time_font = 'bookerly-bold.ttf'                  # bold version of quote_font *fntname_high
-info_font = 'bookerly-bold.ttf'                  # the font the book and Author's name will be written in *fntname_mdata
+quote_font = 'Bookerly.ttf'                     # the font the quote will be written in *fntname_norm
+italic_quote_font = 'Bookerly-Italic.ttf'       # used if word(s) in the quote are italicized
+bold_italic_quote_font = 'Bookerly-Bold-Italic.tff'  # used if the time part of quote is also italicized
+time_font = 'Bookerly-Bold.ttf'                 # bold version of quote_font (for time part of quote) *fntname_high
+info_font = 'Bookerly-Bold.ttf'                 # the font the book and Author's name will be written in *fntname_mdata
 info_fontsize = 25                              # the font size for the author/title *fntsize_mdata
 
 # don't touch
@@ -88,8 +93,7 @@ def TurnQuoteIntoImage(index:int, time:str, quote:str, timestring:str,
     font_norm = create_fnt(quote_font, fntsize)
     font_high = create_fnt(time_font, fntsize)
     try:
-        draw_quote(ariandel, (quotestart_x,quotestart_y), quote,
-                                timestring, font_norm, font_high)
+        draw_quote(drawobj=ariandel, anchors=(quotestart_x,quotestart_y), text=quote, substr=timestring, font_norm=font_norm, font_high=font_high, fntsize=fntsize)
     # warn and discard image if timestring is just not there
     except LookupError:
         print(f"WARNING: missing timestring at csv line {index+2}, skipping")
@@ -112,7 +116,7 @@ def TurnQuoteIntoImage(index:int, time:str, quote:str, timestring:str,
     sleep(0.2) # sleep for 0.2 seconds to help ensure no images get skipped
 
 def draw_quote(drawobj, anchors:tuple, text:str, substr:str,
-        font_norm:ImageFont.truetype, font_high:ImageFont.truetype):
+        font_norm:ImageFont.truetype, font_high:ImageFont.truetype, fntsize):
     # draws text with substr highlighted. doesn't check if it will fit the
     # image or anything else
     start_x = anchors[0]
@@ -140,12 +144,23 @@ def draw_quote(drawobj, anchors:tuple, text:str, substr:str,
     textlength = drawobj.textlength
     x = start_x
     y = start_y
-    # this would be a LOT simpler if we didn't have to check the edges attached
-    # to the substring. it might be easier to implement a char by char loop
-    # in the future, using the kerning calculation method in this example:
-    # https://pillow.readthedocs.io/en/stable/reference/ImageFont.html#PIL.ImageFont.FreeTypeFont.getlength
-    for line in lines.splitlines():
+
+    line_list = lines.splitlines()
+    for line in line_list:
         for word in line.split():
+            if word[0] and word[len(word) - 1] == '◻': # words that should be fully italicized are wrapped in this character
+                new_word = word.replace('◻', '')
+                word = unicodedata.normalize('NFKD', new_word) # get the base form (ASCII) version of the letter
+
+                font_norm = create_fnt(italic_quote_font, fntsize) # otherwise it's just italicized
+                fntstyle_norm = (quote_color2, font_norm)
+                current_style = fntstyle_norm
+            else:
+                font_norm = create_fnt(quote_font, fntsize) # otherwise it's just italicized
+                fntstyle_norm = (quote_color2, font_norm)
+                current_style = fntstyle_norm
+
+
             word += ' '
             # if the entire substr is one contiguous word, split the
             # non-substr bits stuck to it and print the whole thing in 3 parts
@@ -245,7 +260,7 @@ def create_fnt(name:str, size:int, layout_engine=ImageFont.Layout.BASIC):
 
 
 def main():
-    with open(csv_path, newline='\n', encoding="utf8") as csvfile:
+    with open(csv_path, newline='\n', encoding='UTF-8') as csvfile:
         jobs = len(csvfile.readlines()) - 1
         csvfile.seek(0)
         if len(argv) > 1:
@@ -256,6 +271,9 @@ def main():
             if i >= jobs:
                 break
             else:
+                #time = [[t.replace('\ufeff', '') for t in row] for row in csvfile]
+                #if '\ufeff' in row['time']:
+                #    row['time'] = row['time'].replace('\ufeff', '')
                 TurnQuoteIntoImage(i, row['time'],row['quote'],
                 row['timestring'], row['author'], row['title'])
             progressbar = f'Creating images... {i+1}/{jobs}'
