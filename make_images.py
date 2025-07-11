@@ -2,16 +2,25 @@
  This is a modified version of elegantalchemist's quote_to_image.py program. The original file can be
  found at https://github.com/elegantalchemist/literaryclock/blob/main/quote%20to%20image/quote_to_image.py.
 
+ I used this csv file https://github.com/JohannesNE/literature-clock/blob/master/litclock_annotated.csv 
+ instead of elegantalchemist's as it seemed more refined and has more quotes. I plan to combine this file 
+ with elegantalchemist's in the future to increase the number of overall quotes. 
+
  My modified version will generate .bmp files to be displayed on Waveshare's 7.5 inch
- E-ink display. To generate the .bmp files, I parse a CSV file that contains the quotes
- Some other changes include the color of the image, and the font.
+ E-ink display.
+ 
+ I ran into an issue with some of the quotes in the CSV from JohannesNE because they contain italic characters.
+ This file originally didn't have a way to detect and handle italic characters (i.e., a different font file would
+ need to be used for the italicized characters because font files can only contain one font style). My solution to
+ this is to wrap italicized words in a '◻' character (White medium square, U+25FB), since each quote is written to
+ the image word-by-word. Quotes that have the time part italicized are wrapped with a '◯' (Large circle, U+25EF)
+ character, since they'll need a font file that has bolded anditalicized characters. 
 
- Things that come from elegantalchemist that I modified:
-    image generation program
-    csv file with quotes
+ Example: "There were only four words: 𝘛𝘰𝘮𝘰𝘳𝘳𝘰𝘸 𝘮𝘰𝘳𝘯𝘪𝘯𝘨. 2 𝘰’𝘤𝘭𝘰𝘤𝘬." Now looks like this: "There were only four words: ◻𝘛𝘰𝘮𝘰𝘳𝘳𝘰𝘸◻ ◻𝘮𝘰𝘳𝘯𝘪𝘯𝘨.◻ ◯2◯ ◯𝘰’𝘤𝘭𝘰𝘤𝘬.◯"
 
-    I used this csv file https://github.com/JohannesNE/literature-clock/blob/master/litclock_annotated.csv 
-    instead of elegantalchemist's as it seemed more refined and has more quotes.
+ The one downside to this sulition is that when the quote is read word-by-word, if the italicized word is the last
+ of a sentence, it will have include the punctuation mark when it gets italicized or bolded and italicized.
+
 '''
 
 # imports for image generation
@@ -32,7 +41,7 @@ QUOTE_WIDTH = SCREEN_WIDTH                      # the width (length) of the quot
 QUOTE_HEIGHT = SCREEN_HEIGHT * .90              # the height of the quote should be 90% of the screen's height
  
 # note: I renamed some of the variables for personal preference. *{var_name} denotes the original variable names in elegantalchemist's file.
-csv_path = 'litclock_annotated.csv'             # the CSV file with all quotes, author names, etc. *csvpath
+csv_path = 'litclock_annotated2.csv'             # the CSV file with all quotes, author names, etc. *csvpath
 img_dir = 'images/'                             # which directory to save images to *imgdir
 img_ext = 'bmp'                                 # images will be in BMP format *imgformat
 include_metadata = True                         # true = include the author and book's title of the quote
@@ -42,11 +51,11 @@ quote_color1 = 192                              # set the color of text to light
 quote_color2 = 128                              # set the color of the text to grey (Hex equivalent is #0x808080) *color_norm
 time_color = 0                                  # bold the color of the time in the quote (Hex equivalent is #0x000000, black) *color_high
 
-quote_font = 'Bookerly.ttf'                     # the font the quote will be written in *fntname_norm
-italic_quote_font = 'Bookerly-Italic.ttf'       # used if word(s) in the quote are italicized
-bold_italic_quote_font = 'Bookerly-Bold-Italic.tff'  # used if the time part of quote is also italicized
-time_font = 'Bookerly-Bold.ttf'                 # bold version of quote_font (for time part of quote) *fntname_high
-info_font = 'Bookerly-Bold.ttf'                 # the font the book and Author's name will be written in *fntname_mdata
+quote_font = 'fonts/Bookerly.ttf'                     # the font the quote will be written in *fntname_norm
+italic_quote_font = 'fonts/Bookerly-Italic.ttf'       # used if word(s) in the quote are italicized
+italic_time_font = 'fonts/Bookerly-Bold-Italic.ttf'  # used if the time part of quote is also italicized
+time_font = 'fonts/Bookerly-Bold.ttf'                 # bold version of quote_font (for time part of quote) *fntname_high
+info_font = 'fonts/Bookerly-Bold.ttf'                 # the font the book and Author's name will be written in *fntname_mdata
 info_fontsize = 25                              # the font size for the author/title *fntsize_mdata
 
 # don't touch
@@ -148,18 +157,20 @@ def draw_quote(drawobj, anchors:tuple, text:str, substr:str,
     line_list = lines.splitlines()
     for line in line_list:
         for word in line.split():
-            if word[0] and word[len(word) - 1] == '◻': # words that should be fully italicized are wrapped in this character
-                new_word = word.replace('◻', '')
-                word = unicodedata.normalize('NFKD', new_word) # get the base form (ASCII) version of the letter
-
+            if '◻' in word: # words that should be fully italicized are wrapped in this character
+                word = unicodedata.normalize('NFKD', word.replace('◻', '')) # remove ◻ and get base form (ASCII/non-italic) version of the word
                 font_norm = create_fnt(italic_quote_font, fntsize) # otherwise it's just italicized
                 fntstyle_norm = (quote_color2, font_norm)
                 current_style = fntstyle_norm
-            else:
-                font_norm = create_fnt(quote_font, fntsize) # otherwise it's just italicized
+            elif '◯' in word: # words that should be fully italicized and are part of the time are wrapped in this character
+                word = unicodedata.normalize('NFKD', word.replace('◯', '')) # get the base form (ASCII) version of the letter
+                font_high= create_fnt(italic_time_font, fntsize) 
+                fntstyle_high = (time_color, font_high)
+                current_style = fntstyle_high
+            else: # otherwise the word is normal
+                font_norm = create_fnt(quote_font, fntsize)
                 fntstyle_norm = (quote_color2, font_norm)
                 current_style = fntstyle_norm
-
 
             word += ' '
             # if the entire substr is one contiguous word, split the
