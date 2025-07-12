@@ -9,25 +9,21 @@
  My modified version will generate .bmp files to be displayed on Waveshare's 7.5 inch
  E-ink display.
  
- I ran into an issue with some of the quotes in the CSV from JohannesNE because they contain italic characters.
+ I ran into an issue with some of the quotes in JohannesNE's CSV file because it contains italic characters.
  This file originally didn't have a way to detect and handle italic characters (i.e., a different font file would
  need to be used for the italicized characters because font files can only contain one font style). My solution to
  this is to wrap italicized words in a '◻' character (White medium square, U+25FB), since each quote is written to
  the image word-by-word. Quotes that have the time part italicized are wrapped with a '◯' (Large circle, U+25EF)
- character, since they'll need a font file that has bolded anditalicized characters. 
+ character, since they'll need a font file that has bolded and italicized characters. 
 
- Example: "There were only four words: 𝘛𝘰𝘮𝘰𝘳𝘳𝘰𝘸 𝘮𝘰𝘳𝘯𝘪𝘯𝘨. 2 𝘰’𝘤𝘭𝘰𝘤𝘬." Now looks like this: "There were only four words: ◻𝘛𝘰𝘮𝘰𝘳𝘳𝘰𝘸◻ ◻𝘮𝘰𝘳𝘯𝘪𝘯𝘨.◻ ◯2◯ ◯𝘰’𝘤𝘭𝘰𝘤𝘬.◯"
-
- The one downside to this sulition is that when the quote is read word-by-word, if the italicized word is the last
- of a sentence, it will have include the punctuation mark when it gets italicized or bolded and italicized.
-
+ Example: "There were only four words: 𝘛𝘰𝘮𝘰𝘳𝘳𝘰𝘸 𝘮𝘰𝘳𝘯𝘪𝘯𝘨. 2 𝘰’𝘤𝘭𝘰𝘤𝘬." Now looks like this: "There were only four words: ◻𝘛𝘰𝘮𝘰𝘳𝘳𝘰𝘸◻ ◻𝘮𝘰𝘳𝘯𝘪𝘯𝘨◻. ◯2◯ ◯𝘰’𝘤𝘭𝘰𝘤𝘬◯."
 '''
 
 # imports for image generation
 from sys import argv, exit
 from os import path
 import csv
-csv.field_size_limit(100000000)
+#csv.field_size_limit(100000000)
 from PIL import Image, ImageFont, ImageDraw
 from time import sleep
 import unicodedata
@@ -41,7 +37,7 @@ QUOTE_WIDTH = SCREEN_WIDTH                      # the width (length) of the quot
 QUOTE_HEIGHT = SCREEN_HEIGHT * .90              # the height of the quote should be 90% of the screen's height
  
 # note: I renamed some of the variables for personal preference. *{var_name} denotes the original variable names in elegantalchemist's file.
-csv_path = 'litclock_annotated2.csv'             # the CSV file with all quotes, author names, etc. *csvpath
+csv_path = 'litclock_annotated.csv'             # the CSV file with all quotes, author names, etc. *csvpath
 img_dir = 'images/'                             # which directory to save images to *imgdir
 img_ext = 'bmp'                                 # images will be in BMP format *imgformat
 include_metadata = True                         # true = include the author and book's title of the quote
@@ -145,6 +141,12 @@ def draw_quote(drawobj, anchors:tuple, text:str, substr:str,
     lines += f'{bookmark}{text[substr_starts:substr_ends]}{bookmark}'
     lines += text[substr_ends:]
 
+    font_italic = create_fnt(italic_quote_font, fntsize)
+    fntstyle_italic = (quote_color2, font_italic)
+
+    font_italic_high= create_fnt(italic_time_font, fntsize)
+    fntstyle_italic_high = (time_color, font_italic_high)
+
     fntstyle_norm = (quote_color2, font_norm)
     fntstyle_high = (time_color, font_high)
     current_style = fntstyle_norm
@@ -154,52 +156,61 @@ def draw_quote(drawobj, anchors:tuple, text:str, substr:str,
     x = start_x
     y = start_y
 
-    line_list = lines.splitlines()
-    for line in line_list:
+    for line in lines.splitlines():
         for word in line.split():
-            if '◻' in word: # words that should be fully italicized are wrapped in this character
-                word = unicodedata.normalize('NFKD', word.replace('◻', '')) # remove ◻ and get base form (ASCII/non-italic) version of the word
-                font_norm = create_fnt(italic_quote_font, fntsize) # otherwise it's just italicized
-                fntstyle_norm = (quote_color2, font_norm)
-                current_style = fntstyle_norm
-            elif '◯' in word: # words that should be fully italicized and are part of the time are wrapped in this character
-                word = unicodedata.normalize('NFKD', word.replace('◯', '')) # get the base form (ASCII) version of the letter
-                font_high= create_fnt(italic_time_font, fntsize) 
-                fntstyle_high = (time_color, font_high)
-                current_style = fntstyle_high
-            else: # otherwise the word is normal
-                font_norm = create_fnt(quote_font, fntsize)
-                fntstyle_norm = (quote_color2, font_norm)
-                current_style = fntstyle_norm
-
             word += ' '
-            # if the entire substr is one contiguous word, split the
+            # if the entire time quote substr is one contiguous word, split the
             # non-substr bits stuck to it and print the whole thing in 3 parts
-            if word.count(bookmark) == 2:
-                wordnow = word.split(bookmark)[0]
+            if word.count(bookmark) == 2: # e.g. if word == '|◯𝘰’𝘤𝘭𝘰𝘤𝘬◯.|'
+                wordnow = word.split(bookmark)[0] # word.split(bookmark) is ['', '◯𝘰’𝘤𝘭𝘰𝘤𝘬◯', '.'], so wordnow = ''
                 write((x,y), wordnow, *fntstyle_norm)
                 x += textlength(wordnow, font_norm)
-                wordnow = word.split(bookmark)[1]
-                write((x,y), wordnow, *fntstyle_high)
-                x += textlength(wordnow, font_high)
-                wordnow = word.split(bookmark)[2]
-                write((x,y), wordnow, *fntstyle_norm)
+                wordnow = word.split(bookmark)[1]  # wordnow = '◯𝘰’𝘤𝘭𝘰𝘤𝘬◯'
+                if '◯' in word: # words that should be italicized and are part of the time are wrapped in this character
+                    wordnow = unicodedata.normalize('NFKD', wordnow.replace('◯', '')) # get the base form (ASCII) version of the letter and remove '◯'
+                    write((x,y), wordnow, *fntstyle_italic_high) # wordnow = "o'clock" and we write it with italicized & highlighted font
+                    x += textlength(wordnow, font_italic_high)
+                else:
+                    write((x,y), wordnow, *fntstyle_high) # if the word is normal but part of time quote, just write it with highlighted font
+                    x += textlength(wordnow, font_high)
+                wordnow = word.split(bookmark)[2] # wordnow = '.'
+                write((x,y), wordnow, *fntstyle_norm) # write wordnow with normal font
                 x += textlength(wordnow, font_norm)
                 word = ''
             # otherwise change the default font, and wait for the next mark
+            # i.e., cases where the time quote has multiple words in it
             elif word.count(bookmark) == 1:
                 marks_found += 1
                 wordnow = word.split(bookmark)[0]
+                if '◯' in wordnow:
+                        wordnow = unicodedata.normalize('NFKD', wordnow.replace('◯', '')) 
+                        current_style = fntstyle_italic_high
                 word = word.split(bookmark)[1]
                 write((x,y), wordnow, *current_style)
                 x += textlength(wordnow, current_style[1])
                 if marks_found == 1:
-                    current_style = fntstyle_high
+                    if '◯' in word:
+                        word = unicodedata.normalize('NFKD', word.replace('◯', ''))
+                        current_style = fntstyle_italic_high                
+                    else:  
+                        current_style = fntstyle_high
                 else: # if marks == 2:
                     current_style = fntstyle_norm
             # this is the bit that actually does most of the writing
-            write((x,y), word, *current_style)
-            x += textlength(word, current_style[1])
+            if '◻' in word: # words that should be fully italicized (but NOT part of time quote) are wrapped in this character
+                wordnow = word.split('◻')[0]
+                write((x,y), wordnow, *fntstyle_norm)
+                x += textlength(wordnow, font_norm)
+                wordnow = unicodedata.normalize('NFKD', word.split('◻')[1])
+                write((x,y), wordnow, *fntstyle_italic)
+                x += textlength(wordnow, font_italic)
+                wordnow = word.split('◻')[2]
+                write((x,y), wordnow, *fntstyle_norm)
+                x += textlength(wordnow, font_norm)
+                word = ''
+            else: 
+                write((x,y), word, *current_style)
+                x += textlength(word, current_style[1])
         # the offset calculated by multiline_text (what we're trying to mimic)
         # is based on uppercase letter A plus 4 pixels for some reason.
         # See https://github.com/python-pillow/Pillow/discussions/6620
@@ -295,7 +306,6 @@ def main():
 if __name__ == '__main__':
     try:
         main()
-        sleep(60) # sleep for 1 minute to ensure all images finish processing in the background
         print("Image generation complete.")
     except KeyboardInterrupt:
         print("\nProcess interrupted.")
