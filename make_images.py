@@ -23,7 +23,6 @@
 from sys import argv, exit
 from os import path
 import csv
-#csv.field_size_limit(100000000)
 from PIL import Image, ImageFont, ImageDraw
 from time import sleep
 import unicodedata
