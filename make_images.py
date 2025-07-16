@@ -22,6 +22,7 @@
 # imports for image generation
 from sys import argv, exit
 from os import path
+import os
 import csv
 from PIL import Image, ImageFont, ImageDraw
 from time import sleep
@@ -36,7 +37,7 @@ QUOTE_WIDTH = SCREEN_WIDTH                      # the width (length) of the quot
 QUOTE_HEIGHT = SCREEN_HEIGHT * .90              # the height of the quote should be 90% of the screen's height
  
 # note: I renamed some of the variables for personal preference. *{var_name} denotes the original variable names in elegantalchemist's file.
-csv_path = 'litclock_annotated.csv'             # the CSV file with all quotes, author names, etc. *csvpath
+csv_path = 'litclock_annotated2.csv'             # the CSV file with all quotes, author names, etc. *csvpath
 img_dir = 'images/'                             # which directory to save images to *imgdir
 img_ext = 'bmp'                                 # images will be in BMP format *imgformat
 include_metadata = True                         # true = include the author and book's title of the quote
@@ -281,6 +282,12 @@ def create_fnt(name:str, size:int, layout_engine=ImageFont.Layout.BASIC):
 
 
 def main():
+    try:
+        if not path.exists(img_dir):
+            print('/images folder not found. Creating new folder...')
+            os.mkdir(img_dir)
+    except OSError:
+        print('error while trying to create /images folder')
     with open(csv_path, newline='\n', encoding='UTF-8') as csvfile:
         jobs = len(csvfile.readlines()) - 1
         csvfile.seek(0)
