@@ -37,7 +37,7 @@ QUOTE_WIDTH = SCREEN_WIDTH                      # the width (length) of the quot
 QUOTE_HEIGHT = SCREEN_HEIGHT * .90              # the height of the quote should be 90% of the screen's height
  
 # note: I renamed some of the variables for personal preference. *{var_name} denotes the original variable names in elegantalchemist's file.
-csv_path = 'litclock_annotated2.csv'             # the CSV file with all quotes, author names, etc. *csvpath
+csv_path = 'litclock_annotated.csv'             # the CSV file with all quotes, author names, etc. *csvpath
 img_dir = 'images/'                             # which directory to save images to *imgdir
 img_ext = 'bmp'                                 # images will be in BMP format *imgformat
 include_metadata = True                         # true = include the author and book's title of the quote
