@@ -11,7 +11,7 @@ This is a clock that I made using a [Raspberry PI Zero 2WH](https://www.raspberr
 - [Waveshare 7.5 inch E-ink Display & HAT](https://www.waveshare.com/7.5inch-e-paper-hat.htm)
 
 -  [Raspberry PI Zero 2WH](https://www.raspberrypi.com/products/raspberry-pi-zero-2-w/)
-    - *Note:* [Waveshare](https://www.waveshare.com/product/raspberry-pi/boards-kits/raspberry-pi-zero-2-w-cat/raspberry-pi-zero-2-w.htm?sku=21039) sells a pre-soldered PI, which is what I used
+    - *Note:* Waveshare sells a [pre-soldered PI](https://www.waveshare.com/product/raspberry-pi/boards-kits/raspberry-pi-zero-2-w-cat/raspberry-pi-zero-2-w.htm?sku=21039), which is what I used
 
 
 
