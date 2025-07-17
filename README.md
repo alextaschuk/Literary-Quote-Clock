@@ -19,7 +19,7 @@ This is a clock that I made using a [Raspberry PI Zero 2WH](https://www.raspberr
 
 3. Initialize a venv with `python3 -m venv venv`, activate it with `source venv/bin/activate`, then install necessary packages with `pip install -r requirements.txt`.
 
-3. Run [`make_images.py`](make_images.py) to generate all of the `.bmp` images that will be used to display the time. The images will be located in an [`/images`](/images) folder.
+3. Run [`make_images.py`](make_images.py) to generate all of the `.bmp` images that will be used to display the time. The images will be located in the [`/images`](/images) folder.
 
 4. In the [`clock.service`](\clock.service) script, modify the `WorkingDirectory` variable to store the path to the cloned repo and the `ExecStart` variable to store the path to `app.py` in the cloned repo. Then, move the file to `/etc/systemd/service`.
 
