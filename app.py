@@ -237,8 +237,8 @@ if __name__ == '__main__':
 
         logging.info('Displaying startup screen\n')
         try:
-            #with Image.open(os.path.join(clock.picdir, 'startup.bmp')) as startup_img: # use this is startup.bmp is in /images
-            with Image.open('startup.bmp') as startup_img:
+            with Image.open(os.path.join(clock.picdir, 'startup.bmp')) as startup_img: # use this if startup.bmp is in /images
+            #with Image.open('startup.bmp') as startup_img: # use this if startup.bmp is in root dir
                 clock.epd.display(clock.epd.getbuffer(startup_img)) # display a startup screen
         except FileNotFoundError:
             print('error startup.bmp image not found')
