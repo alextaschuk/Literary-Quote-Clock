@@ -2,21 +2,8 @@
  This is a modified version of elegantalchemist's quote_to_image.py program. The original file can be
  found at https://github.com/elegantalchemist/literaryclock/blob/main/quote%20to%20image/quote_to_image.py.
 
- I used this csv file https://github.com/JohannesNE/literature-clock/blob/master/litclock_annotated.csv 
- instead of elegantalchemist's as it seemed more refined and has more quotes. I plan to combine this file 
- with elegantalchemist's in the future to increase the number of overall quotes. 
-
- My modified version will generate .bmp files to be displayed on Waveshare's 7.5 inch
- E-ink display.
- 
- I ran into an issue with some of the quotes in JohannesNE's CSV file because it contains italic characters.
- This file originally didn't have a way to detect and handle italic characters (i.e., a different font file would
- need to be used for the italicized characters because font files can only contain one font style). My solution to
- this is to wrap italicized words in a '◻' character (White medium square, U+25FB), since each quote is written to
- the image word-by-word. Quotes that have the time part italicized are wrapped with a '◯' (Large circle, U+25EF)
- character, since they'll need a font file that has bolded and italicized characters. 
-
- Example: "There were only four words: 𝘛𝘰𝘮𝘰𝘳𝘳𝘰𝘸 𝘮𝘰𝘳𝘯𝘪𝘯𝘨. 2 𝘰’𝘤𝘭𝘰𝘤𝘬." Now looks like this: "There were only four words: ◻𝘛𝘰𝘮𝘰𝘳𝘳𝘰𝘸◻ ◻𝘮𝘰𝘳𝘯𝘪𝘯𝘨◻. ◯2◯ ◯𝘰’𝘤𝘭𝘰𝘤𝘬◯."
+ This program is used to generate .bmp images that will be displayed to the e-ink screen. It will automatically
+ put the generated files into the /images folder in this project's root directory.
 '''
 
 # imports for image generation
