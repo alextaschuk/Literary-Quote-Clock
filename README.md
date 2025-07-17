@@ -25,7 +25,7 @@ I made a clock that displays the time using quotes from various books using a [R
 
 3. Run [`make_images.py`](make_images.py) to generate all of the `.bmp` images that will be used to display the time. The images will be located in the [`/images`](/images) folder.
 
-4. In the [`clock.service`](\clock.service) script, modify the `WorkingDirectory` variable to store the path to the cloned repo and the `ExecStart` variable to store the path to `app.py` in the cloned repo. Then, move the file to `/etc/systemd/service`.
+4. In the [`clock.service`](\clock.service) script, modify the `WorkingDirectory` variable to store the path to the cloned repo and the `ExecStart` variable to store the path to `clock.py` in the cloned repo. Then, move the file to `/etc/systemd/service`.
 
 5. Run `sudo systemctl restart clock.service` to start the clock. The script will now automatically start the clock any time that the PI is turned on.
 
@@ -45,19 +45,19 @@ I made a clock that displays the time using quotes from various books using a [R
 
 ## How the Clock Works
 
-All of the clock's logic lies in `app.py`. There are three stages that the clock runs in- the initialization stage, the display & update stage, and the "in-between" stage.
+All of the clock's logic lies in `clock.py`. There are three stages that the clock runs in- the initialization stage, the display & update stage, and the "in-between" stage.
 
 ### The Intialization Stage
 
-This stage only occurs once when the clock is plugged in. This project was actually a gift to my girlfriend for her birthday, and I wanted it to be as plug-and-place as possible. During this stage [`clock.service`](\clock.service), a systemd unit configuration file that runs once the PI has an internet connection, starts the clock by running [`app.py`](/app.py). When [`app.py`](/app.py) is first ran, it will clear the screen and perform a full initialization to remove any ghosted pixels. 
+This stage only occurs once when the clock is plugged in. This project was actually a gift to my girlfriend for her birthday, and I wanted it to be as plug-and-place as possible. During this stage [`clock.service`](\clock.service), a systemd unit configuration file that runs once the PI has an internet connection, starts the clock by running [`clock.py`](/clock.py). When [`clock.py`](/clock.py) is first ran, it will clear the screen and perform a full initialization to remove any ghosted pixels. 
 Though the PI has an internet connection at this point, it still takes about 30 seconds to update its internal clock. In the meantime, [`startup.bmp`](startup.bmp) is displayed.
 
 After 30 seconds has passed, the clock's quote buffer is initialized. Because it may take a second or two for the program to read, process, and display the image file a buffer is used to store the current and next two quotes to display. It is a list that contains three elements- the first is the Image obj for the current time's quote, the second is the Image obj for the next minute's quote, and the third is the Img obj of the quote two minutes ahead of the current quote. 
 
 ### The Display & Update Stage
-This stage occurs once every minute; most of the magic happens here. Two events make up this stage- The first is displaying a quote and the second is updating the quote buffer. At the 59th second of a minute (it takes ~1 second for the screen to update) [`display_quote()`](/app.py#L178) is called, which displays the Image obj at index 0 of the quote buffer. Then, [`update_buffer()`](/app.py#L121) is called, which appends the Image obj for the quote that is two minutes ahead of the Image at index 1 of the buffer.
+This stage occurs once every minute; most of the magic happens here. Two events make up this stage- The first is displaying a quote and the second is updating the quote buffer. At the 59th second of a minute (it takes ~1 second for the screen to update) [`display_quote()`](/clock.py#L178) is called, which displays the Image obj at index 0 of the quote buffer. Then, [`update_buffer()`](/clock.py#L121) is called, which appends the Image obj for the quote that is two minutes ahead of the Image at index 1 of the buffer.
 
-- Example: The current time is 13:31. The buffer looks like this: `[13_32_Img, 13_33_Img, 13_34_Img]` At 13:31:59, call [`display_quote()`](/app.py#L178) to display the quote for 13:32. Then, `13_35_Img` is appended to the buffer and `13_32_Img` is removed, resulting in the buffer looking like this: `[13_33_Img, 13_34_Img, 13_35_Img]`.
+- Example: The current time is 13:31. The buffer looks like this: `[13_32_Img, 13_33_Img, 13_34_Img]` At 13:31:59, call [`display_quote()`](/clock.py#L178) to display the quote for 13:32. Then, `13_35_Img` is appended to the buffer and `13_32_Img` is removed, resulting in the buffer looking like this: `[13_33_Img, 13_34_Img, 13_35_Img]`.
 
 ### The "In-Between" Stage
 
@@ -97,6 +97,8 @@ The biggest modification I made is to handle italic characters. JohannesNE's CSV
 
 ****
 personal todo notes and other stuff ignore plz
+
+- dont forget to pull changes then modify clock.service from app.py to clock.py
 
 ## PI and SSH Info
 
