@@ -17,11 +17,11 @@ This is a clock that I made using a [Raspberry PI Zero 2WH](https://www.raspberr
 
 2. After you have verified that the screen is working via Waveshare's demo, clone this repository to the PI.
 
-3. Initialize a venv with `python3 -m venv venv`, activate the venv with `source venv/bin/activate`, then install necessary packages with `pip install -r requirements.txt`.
+3. Initialize a venv with `python3 -m venv venv`, activate it with `source venv/bin/activate`, then install necessary packages with `pip install -r requirements.txt`.
 
-3. Run [`make_images.py`](make_images.py) to generate all of the `.bmp` images that will be used to display the time. The images will be located in a [`/images`](/images) folder.
+3. Run [`make_images.py`](make_images.py) to generate all of the `.bmp` images that will be used to display the time. The images will be located in an [`/images`](/images) folder.
 
-4. Modify the [`clock.service`](\clock.service) script's `WorkingDirectory` variable to store the path to the cloned repo and the `ExecStart` variable to store the path to `app.py` in the cloned repo. Then, move the file to `/etc/systemd/service`.
+4. In the [`clock.service`](\clock.service) script, modify the `WorkingDirectory` variable to store the path to the cloned repo and the `ExecStart` variable to store the path to `app.py` in the cloned repo. Then, move the file to `/etc/systemd/service`.
 
 5. Run `sudo systemctl restart clock.service` to start the clock. The script will now automatically start the clock any time that the PI is turned on.
 
@@ -53,7 +53,7 @@ After 30 seconds has passed, the clock's quote buffer is initialized. Because it
 ### The Display & Update Stage
 This stage occurs once every minute; most of the magic happens here. Two events make up this stage- The first is displaying a quote and the second is updating the quote buffer. At the 59th second of a minute (it takes ~1 second for the screen to update) [`display_quote()`](/app.py#L178) is called, which displays the Image obj at index 0 of the quote buffer. Then, [`update_buffer()`](/app.py#L121) is called, which appends the Image obj for the quote that is two minutes ahead of the Image at index 1 of the buffer.
 
-- Example: The current time is 13:31. The buffer looks like this: `[13_32_Img, 13_33_Img, 13_34_Img]` At 13:31:59, call `display_quote()` to display the quote for 13:32. Then, `13_35_Img` is appended to the buffer and `13_32_Img` is removed, resulting in the buffer looking like this: `[13_33_Img, 13_34_Img, 13_35_Img]`.
+- Example: The current time is 13:31. The buffer looks like this: `[13_32_Img, 13_33_Img, 13_34_Img]` At 13:31:59, call [`display_quote()`](/app.py#L178) to display the quote for 13:32. Then, `13_35_Img` is appended to the buffer and `13_32_Img` is removed, resulting in the buffer looking like this: `[13_33_Img, 13_34_Img, 13_35_Img]`.
 
 ### The "In-Between" Stage
 
@@ -62,15 +62,15 @@ This stage involved everything that happens in the time between a quote being di
 
 ## Other Notes
 
-- The Raspberry Pi Zero 2W cannot connect to a 5 Ghz WiF channel; it only works with 2.4 GHz. So, if your router is running both channels on the same SSID, you have two options:
+- The Raspberry Pi Zero 2W cannot connect to a 5 Ghz WiF channel; it only works with 2.4 GHz. If you have issues connecting try the following to troubleshoot:
     1. Log into your modem and temporarily disable the 5 GHz channel, allowing the PI to connect only to the 2.4 GHz channel. After it connects, you can re-enable the 5 GHz channel.
-        - *Note: You will not have to do this every time you turn the PI on. Once it connects to your WiFi on the 2.4 GHz channel for the first time, it will do so automatically every time moving forward.*
+        - *Note: You shouldn't have to do this every time you turn the PI on. Once it connects to your WiFi on the 2.4 GHz channel for the first time, it should do so automatically every time moving forward.*
     2. Rename the 2.4 GHz channel to have a different SSID.
         - E.g. `SSID-Name-2_4GHz`
 
-- Waveshare also has some helpful [documentation](https://www.waveshare.com/wiki/E-Paper_API_Analysis#Python) on other functions and things that can be done on the screen (separate from their config guide above).
+- Waveshare has some additional helpful [documentation](https://www.waveshare.com/wiki/E-Paper_API_Analysis#Python) on other functions and things that can be done on the screen (separate from their config guide above).
 
-- If the you take the clock into a new timezone, the PI's localization settings need to be changed manually.
+- If the you take the clock into a new timezone, the PI's localization settings need to be changed manually. Otherwise the clock won't display the correct time.
     - Maybe there's a way to read PI's IP address when it connects to WiFi and update the setting if its timezone is different?
 
 ## Credits
