@@ -157,3 +157,43 @@ How to add a crontab that reboots the PI everyday at 4AM as a workaround for des
 
     1. `sudo crontab -e`
     2. `0 4 * * * /usr/sbin/reboot
+
+
+Look into issue: If timestring is italicized and has 3+ words (example: ◯Eight◯ ◯oh◯ ◯two◯), the middle word(s) aren't identified as word to write with italicized & bolded font, so the '◯' character
+isnt removed from the substring.
+    - Currently, the quotes for 8:02AM & 8:02AM are broken b/c of this... possibly more tho
+    - use '⭐' as newline delimiter... for fun
+
+`13:32|one ... thirty-two|“At the third stroke it will be one ... thirty-two ... and twenty seconds.” ⭐“Beep ... beep ... beep.” ⭐Ford Prefect suppressed a little giggle of evil satisfaction, realized that he had no reason to suppress it, and laughed out loud, a wicked laugh.|So Long, and Thanks for All the Fish|Douglas Adams|unknown`
+
+should print as:
+``` txt
+“At the third stroke it will be one ... thirty-two ... and twenty seconds.”
+
+⭐“Beep ... beep ... beep.”
+
+⭐Ford Prefect suppressed a little giggle of evil satisfaction, realized that he had no reason to suppress it, and laughed out loud, a wicked laugh.
+```
+Possible unicode characters to use for delimiting things:
+⭐  ╱   ♜  ♞  ⚡  ⛏  ⭕  𝌉   🂱   🅱   🆒   🐄  📖  🙼   🟨  🟧  🤍
+
+Maybe also look into indenting quotes as well. For example:
+
+`13:59|One ... fifty-nine|For twenty minutes he sat and watched as the gap between the ship and Epun closed, as the ship's computer teased and kneaded the numbers that would bring it into a loop around the little moon, and close the loop and keep it there, orbiting in perpetual obscurity. ⭐"One ... fifty-nine ..."|So Long, and Thanks for All the Fish|Douglas Adams|unknown`
+
+should print as:
+
+``` txt
+‎ ‎ ‎ ‎For twenty minutes he sat and watched as the gap between the ship and Epun closed, as the ship's computer teased and kneaded the numbers that would bring it into a loop around the little moon, and close the loop and keep it there, orbiting in perpetual obscurity. 
+
+⭐"One ... fifty-nine ..."
+```
+
+New edge case for italics-- part of the word should be italicized, but not all of it. I think it'd only be an issue in possessive cases. 
+
+For example, the direct quote is : "Each morning, over eggs and kippers, he peruses the *Times*'s personal notices."
+
+With the current implementation, *Times*'s would be ◻Times◻'s, but this doesnt work, so the quote would be skipped. 
+    - One solution is ◻Times's◻ but I dont like it.
+    - Find proper solution.
+
