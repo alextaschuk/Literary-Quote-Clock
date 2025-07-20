@@ -98,6 +98,10 @@ The biggest modification I made is to handle italic characters. JohannesNE's CSV
 ****
 personal todo notes and other stuff ignore plz
 
+Quick-access characters for copy & pasting
+
+`◻`     `◯`     `—` (em dash)   ⭐    `…` (ellipsis)
+
 - dont forget to pull changes then modify clock.service from app.py to clock.py
 
 ## PI and SSH Info
