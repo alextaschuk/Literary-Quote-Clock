@@ -21,7 +21,7 @@ SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 480
 
 QUOTE_WIDTH = SCREEN_WIDTH                      # the width (length) of the quote should be 100% of the screen's width
-QUOTE_HEIGHT = SCREEN_HEIGHT * .90              # the height of the quote should be 90% of the screen's height
+QUOTE_HEIGHT = SCREEN_HEIGHT             # the height of the quote should be 90% of the screen's height
  
 # note: I renamed some of the variables for personal preference. *{var_name} denotes the original variable names in elegantalchemist's file.
 csv_path = 'litclock_annotated.csv'             # the CSV file with all quotes, author names, etc. *csvpath
@@ -53,7 +53,7 @@ def TurnQuoteIntoImage(index:int, time:str, quote:str, timestring:str,
     quotelength = QUOTE_WIDTH       # How far left-to-right the quote spans
     quotestart_y = 00               # Y coordinate where the quote begins
     quotestart_x = 10               # X coordinate where the quote begins
-    mdatalength = 341               # To help with text wrapping
+    mdatalength = 341               # To help with text wrapping -- bigger value = longer horizontal metadata text
     mdatastart_y = 480              # Y coordinate where the author and title text begins
     mdatastart_x = 785              # X coordinate where the author and title text begins
 
@@ -64,14 +64,14 @@ def TurnQuoteIntoImage(index:int, time:str, quote:str, timestring:str,
     # draw the title and author name
     if include_metadata:
         font_mdata = create_fnt(info_font, info_fontsize)
-        metadata = f'—{title.strip()}, {author.strip()}'
+        metadata = f'—{title.strip()}, {author.strip()}' # e.g. '—Dune, Frank Herbert
         # wrap lines into a reasonable length and lower the maximum height the
         # quote can occupy according to the number of lines the credits use
-        if font_mdata.getlength(metadata) > mdatalength:
+        if font_mdata.getlength(metadata) > mdatalength: # e.g. getlength(metadata) = 282.0 for '—Dune, Frank Herbert'
             metadata = wrap_lines(metadata, font_mdata, mdatalength - 23)
         for line in metadata.splitlines():
             mdatastart_y -= font_mdata.getbbox("A")[3] + 4
-        quoteheight = mdatastart_y - 10
+        quoteheight = mdatastart_y - 5
         mdata_y = mdatastart_y
         for line in metadata.splitlines():
             ariandel.text((mdatastart_x, mdata_y), line, time_color,
@@ -121,6 +121,7 @@ def draw_quote(drawobj, anchors:tuple, text:str, substr:str,
     try:
         substr_starts = flattened.lower().index(substr.lower())
     except ValueError:
+        print('Error at: ' + flattened)
         raise LookupError
     substr_ends = substr_starts + len(substr)
     bookmark = '|'
@@ -146,6 +147,9 @@ def draw_quote(drawobj, anchors:tuple, text:str, substr:str,
     for line in lines.splitlines():
         for word in line.split():
             word += ' '
+            if '⭕' in word:
+                word = word.replace('⭕', '')
+                word = '    ' + word
             # if the entire time quote substr is one contiguous word, split the
             # non-substr bits stuck to it and print the whole thing in 3 parts
             if word.count(bookmark) == 2: # e.g. if word == '|◯𝘰’𝘤𝘭𝘰𝘤𝘬◯.|'
@@ -171,19 +175,18 @@ def draw_quote(drawobj, anchors:tuple, text:str, substr:str,
                 wordnow = word.split(bookmark)[0]
                 if '◯' in wordnow:
                         wordnow = unicodedata.normalize('NFKD', wordnow.replace('◯', '')) 
-                        current_style = fntstyle_italic_high
+                        current_style = fntstyle_italic_high # bold & italicized font
                 word = word.split(bookmark)[1]
                 write((x,y), wordnow, *current_style)
                 x += textlength(wordnow, current_style[1])
                 if marks_found == 1:
                     if '◯' in word:
                         word = unicodedata.normalize('NFKD', word.replace('◯', ''))
-                        current_style = fntstyle_italic_high                
+                        current_style = fntstyle_italic_high # bold & italicized font            
                     else:  
-                        current_style = fntstyle_high
+                        current_style = fntstyle_high # bold font
                 else: # if marks == 2:
-                    current_style = fntstyle_norm
-            # this is the bit that actually does most of the writing
+                    current_style = fntstyle_norm # normal font
             if '◻' in word: # words that should be fully italicized (but NOT part of time quote) are wrapped in this character
                 wordnow = word.split('◻')[0]
                 write((x,y), wordnow, *fntstyle_norm)
@@ -213,10 +216,17 @@ def wrap_lines(text:str, font:ImageFont.truetype, line_length:int):
         lines = ['']
         for word in text.split():
             line = f'{lines[-1]} {word}'.strip()
-            if font.getlength(line) <= line_length:
+            fontlen = font.getlength(line)
+            #if font.getlength(line) <= line_length:
+            if '⭐' in word:
+                lines.append("")
+                word = word.replace('⭐', '')
+                lines.append(word)
+            elif fontlen <= line_length:
                 lines[-1] = line
             else:
                 lines.append(word)
+  
         return '\n'.join(lines)
 
 
@@ -276,10 +286,13 @@ def main():
     except OSError:
         print('error while trying to create /images folder')
     with open(csv_path, newline='\n', encoding='UTF-8') as csvfile:
-        jobs = len(csvfile.readlines()) - 1
-        csvfile.seek(0)
+        jobs = len(csvfile.readlines()) - 1 # number of quotes in CSV file
+        csvfile.seek(0) # move file cursor to start of file
         if len(argv) > 1:
+            print(len(argv))
             if argv[1].isdigit() and int(argv[1]) < jobs:
+                print(argv[1])
+                print(int(argv[1]))
                 jobs = int(argv[1])
         quotereader = csv.DictReader(csvfile, delimiter='|')
         for i, row in enumerate(quotereader):
@@ -289,8 +302,7 @@ def main():
                 #time = [[t.replace('\ufeff', '') for t in row] for row in csvfile]
                 #if '\ufeff' in row['time']:
                 #    row['time'] = row['time'].replace('\ufeff', '')
-                TurnQuoteIntoImage(i, row['time'],row['quote'],
-                row['timestring'], row['author'], row['title'])
+                TurnQuoteIntoImage(i, row['time'], row['quote'], row['timestring'], row['author'], row['title'])
             progressbar = f'Creating images... {i+1}/{jobs}'
             print(progressbar, end='\r', flush=True)
     print("")
