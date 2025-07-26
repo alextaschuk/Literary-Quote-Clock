@@ -1,9 +1,11 @@
 '''
- This is a modified version of elegantalchemist's quote_to_image.py program. The original file can be
- found at https://github.com/elegantalchemist/literaryclock/blob/main/quote%20to%20image/quote_to_image.py.
+ This is a modified version of elegantalchemist's quote_to_image.py program.
+ The original can be found at 
+ https://github.com/elegantalchemist/literaryclock/blob/main/quote%20to%20image/quote_to_image.py.
 
- This program is used to generate .bmp images that will be displayed to the e-ink screen. It will automatically
- put the generated files into the /images folder in this project's root directory.
+ This program is used to generate .bmp images that will be displayed to the
+ e-ink screen. It will automatically put the generated files into the /images
+ folder in this project's root directory.
 '''
 
 # imports for image generation
@@ -11,59 +13,63 @@ from sys import argv, exit
 from os import path
 import os
 import csv
-from PIL import Image, ImageFont, ImageDraw
 from time import sleep
 import unicodedata
-
+from PIL import Image, ImageFont, ImageDraw
 
 # Stuff for read and writing files
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 480
 
-QUOTE_WIDTH = SCREEN_WIDTH                      # the width (length) of the quote should be 100% of the screen's width
-QUOTE_HEIGHT = SCREEN_HEIGHT             # the height of the quote should be 90% of the screen's height
- 
-# note: I renamed some of the variables for personal preference. *{var_name} denotes the original variable names in elegantalchemist's file.
-csv_path = 'litclock_annotated.csv'             # the CSV file with all quotes, author names, etc. *csvpath
-img_dir = 'images/'                             # which directory to save images to *imgdir
-img_ext = 'bmp'                                 # images will be in BMP format *imgformat
-include_metadata = True                         # true = include the author and book's title of the quote
-imgsize = (SCREEN_WIDTH,SCREEN_HEIGHT)
-bg_color = 255                                  # set the image's background color to white (Hex equivalent is #0xFFFFFF) *color_bg
-quote_color1 = 192                              # set the color of text to light grey/silver (Hex equivalent is #0xC0C0C0) *color_norm
-quote_color2 = 128                              # set the color of the text to grey (Hex equivalent is #0x808080) *color_norm
-time_color = 0                                  # bold the color of the time in the quote (Hex equivalent is #0x000000, black) *color_high
+QUOTE_WIDTH = SCREEN_WIDTH      # the width of the quote should be 100% of the screen's width
+QUOTE_HEIGHT = SCREEN_HEIGHT    # the height of the quote should be 100% of the screen's height
 
-quote_font = 'fonts/Bookerly.ttf'                     # the font the quote will be written in *fntname_norm
-italic_quote_font = 'fonts/Bookerly-Italic.ttf'       # used if word(s) in the quote are italicized
-italic_time_font = 'fonts/Bookerly-Bold-Italic.ttf'  # used if the time part of quote is also italicized
-time_font = 'fonts/Bookerly-Bold.ttf'                 # bold version of quote_font (for time part of quote) *fntname_high
-info_font = 'fonts/Bookerly-Bold.ttf'                 # the font the book and Author's name will be written in *fntname_mdata
-info_fontsize = 25                              # the font size for the author/title *fntsize_mdata
+# note: I renamed some of the variables for personal preference.
+# *{var_name} denotes the original variable names in elegantalchemist's file.
+
+CSV_PATH = 'litclock_annotated.csv'     # the CSV file with all quotes, author names, etc. *csvpath
+IMG_DIR = 'images/'                     # which directory to save images to *imgdir
+IMG_EXT = 'bmp'                         # images will be in BMP format *imgformat
+INCLUDE_METADATA = True                 # true = include quote's author and book title in image
+imgsize = (SCREEN_WIDTH,SCREEN_HEIGHT)
+BG_COLOR = 255      # set the image's background color to white (Hex = #0xFFFFFF) *color_bg
+QUOTE_COLOR1 = 192  # set the text's color to light grey/silver (Hex = #0xC0C0C0) *color_norm
+QUOTE_COLOR2 = 128  # set the color of the text to grey (Hex = #0x808080) *color_norm
+TIME_COLOR = 0      # bold the color of the time in the quote (Hex = #0x000000, black) *color_high
+
+QUOTE_FONT = 'fonts/Bookerly.ttf'                    # font the quote is written in *fntname_norm
+ITALIC_QUOTE_FONT = 'fonts/Bookerly-Italic.ttf'      # used for italicized word(s) in the quote
+ITALIC_TIME_FONT = 'fonts/Bookerly-Bold-Italic.ttf'  # used if the timestring is italicized
+TIME_FONT = 'fonts/Bookerly-Bold.ttf'                # bold the timestring *fntname_high
+INFO_FONT = 'fonts/Bookerly-Bold.ttf'           # font for quote's author and book *fntname_mdata
+INFO_FONTSIZE = 25                              # font size for the author/title *fntsize_mdata
 
 # don't touch
-imgnumber = 0
-previoustime = ''
+IMGNUMBER = 0
+PREVIOUSTIME = ''
 
-def TurnQuoteIntoImage(index:int, time:str, quote:str, timestring:str,
-                                               author:str, title:str):
-    global imgnumber, previoustime
-    savepath = img_dir
+def turn_quote_into_image(index:int, time:str, quote:str, timestring:str, author:str, title:str):
+    '''
+     Defines the location on the image where text should start/stop,
+     and writes the quote's metadata (author and book title) 
+    '''
+    global IMGNUMBER, PREVIOUSTIME
+    savepath = IMG_DIR
     quoteheight = QUOTE_HEIGHT      # How far top-to-bottom the quote spans
     quotelength = QUOTE_WIDTH       # How far left-to-right the quote spans
     quotestart_y = 00               # Y coordinate where the quote begins
     quotestart_x = 10               # X coordinate where the quote begins
-    mdatalength = 341               # To help with text wrapping -- bigger value = longer horizontal metadata text
+    mdatalength = 341               # To help with text wrapping; bigger value = longer horizontal metadata text
     mdatastart_y = 480              # Y coordinate where the author and title text begins
     mdatastart_x = 785              # X coordinate where the author and title text begins
 
     # create the object. mode 'L' restricts to 8bit greyscale
-    paintedworld = Image.new(mode='L', size=(imgsize), color=bg_color)
+    paintedworld = Image.new(mode='L', size=(imgsize), color=BG_COLOR)
     ariandel = ImageDraw.Draw(paintedworld)
 
     # draw the title and author name
-    if include_metadata:
-        font_mdata = create_fnt(info_font, info_fontsize)
+    if INCLUDE_METADATA:
+        font_mdata = create_fnt(INFO_FONT, INFO_FONTSIZE)
         metadata = f'—{title.strip()}, {author.strip()}' # e.g. '—Dune, Frank Herbert
         # wrap lines into a reasonable length and lower the maximum height the
         # quote can occupy according to the number of lines the credits use
@@ -74,43 +80,43 @@ def TurnQuoteIntoImage(index:int, time:str, quote:str, timestring:str,
         quoteheight = mdatastart_y - 5
         mdata_y = mdatastart_y
         for line in metadata.splitlines():
-            ariandel.text((mdatastart_x, mdata_y), line, time_color,
+            ariandel.text((mdatastart_x, mdata_y), line, TIME_COLOR,
                                                     font_mdata, anchor='rm')
             mdata_y += font_mdata.getbbox("A")[3] + 4
     else:
         savepath += 'nometadata/'
 
     # draw the quote (pretty)
-    quote, fntsize = calc_fntsize(quotelength, quoteheight, quote, time_font)
-    font_norm = create_fnt(quote_font, fntsize)
-    font_high = create_fnt(time_font, fntsize)
+    quote, fntsize = calc_fntsize(quotelength, quoteheight, quote, TIME_FONT)
+    font_norm = create_fnt(QUOTE_FONT, fntsize)
+    font_high = create_fnt(TIME_FONT, fntsize)
     try:
         draw_quote(drawobj=ariandel, anchors=(quotestart_x,quotestart_y), text=quote, substr=timestring, font_norm=font_norm, font_high=font_high, fntsize=fntsize)
     # warn and discard image if timestring is just not there
     except LookupError:
-        print(f"WARNING: missing timestring at csv line {index+2}, skipping")
+        print(f"WARNING: missing timestring at csv line {index+2}, skipping. ")
         return
 
     # increment a number if time is identical to the last one, so
     # images can't be overwritten
     # this assumes lines are actually chronological
-    if time == previoustime:
-        imgnumber += 1
+    if time == PREVIOUSTIME:
+        IMGNUMBER += 1
     else:
-        imgnumber = 0
-        previoustime = time
+        IMGNUMBER = 0
+        PREVIOUSTIME = time
     time = time.replace(':','')
-    savepath += f'quote_{time}_{imgnumber}.{img_ext}'
+    savepath += f'quote_{time}_{IMGNUMBER}.{IMG_EXT}'
     savepath = path.normpath(savepath)
-    #image = f'quote_{time}_{imgnumber}.bmp'
+    #image = f'quote_{time}_{IMGNUMBER}.bmp'
     #image = Image.open(img).convert('L').save(imgOut)
     paintedworld.save(savepath)
-    sleep(0.2) # sleep for 0.2 seconds to help ensure no images get skipped
 
-def draw_quote(drawobj, anchors:tuple, text:str, substr:str,
-        font_norm:ImageFont.truetype, font_high:ImageFont.truetype, fntsize):
-    # draws text with substr highlighted. doesn't check if it will fit the
-    # image or anything else
+def draw_quote(drawobj, anchors:tuple, text:str, substr:str, font_norm:ImageFont.truetype, font_high:ImageFont.truetype, fntsize):
+    '''
+     Draws text with timestring highlighted. doesn't check if it will fit the
+     image or anything else
+    '''
     start_x = anchors[0]
     start_y = anchors[1]
 
@@ -129,14 +135,14 @@ def draw_quote(drawobj, anchors:tuple, text:str, substr:str,
     lines += f'{bookmark}{text[substr_starts:substr_ends]}{bookmark}'
     lines += text[substr_ends:]
 
-    font_italic = create_fnt(italic_quote_font, fntsize)
-    fntstyle_italic = (quote_color2, font_italic)
+    font_italic = create_fnt(ITALIC_QUOTE_FONT, fntsize)
+    fntstyle_italic = (QUOTE_COLOR2, font_italic)
 
-    font_italic_high= create_fnt(italic_time_font, fntsize)
-    fntstyle_italic_high = (time_color, font_italic_high)
+    font_italic_high= create_fnt(ITALIC_TIME_FONT, fntsize)
+    fntstyle_italic_high = (TIME_COLOR, font_italic_high)
 
-    fntstyle_norm = (quote_color2, font_norm)
-    fntstyle_high = (time_color, font_high)
+    fntstyle_norm = (QUOTE_COLOR2, font_norm)
+    fntstyle_high = (TIME_COLOR, font_high)
     current_style = fntstyle_norm
     marks_found = 0
     write = drawobj.text
@@ -153,7 +159,7 @@ def draw_quote(drawobj, anchors:tuple, text:str, substr:str,
             # if the entire time quote substr is one contiguous word, split the
             # non-substr bits stuck to it and print the whole thing in 3 parts
             if word.count(bookmark) == 2: # e.g. if word == '|◯𝘰’𝘤𝘭𝘰𝘤𝘬◯.|'
-                wordnow = word.split(bookmark)[0] # word.split(bookmark) is ['', '◯𝘰’𝘤𝘭𝘰𝘤𝘬◯', '.'], so wordnow = ''
+                wordnow = word.split(bookmark)[0] # word.split(bookmark) is ['', '◯𝘰’𝘤𝘭𝘰𝘤𝘬◯', '.'] so wordnow = ''
                 write((x,y), wordnow, *fntstyle_norm)
                 x += textlength(wordnow, font_norm)
                 wordnow = word.split(bookmark)[1]  # wordnow = '◯𝘰’𝘤𝘭𝘰𝘤𝘬◯'
@@ -174,16 +180,16 @@ def draw_quote(drawobj, anchors:tuple, text:str, substr:str,
                 marks_found += 1
                 wordnow = word.split(bookmark)[0]
                 if '◯' in wordnow:
-                        wordnow = unicodedata.normalize('NFKD', wordnow.replace('◯', '')) 
-                        current_style = fntstyle_italic_high # bold & italicized font
+                    wordnow = unicodedata.normalize('NFKD', wordnow.replace('◯', ''))
+                    current_style = fntstyle_italic_high # bold & italicized font
                 word = word.split(bookmark)[1]
                 write((x,y), wordnow, *current_style)
                 x += textlength(wordnow, current_style[1])
                 if marks_found == 1:
                     if '◯' in word:
                         word = unicodedata.normalize('NFKD', word.replace('◯', ''))
-                        current_style = fntstyle_italic_high # bold & italicized font            
-                    else:  
+                        current_style = fntstyle_italic_high # bold & italicized font
+                    else:
                         current_style = fntstyle_high # bold font
                 else: # if marks == 2:
                     current_style = fntstyle_norm # normal font
@@ -198,7 +204,7 @@ def draw_quote(drawobj, anchors:tuple, text:str, substr:str,
                 write((x,y), wordnow, *fntstyle_norm)
                 x += textlength(wordnow, font_norm)
                 word = ''
-            else: 
+            else:
                 write((x,y), word, *current_style)
                 x += textlength(word, current_style[1])
         # the offset calculated by multiline_text (what we're trying to mimic)
@@ -209,34 +215,37 @@ def draw_quote(drawobj, anchors:tuple, text:str, substr:str,
 
 
 def wrap_lines(text:str, font:ImageFont.truetype, line_length:int):
-    # wraps lines to maximize the number of words within line_length. note
-    # that lines *can* exceed line_length, this is intentional, as text looks
-    # better if the font is rescaled afterwards. adapted from Chris Collett
-    # https://stackoverflow.com/a/67203353/8225672
-        lines = ['']
-        for word in text.split():
-            line = f'{lines[-1]} {word}'.strip()
-            fontlen = font.getlength(line)
-            #if font.getlength(line) <= line_length:
-            if '⭐' in word:
-                lines.append("")
-                word = word.replace('⭐', '')
-                lines.append(word)
-            elif fontlen <= line_length:
-                lines[-1] = line
-            else:
-                lines.append(word)
-  
+    '''
+     wraps lines to maximize the number of words within line_length. note
+     that lines *can* exceed line_length, this is intentional, as text looks
+     better if the font is rescaled afterwards. adapted from Chris Collett
+     https://stackoverflow.com/a/67203353/8225672
+    '''
+    lines = ['']
+    for word in text.split():
+        line = f'{lines[-1]} {word}'.strip()
+        fontlen = font.getlength(line)
+        #if font.getlength(line) <= line_length:
+        if '⭐' in word:
+            lines.append("")
+            word = word.replace('⭐', '')
+            lines.append(word)
+        elif fontlen <= line_length:
+            lines[-1] = line
+        else:
+            lines.append(word)
+
         return '\n'.join(lines)
 
 
-def calc_fntsize(length:int, height:int, text:str, fntname:str, basesize=50,
-                                                              maxsize=800):
-    # this will dynamically wrap and scale text with the optimal font size to
-    # fill a given textbox, both length and height wise.
-    # manually setting basesize to just below the mean of a sample will
-    # massively reduce processing time with large batches of text, at the risk
-    # of potentially wasting it with strings much larger than the mean
+def calc_fntsize(length:int, height:int, text:str, fntname:str, basesize=50, maxsize=800):
+    '''
+     this will dynamically wrap and scale text with the optimal font size to
+     fill a given textbox, both length and height wise.
+     manually setting basesize to just below the mean of a sample will
+     massively reduce processing time with large batches of text, at the risk
+     of potentially wasting it with strings much larger than the mean
+    '''
 
     # these are just for calculating the textbox size, they're discarded
     louvre = Image.new(mode='1', size=(0,0))
@@ -272,6 +281,7 @@ def calc_fntsize(length:int, height:int, text:str, fntname:str, basesize=50,
 
 
 def create_fnt(name:str, size:int, layout_engine=ImageFont.Layout.BASIC):
+    ''' Open and return a font file '''
     # Layout.BASIC is orders of magnitude faster than RAQM but will struggle
     # with RTL languages
     # see https://github.com/python-pillow/Pillow/issues/6631
@@ -279,34 +289,30 @@ def create_fnt(name:str, size:int, layout_engine=ImageFont.Layout.BASIC):
 
 
 def main():
+    ''' Call to parse CSV and generate all images '''
     try:
-        if not path.exists(img_dir):
+        if not path.exists(IMG_DIR):
             print('/images folder not found. Creating new folder...')
-            os.mkdir(img_dir)
+            os.mkdir(IMG_DIR)
     except OSError:
         print('error while trying to create /images folder')
-    with open(csv_path, newline='\n', encoding='UTF-8') as csvfile:
+    with open(CSV_PATH, newline='\n', encoding='UTF-8') as csvfile:
         jobs = len(csvfile.readlines()) - 1 # number of quotes in CSV file
         csvfile.seek(0) # move file cursor to start of file
         if len(argv) > 1:
-            print(len(argv))
             if argv[1].isdigit() and int(argv[1]) < jobs:
-                print(argv[1])
-                print(int(argv[1]))
                 jobs = int(argv[1])
         quotereader = csv.DictReader(csvfile, delimiter='|')
         for i, row in enumerate(quotereader):
             if i >= jobs:
                 break
-            else:
-                #time = [[t.replace('\ufeff', '') for t in row] for row in csvfile]
-                #if '\ufeff' in row['time']:
-                #    row['time'] = row['time'].replace('\ufeff', '')
-                TurnQuoteIntoImage(i, row['time'], row['quote'], row['timestring'], row['author'], row['title'])
+            #time = [[t.replace('\ufeff', '') for t in row] for row in csvfile]
+            #if '\ufeff' in row['time']:
+            #    row['time'] = row['time'].replace('\ufeff', '')
+            turn_quote_into_image(i, row['time'], row['quote'], row['timestring'], row['author'], row['title'])
             progressbar = f'Creating images... {i+1}/{jobs}'
             print(progressbar, end='\r', flush=True)
     print("")
-
 
 if __name__ == '__main__':
     try:
