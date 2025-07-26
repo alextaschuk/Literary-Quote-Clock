@@ -25,7 +25,7 @@ I made a clock that displays the time using quotes from various books using a [R
 
 3. Run [`make_images.py`](make_images.py) to generate all of the `.bmp` images that will be used to display the time. The images will be located in the [`/images`](/images) folder.
 
-4. In the [`clock.service`](\clock.service) script, modify the `WorkingDirectory` variable to store the path to the cloned repo and the `ExecStart` variable to store the path to `clock.py` in the cloned repo. Then, move the file to `/etc/systemd/service`.
+4. In the [`clock.service`](\clock.service) script, modify the `WorkingDirectory` variable to store the path to the cloned repo and the `ExecStart` variable to store the path to `clock.py` in the cloned repo. Then, move the file to `/etc/systemd/system`.
 
 5. Run `sudo systemctl restart clock.service` to start the clock. The script will now automatically start the clock any time that the PI is turned on.
 
