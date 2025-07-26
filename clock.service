@@ -1,5 +1,5 @@
 # The startup script for the clock.
-# This should go into /etc/systemd/service
+# This should go into /etc/systemd/system/
 
 [Unit]
 Description = Book Quote Clock
