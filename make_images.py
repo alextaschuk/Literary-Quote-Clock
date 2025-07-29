@@ -21,7 +21,7 @@ SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 480
 
 QUOTE_WIDTH = SCREEN_WIDTH                      # the width (length) of the quote should be 100% of the screen's width
-QUOTE_HEIGHT = SCREEN_HEIGHT             # the height of the quote should be 90% of the screen's height
+QUOTE_HEIGHT = SCREEN_HEIGHT * .90             # the height of the quote should be 90% of the screen's height
  
 # note: I renamed some of the variables for personal preference. *{var_name} denotes the original variable names in elegantalchemist's file.
 csv_path = 'litclock_annotated.csv'             # the CSV file with all quotes, author names, etc. *csvpath
@@ -78,7 +78,13 @@ def TurnQuoteIntoImage(index:int, time:str, quote:str, timestring:str,
                                                     font_mdata, anchor='rm')
             mdata_y += font_mdata.getbbox("A")[3] + 4
     else:
-        savepath += 'nometadata/'
+        try:
+            savepath += 'nometadata/'
+            if not path.exists(savepath):
+                print('/nometadata folder not found. Creating new folder...')
+                os.mkdir(savepath)
+        except OSError:
+            print('error while trying to create /nometadata folder')
 
     # draw the quote (pretty)
     quote, fntsize = calc_fntsize(quotelength, quoteheight, quote, time_font)
@@ -105,7 +111,6 @@ def TurnQuoteIntoImage(index:int, time:str, quote:str, timestring:str,
     #image = f'quote_{time}_{imgnumber}.bmp'
     #image = Image.open(img).convert('L').save(imgOut)
     paintedworld.save(savepath)
-    sleep(0.2) # sleep for 0.2 seconds to help ensure no images get skipped
 
 def draw_quote(drawobj, anchors:tuple, text:str, substr:str,
         font_norm:ImageFont.truetype, font_high:ImageFont.truetype, fntsize):
@@ -289,10 +294,7 @@ def main():
         jobs = len(csvfile.readlines()) - 1 # number of quotes in CSV file
         csvfile.seek(0) # move file cursor to start of file
         if len(argv) > 1:
-            print(len(argv))
             if argv[1].isdigit() and int(argv[1]) < jobs:
-                print(argv[1])
-                print(int(argv[1]))
                 jobs = int(argv[1])
         quotereader = csv.DictReader(csvfile, delimiter='|')
         for i, row in enumerate(quotereader):

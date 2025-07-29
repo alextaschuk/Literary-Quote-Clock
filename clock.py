@@ -27,7 +27,7 @@ class Clock:
     quote_buffer: list
 
     def __init__(self):
-        self.picdir = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'BookQuoteClock/images') # path to .bmp files
+        self.picdir = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'Literary-Quote-Clock/images') # path to .bmp files
         self.libdir = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'lib') # path to
         if os.path.exists(self.libdir):
             sys.path.append(self.libdir) # TODO: figure out what this does
@@ -242,10 +242,9 @@ if __name__ == '__main__':
         clock.epd.Clear()   # clear screen
 
         logging.info('Displaying startup screen\n')
-        logging.info('startup image path:' + str(os.path.join(clock.picdir)))
         try:
-            with Image.open(os.path.join(clock.picdir, 'startup.bmp')) as startup_img: # use this if startup.bmp is in /images
-            #with Image.open('startup.bmp') as startup_img: # use this if startup.bmp is in root dir
+            #with Image.open(os.path.join(clock.picdir, 'startup.bmp')) as startup_img: # use this if startup.bmp is in /images
+            with Image.open('startup.bmp') as startup_img: # use this if startup.bmp is in root dir
                 clock.epd.display(clock.epd.getbuffer(startup_img)) # display a startup screen
         except FileNotFoundError:
             logging.error('error startup.bmp image not found')
