@@ -234,7 +234,7 @@ def signal_handler(sig, frame):
 
 if __name__ == '__main__':
     try:
-        logging.info("Book Quote Clock")
+        logging.info("Literary Quote Clock Started")
         clock = Clock()     # create Clock object
 
         logging.info('Initializing and clearing the screen')
@@ -242,6 +242,7 @@ if __name__ == '__main__':
         clock.epd.Clear()   # clear screen
 
         logging.info('Displaying startup screen\n')
+        logging.info('startup image path:' + str(os.path.join(clock.picdir)))
         try:
             with Image.open(os.path.join(clock.picdir, 'startup.bmp')) as startup_img: # use this if startup.bmp is in /images
             #with Image.open('startup.bmp') as startup_img: # use this if startup.bmp is in root dir
