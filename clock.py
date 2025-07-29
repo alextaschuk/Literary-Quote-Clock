@@ -36,7 +36,7 @@ class Clock:
         self.quotes = []
         self.epd = epd7in5_V2.EPD()
 
-        print('clock obj was made.')
+        logging.info('clock obj was made.')
 
     def get_minute(self) -> int:
         '''
@@ -247,7 +247,7 @@ if __name__ == '__main__':
             #with Image.open('startup.bmp') as startup_img: # use this if startup.bmp is in root dir
                 clock.epd.display(clock.epd.getbuffer(startup_img)) # display a startup screen
         except FileNotFoundError:
-            print('error startup.bmp image not found')
+            logging.error('error startup.bmp image not found')
 
         clock.epd.sleep() # put the screen to sleep
         time.sleep(30) # wait for the PI's system clock to update
