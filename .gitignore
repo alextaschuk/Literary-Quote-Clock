@@ -6,3 +6,5 @@ Literary-Quote-Clock.docx
 __pycache__/
 venv
 books.rtf
+notes.md
+test.csv
