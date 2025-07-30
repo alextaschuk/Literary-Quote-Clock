@@ -4,6 +4,7 @@
 # imports for time stuff
 from datetime import datetime, timedelta, timezone                   # for getting the times
 import os
+print(os.getcwd())
 import glob
 import random
 import signal
