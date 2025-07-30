@@ -2,7 +2,7 @@
  This file contains all logic for displaying images to the screen.
 '''
 # imports for time stuff
-from datetime import datetime, timedelta, timezone  # for getting the times
+from datetime import datetime, timedelta # for getting the times
 import os
 import glob
 import random
@@ -12,15 +12,13 @@ import signal
 import sys
 import logging
 import time
-from PIL import Image, ImageDraw, ImageFont
-from waveshare_libraries import epd7in5_V2               # Waveshare's library for their 7.5 inch screen
+from PIL import Image
+from waveshare_libraries import epd7in5_V2 # Waveshare's library for their 7.5 inch screen
 
 logging.basicConfig(level=logging.DEBUG)
 
 class Clock:
-    '''
-    All logic for creating and updating the quote buffer, and displaying the quotes
-    '''
+    ''' All logic for creating and updating the quote buffer, and displaying the quotes '''
     curr_time: str
     quotes: list
     filename: str
@@ -51,7 +49,7 @@ class Clock:
         '''
         return self.time.hour
 
-    def get_time(self, hour: int, minute: int) -> str: # e.g. if it's 1:30 PM, this returns '1330'
+    def get_time(self, minute: int, hour: int) -> str: # e.g. if it's 1:30 PM, this returns '1330'
         '''
         Returns the current time as a string in the 24-hour format.
             - For example, if the current time is 1:30 PM, '1330' is returned.
@@ -92,7 +90,7 @@ class Clock:
         self.update_time() # update the time
         curr_minute = self.get_minute()
         curr_hour = self.get_hour()
-        curr_time = self.get_time(hour=curr_hour, minute=curr_minute)
+        curr_time = self.get_time(minute=curr_minute, hour=curr_hour)
         logging.info(f"time: {str(self.time)} curr_minute: {curr_minute} curr_hour: {curr_hour} curr_time: {curr_time}")
 
         while len(self.quote_buffer) < 3:
@@ -117,7 +115,7 @@ class Clock:
             else: # it is not the 59 minute, so we only need the next minute
                 self.time = self.time.replace(second=0) + timedelta(minutes=1) # set the time to one minute from now
                 curr_minute = self.get_minute()  # set current minute to next minute
-            curr_time = self.get_time(hour=curr_hour, minute=curr_minute)
+            curr_time = self.get_time(minute=curr_minute, hour=curr_hour)
 
         logging.info(f'init_buffer() finish.\n')
         return self.quote_buffer
@@ -127,7 +125,7 @@ class Clock:
         To update the buffer, we need to add the quote that's 2 minutes ahead of the currently displayed quote.  
         Because the next quote to be added is 3 minutes ahead of the current quote that is being removed, we 
         add 3 minutes rather than 2 to get the new quote. Due to this logic, we need to check if the current 
-        minute is 57,58, or 59 because the hour also needs to get updated when this is the case. 
+        minute is 57, 58, or 59 because the hour also needs to get updated when this is the case. 
 
         Returns an updated list of three Image objects
         
@@ -135,41 +133,23 @@ class Clock:
         logging.info('update_buffer() called. Updating quote_buffer...')
         try:
             self.update_time() # update the time
-            curr_minute = self.get_minute()
-            curr_hour = self.get_hour()
-            curr_time = self.get_time(hour=curr_hour, minute=curr_minute)
-            logging.info(f"time:{str(self.time)} curr_minute:{curr_minute} curr_hour:{curr_hour} curr_time:{curr_time}")
+            logging.info("self.time:", {str(self.time)})
+            
+            difference = 60 - self.get_minute()
+            if 0 < difference <= 3: # if the current minute is the 57th, 58th, or 59th of the hour
+                self.time = self.time.replace(minute=(self.get_minute() + 3) % 10) + timedelta(hours=1) # e.g. at 13:58 we get quote for 14:01
+            else:
+                self.time = self.time.replace(minute = self.get_minute() + 3) # e.g. at 13:45 we get quote for 13:48
+            
+            curr_time = self.get_time(minute=self.get_minute(), hour=self.get_minute())
 
-            if curr_minute + 3 == 60: # minute of the hour is 57
-                self.time = self.time.replace(second=0, minute=0) + timedelta(hours=1)
-                curr_minute = self.get_minute()
-                curr_hour= self.get_hour()
-                curr_time = self.get_time(hour=curr_hour, minute=curr_minute)
-
-            elif curr_minute + 3 == 61: # minute of the hour is 58
-                self.time = self.time.replace(second=0, minute=1) + timedelta(hours=1)
-                curr_minute = self.get_minute()
-                curr_hour= self.get_hour()
-                curr_time = self.get_time(hour=curr_hour, minute=curr_minute)
-
-            elif curr_minute + 3 == 62: # minute of the hour is 59
-                self.time = self.time.replace(second=0, minute=2) + timedelta(hours=1)
-                curr_minute = self.get_minute()
-                curr_hour= self.get_hour()
-                curr_time = self.get_time(hour=curr_hour, minute=curr_minute)
-
-            else: # minute of the hour is not 57, 58, 59
-                self.time = self.time.replace(second=0) + timedelta(minutes=3)
-                curr_minute = self.get_minute()
-                curr_time = self.get_time(hour=curr_hour, minute=curr_minute)
-
-            self.quotes = self.get_quotes('quote_' + curr_time + '_*' + '.bmp')
-            filename = 'quote_' + curr_time + '_' + str(random.randrange(0, len(self.quotes))) + '.bmp'
+            self.quotes = self.get_quotes('quote_' + curr_time + '_*' + '.bmp') # get all possible quotes for the minute
+            filename = 'quote_' + curr_time + '_' + str(random.randrange(0, len(self.quotes))) + '.bmp' # pick one of them at random
 
             image_quote = Image.open(os.path.join(self.picdir, filename))
-            self.quote_buffer.append(image_quote)
-            self.quote_buffer[0].close()                # close the Image obj of the current quote
-            self.quote_buffer.pop(0)                    # remove the current quote from buffer
+            self.quote_buffer.append(image_quote) # add the quote to the buffer
+            self.quote_buffer[0].close() # close the Image obj of the current quote
+            self.quote_buffer.pop(0)     # remove the current quote from buffer
 
             logging.info(f'the filename for the quote being added during update: {filename}') 
 
@@ -203,12 +183,12 @@ class Clock:
         logging.info('main() called.')
         if (self.get_minute() % 10) == 0:
             logging.info('10 minutes have passed. Performing full refresh on screen.')
-            self.epd.init()     # Do a full refresh every 10 minutes. This helps prevent "ghosting" and increases the screen's lifespan.
-            self.epd.Clear()    # Then, clear the screen before displaying new quote
+            self.epd.init() # Do a full refresh every 10 minutes. This helps prevent "ghosting" and increases the screen's lifespan.
+            self.epd.Clear() # Then, clear the screen before displaying new quote
         else:
-            self.epd.init_fast()        # speeds up updates, according to waveshare support
-        self.display_quote()                        # display the current quote
-        self.update_buffer()    # call AFTER the current quote is displayed to reduce processing time.
+            self.epd.init_fast() # speeds up updates, according to waveshare support
+        self.display_quote()     # display the current quote
+        self.update_buffer()     # call AFTER the current quote is displayed to reduce processing time.
         logging.info('main() finish.\n')
 
 def signal_handler(sig, frame):
