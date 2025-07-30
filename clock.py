@@ -141,7 +141,7 @@ class Clock:
             else:
                 self.time = self.time.replace(minute = self.get_minute() + 3) # e.g. at 13:45 we get quote for 13:48
             
-            curr_time = self.get_time(minute=self.get_minute(), hour=self.get_minute())
+            curr_time = self.get_time(minute=self.get_minute(), hour=self.get_hour())
 
             self.quotes = self.get_quotes('quote_' + curr_time + '_*' + '.bmp') # get all possible quotes for the minute
             filename = 'quote_' + curr_time + '_' + str(random.randrange(0, len(self.quotes))) + '.bmp' # pick one of them at random
