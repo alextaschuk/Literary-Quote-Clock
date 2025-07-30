@@ -7,8 +7,8 @@ After=network-online.target
 
 [Service]
 Type=simple
-WorkingDirectory=/path/to/clock-folder/
-ExecStart=sudo python3 /path/to/clock-folder/clock.py
+WorkingDirectory=/path/to/Literary-Quote-Clock/
+ExecStart=sudo python3 /path/to/Literary-Quote-Clock/clock/clock.py
 KillSignal=SIGINT
 Restart=on-failure
 
