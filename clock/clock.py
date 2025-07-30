@@ -11,14 +11,15 @@ import signal
 
 # Libraries for displaying image on screen
 import sys
+print('\nBefore:',sys.path)
 libdir = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'Literary-Quote-Clock/clock/waveshare_libraries')
 if os.path.exists(libdir):
     sys.path.append(libdir)
-print('\n',sys.path)
+print('\nAfter:',sys.path)
 import logging
 import time
 from PIL import Image, ImageDraw, ImageFont
-from .clock.waveshare_libraries.epd7in5_V2 import epd7in5_V2               # Waveshare's library for their 7.5 inch screen
+from .waveshare_libraries.epd7in5_V2 import epd7in5_V2               # Waveshare's library for their 7.5 inch screen
 
 logging.basicConfig(level=logging.DEBUG)
 
