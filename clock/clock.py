@@ -13,7 +13,7 @@ import sys
 import logging
 import time
 from PIL import Image, ImageDraw, ImageFont
-import epd7in5_V2               # Waveshare's library for their 7.5 inch screen
+from .waveshare_libraries.epd7in5_V2 import epd7in5_V2               # Waveshare's library for their 7.5 inch screen
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -28,9 +28,6 @@ class Clock:
 
     def __init__(self):
         self.picdir = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'Literary-Quote-Clock/images') # path to .bmp files
-        self.libdir = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'lib') # path to
-        if os.path.exists(self.libdir):
-            sys.path.append(self.libdir) # TODO: figure out what this does
         self.time = datetime.now()
         self.quote_buffer = []
         self.quotes = []
@@ -229,7 +226,7 @@ def signal_handler(sig, frame):
     clock.epd.init() # wake the screen so that it can be cleared
     clock.epd.Clear()
     logging.info("clearing screen and shutting clock down...\n")
-    epd7in5_V2.epdconfig.module_exit(cleanup=True)
+    clock.epdconfig.module_exit(cleanup=True)
     sys.exit(0)
 
 if __name__ == '__main__':
@@ -266,5 +263,5 @@ if __name__ == '__main__':
         clock.epd.init() # wake the screen so that it can be cleared
         clock.epd.Clear()
         logging.info("clearing screen and shutting clock down...\n")
-        epd7in5_V2.epdconfig.module_exit(cleanup=True)
+        clock.epdconfig.module_exit(cleanup=True)
         exit()
