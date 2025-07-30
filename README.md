@@ -55,9 +55,9 @@ Though the PI has an internet connection at this point, it still takes about 30 
 After 30 seconds has passed, the clock's quote buffer is initialized. Because it may take a second or two for the program to read, process, and display the image file a buffer is used to store the current and next two quotes to display. It is a list that contains three elements- the first is the Image obj for the current time's quote, the second is the Image obj for the next minute's quote, and the third is the Img obj of the quote two minutes ahead of the current quote. 
 
 ### The Display & Update Stage
-This stage occurs once every minute; most of the magic happens here. Two events make up this stage- The first is displaying a quote and the second is updating the quote buffer. At the 59th second of a minute (it takes ~1 second for the screen to update) [`display_quote()`](/clock.py#L178) is called, which displays the Image obj at index 0 of the quote buffer. Then, [`update_buffer()`](/clock.py#L121) is called, which appends the Image obj for the quote that is two minutes ahead of the Image at index 1 of the buffer.
+This stage occurs once every minute; most of the magic happens here. Two events make up this stage- The first is displaying a quote and the second is updating the quote buffer. At the 59th second of a minute (it takes ~1 second for the screen to update) [`display_quote()`](/clock.py#L184) is called, which displays the Image obj at index 0 of the quote buffer. Then, [`update_buffer()`](/clock.py#L127) is called, which appends the Image obj for the quote that is two minutes ahead of the Image at index 1 of the buffer.
 
-- Example: The current time is 13:31. The buffer looks like this: `[13_32_Img, 13_33_Img, 13_34_Img]` At 13:31:59, call [`display_quote()`](/clock.py#L178) to display the quote for 13:32. Then, `13_35_Img` is appended to the buffer and `13_32_Img` is removed, resulting in the buffer looking like this: `[13_33_Img, 13_34_Img, 13_35_Img]`.
+- Example: The current time is 13:31. The buffer looks like this: `[13_32_Img, 13_33_Img, 13_34_Img]` At 13:31:59, call [`display_quote()`](/clock.py#L184) to display the quote for 13:32. Then, `13_35_Img` is appended to the buffer and `13_32_Img` is removed, resulting in the buffer looking like this: `[13_33_Img, 13_34_Img, 13_35_Img]`.
 
 ### The "In-Between" Stage
 
@@ -81,123 +81,19 @@ This stage involved everything that happens in the time between a quote being di
 
 [`make_images.py`](/make_images.py) is a modified version of [elegantalchemist's `quote_to_image.py`](https://github.com/elegantalchemist/literaryclock/blob/main/quote%20to%20image/quote_to_image.py) program.
 
-The program parses a CSV file and converts each line into a .bmp file. I decided to use [JohannesNE's CSV file](https://github.com/JohannesNE/literature-clock/blob/master/litclock_annotated.csv) instead of [elegantalchemist's](https://github.com/elegantalchemist/literaryclock/blob/main/quote%20to%20image/litclock_annotated_br2.csv); both files contain many of the same quotes, but  JohannesNE's seems more refined and has more quotes overall. I manually went through all ~3500 quotes in the file and am in the process of modifying the CSV for the following reasons:
+The program parses a CSV file and converts each line into a .bmp file. I decided to use [JohannesNE's CSV file](https://github.com/JohannesNE/literature-clock/blob/master/litclock_annotated.csv) instead of [elegantalchemist's](https://github.com/elegantalchemist/literaryclock/blob/main/quote%20to%20image/litclock_annotated_br2.csv); both files contain many of the same quotes, but  JohannesNE's seems more refined and has more quotes overall. 
+
+The biggest modification I made is to handle italic characters. JohannesNE's CSV file contains a few quotes that have italic characters (their project is a literary quote clock website that uses HTML which makes it a lot easier to handle italic text), and elegantalchemist's code doesn't have a way to detect and handle these characters. With CSS, you can easily change the `font-style` between normal, *italic*, and **bold**, but in my case a different font file is needed for italicized characters because font files can only contain one font style. My solution is to wrap italicized words in a '◻' character (White medium square, U+25FB) since each quote is written to the .bmp file word-by-word. Quotes that have the time part italicized are wrapped with a '◯' character (Large circle, U+25EF) since they'll need a font file that has bolded and italicized characters. For example, a quote might have looked like this in the CSV file: "There were only four words: *Tomorrow morning. 2 o'clock*." With my changes, it looks like this: "There were only four words: ◻Tomorrow◻ ◻morning◻. ◯2◯ ◯o'clock◯."
+
+I also manually went through all ~3500 quotes in the file and am in the process of modifying the CSV for the following reasons:
 
 - I have found that some quotes can be used for both A.M and P.M. but currently aren't.
 - I'd like to add more context to some quotes (i.e., a preceding and/or succeeding sentance)
 - I am modifying some because I feel that they are too vauge (e.g., "Raymond came back with Masson around one-thirty." with "around one-thirty" highlighted for 13:31 will be used for 13:30 with "one-thirty" being highlighted)
+    - I'm keeping some instances of this in. For example, a quote such as "just past [time]," "just before [time]," or similar language will be used for either that 1st minute or 59th minute of an hour.
 - A certain part of the quote is or isn't highlighted (e.g., for the quote "A man driving a tractor saw her, four hundred yards from her house, six minutes past two in the afternoon." only "six minutes past two" is highlighted when "six minutes past two in the afternoon" should be). 
+- Other minor changes such as replacing three full stops (...) with a proper ellipsis unicode character (…).
+ 
+
 
 I also read in my free time, and will be adding quotes that I find in books as I read.
- 
-The biggest modification I made is to handle italic characters. JohannesNE's CSV file contains a few quotes that have italic characters (their project is a literary quote clock website that uses HTML which makes it a lot easier to handle italic text), and elegantalchemist's code doesn't have a way to detect and handle these characters. With CSS, you can easily change the `font-style` between normal, *italic*, and **bold**, but in my case a different font file is needed for italicized characters because font files can only contain one font style. My solution is to wrap italicized words in a '◻' character (White medium square, U+25FB) since each quote is written to the .bmp file word-by-word. Quotes that have the time part italicized are wrapped with a '◯' character (Large circle, U+25EF) since they'll need a font file that has bolded and italicized characters. For example, a quote might have looked like this in the CSV file: "There were only four words: *Tomorrow morning. 2 o'clock*." With my changes, it looks like this: "There were only four words: ◻Tomorrow◻ ◻morning◻. ◯2◯ ◯o'clock◯."
-
-
-
-
-****
-personal todo notes and other stuff ignore plz
-
-Quick-access characters for copy & pasting
-
-`◻`     `◯`     `—` (em dash)   ⭐    `…` (ellipsis)
-
-- dont forget to pull changes then modify clock.service from app.py to clock.py
-
-## PI and SSH Info
-
-- From Mac, `ping raspberrypi.local` should return success.
-
-- The Pi's IP address is 10.0.0.94
-
-### To SSH
-
-1. Run `ssh alex@raspberrypi.local`
-2. Enter the Pi's password: password
-
-
-### To Run Waveshare's Screen Test
-
-1. CD to `/Desktop/WaveshareTest/e-paper/RaspberryPi-JetsonNano/python/examples`
-2. Run `python3 epd_7in5_V2_test.py`
-
-### TODO
-
-**Documentation**
-- pictures of the clock
-
-**TODO**
-
-- Dark mode
-- Remote login
-- Why does # of quote images not match # of csv rows?
-- Improve quote formatting
-- Handle quotes that are on multiple lines
-
-Example:
-``` Text
-9:43 P.M.
-
-"We'll be working together, kid," Dore Peretz was saying. "We're a team"...
-```
-
-shouldn't be too hard since new line is calculated based on quote length.
-just need to call it prematurely somehow(?)
-
-
-
-- Go through CSVs, fix/improve quotes, and combine them
-- Special Messages
-
-Tech issues
-- At 12AM every even minute will cause a full init
-- Maybe update journalctl config to clear once a week if it will cause storage issues
-- Implement a check for if the author and book title are longer than threshold, it changes the coordinates the start at
-
-
-- Pi's every time timezone is changed. Maybe automate this using IP?
-
-How to add a crontab that reboots the PI everyday at 4AM as a workaround for desync issues:
-
-    1. `sudo crontab -e`
-    2. `0 4 * * * /usr/sbin/reboot
-
-
-Look into issue: If timestring is italicized and has 3+ words (example: ◯Eight◯ ◯oh◯ ◯two◯), the middle word(s) aren't identified as word to write with italicized & bolded font, so the '◯' character
-isnt removed from the substring.
-    - Currently, the quotes for 8:02AM & 8:02AM are broken b/c of this... possibly more tho
-    - use '⭐' as newline delimiter... for fun
-
-`13:32|one ... thirty-two|“At the third stroke it will be one ... thirty-two ... and twenty seconds.” ⭐“Beep ... beep ... beep.” ⭐Ford Prefect suppressed a little giggle of evil satisfaction, realized that he had no reason to suppress it, and laughed out loud, a wicked laugh.|So Long, and Thanks for All the Fish|Douglas Adams|unknown`
-
-should print as:
-``` txt
-“At the third stroke it will be one ... thirty-two ... and twenty seconds.”
-
-⭐“Beep ... beep ... beep.”
-
-⭐Ford Prefect suppressed a little giggle of evil satisfaction, realized that he had no reason to suppress it, and laughed out loud, a wicked laugh.
-```
-Possible unicode characters to use for delimiting things:
-⭐  ╱   ♜  ♞  ⚡  ⛏  ⭕  𝌉   🂱   🅱   🆒   🐄  📖  🙼   🟨  🟧  🤍
-
-Maybe also look into indenting quotes as well. For example:
-
-`13:59|One ... fifty-nine|For twenty minutes he sat and watched as the gap between the ship and Epun closed, as the ship's computer teased and kneaded the numbers that would bring it into a loop around the little moon, and close the loop and keep it there, orbiting in perpetual obscurity. ⭐"One ... fifty-nine ..."|So Long, and Thanks for All the Fish|Douglas Adams|unknown`
-
-should print as:
-
-``` txt
-‎ ‎ ‎ ‎For twenty minutes he sat and watched as the gap between the ship and Epun closed, as the ship's computer teased and kneaded the numbers that would bring it into a loop around the little moon, and close the loop and keep it there, orbiting in perpetual obscurity. 
-
-⭐"One ... fifty-nine ..."
-```
-
-New edge case for italics-- part of the word should be italicized, but not all of it. I think it'd only be an issue in possessive cases. 
-
-For example, the direct quote is : "Each morning, over eggs and kippers, he peruses the *Times*'s personal notices."
-
-With the current implementation, *Times*'s would be ◻Times◻'s, but this doesnt work, so the quote would be skipped. 
-    - One solution is ◻Times's◻ but I dont like it.
-    - Find proper solution.
-
