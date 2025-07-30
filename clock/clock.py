@@ -8,6 +8,7 @@ print(os.getcwd())
 libdir = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'Literary-Quote-Clock/clock/waveshare_libraries')
 if os.path.exists(libdir):
     sys.path.append(libdir)
+print('\n',sys.path)
 import glob
 import random
 import signal
