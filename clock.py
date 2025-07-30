@@ -133,7 +133,7 @@ class Clock:
         logging.info('update_buffer() called. Updating quote_buffer...')
         try:
             self.update_time() # update the time
-            logging.info("self.time:", {str(self.time)})
+            logging.info("self.time:", str(self.time))
             
             difference = 60 - self.get_minute()
             if 0 < difference <= 3: # if the current minute is the 57th, 58th, or 59th of the hour
