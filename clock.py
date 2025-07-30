@@ -28,7 +28,7 @@ class Clock:
 
     def __init__(self):
         self.picdir = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'Literary-Quote-Clock/images') # path to .bmp files
-        print(self.picdir)
+        logging.info(self.picdir)
         self.time = datetime.now()
         self.quote_buffer = []
         self.quotes = []
