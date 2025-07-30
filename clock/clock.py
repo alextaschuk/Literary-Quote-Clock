@@ -5,16 +5,16 @@
 from datetime import datetime, timedelta, timezone  # for getting the times
 import os
 print(os.getcwd())
-libdir = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'Literary-Quote-Clock/clock/waveshare_libraries')
-if os.path.exists(libdir):
-    sys.path.append(libdir)
-print('\n',sys.path)
 import glob
 import random
 import signal
 
 # Libraries for displaying image on screen
 import sys
+libdir = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'Literary-Quote-Clock/clock/waveshare_libraries')
+if os.path.exists(libdir):
+    sys.path.append(libdir)
+print('\n',sys.path)
 import logging
 import time
 from PIL import Image, ImageDraw, ImageFont
