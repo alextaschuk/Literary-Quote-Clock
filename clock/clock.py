@@ -2,9 +2,12 @@
  This file contains all logic for displaying images to the screen.
 '''
 # imports for time stuff
-from datetime import datetime, timedelta, timezone                   # for getting the times
+from datetime import datetime, timedelta, timezone  # for getting the times
 import os
 print(os.getcwd())
+libdir = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'Literary-Quote-Clock/clock/waveshare_libraries')
+if os.path.exists(libdir):
+    sys.path.append(libdir)
 import glob
 import random
 import signal
@@ -14,7 +17,7 @@ import sys
 import logging
 import time
 from PIL import Image, ImageDraw, ImageFont
-from .waveshare_libraries.epd7in5_V2 import epd7in5_V2               # Waveshare's library for their 7.5 inch screen
+from .clock.waveshare_libraries.epd7in5_V2 import epd7in5_V2               # Waveshare's library for their 7.5 inch screen
 
 logging.basicConfig(level=logging.DEBUG)
 
