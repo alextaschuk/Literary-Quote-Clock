@@ -15,7 +15,7 @@ print('\n',sys.path)
 import logging
 import time
 from PIL import Image, ImageDraw, ImageFont
-from waveshare_libraries.epd7in5_V2 import epd7in5_V2               # Waveshare's library for their 7.5 inch screen
+from waveshare_libraries import epd7in5_V2               # Waveshare's library for their 7.5 inch screen
 
 logging.basicConfig(level=logging.DEBUG)
 
