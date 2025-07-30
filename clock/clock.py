@@ -4,14 +4,12 @@
 # imports for time stuff
 from datetime import datetime, timedelta, timezone  # for getting the times
 import os
-print(os.getcwd())
 import glob
 import random
 import signal
 
 # Libraries for displaying image on screen
 import sys
-print('\n',sys.path)
 import logging
 import time
 from PIL import Image, ImageDraw, ImageFont
@@ -30,6 +28,7 @@ class Clock:
 
     def __init__(self):
         self.picdir = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'Literary-Quote-Clock/images') # path to .bmp files
+        print(self.picdir)
         self.time = datetime.now()
         self.quote_buffer = []
         self.quotes = []
