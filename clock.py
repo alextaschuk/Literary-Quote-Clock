@@ -1,6 +1,5 @@
-'''
- This file contains all logic for displaying images to the screen.
-'''
+''' This file contains all logic for displaying images to the screen. '''
+
 # imports for time stuff
 from datetime import datetime, timedelta # for getting the times
 import os
@@ -8,7 +7,7 @@ import glob
 import random
 import signal
 
-# Libraries for displaying image on screen
+# libraries for displaying image on screen
 import sys
 import logging
 import time
@@ -36,23 +35,23 @@ class Clock:
 
     def get_minute(self) -> int:
         '''
-        Returns the current minute as an integer
-            - For example, at 1:30 PM, 30 is returned
+        Returns the current minute as an integer.
+        - For example, 30 is returned for 13:30
         '''
         return self.time.minute
 
     def get_hour(self) -> int:
         '''
-        Returns the current hour as an integer
-            - For example, at 1:30 PM, 13 is returned
-            - For example, at 1:30 AM, 01 is returned
+        Returns the current hour as an integer.
+        - For example, 13 is returned for 13:30
+        - For example, 01 is returned for 01:30
         '''
         return self.time.hour
 
     def get_time(self, minute: int, hour: int) -> str: # e.g. if it's 1:30 PM, this returns '1330'
         '''
         Returns the current time as a string in the 24-hour format.
-            - For example, if the current time is 1:30 PM, '1330' is returned.
+        - For example, '1330' is returned for 13:30.
         '''
         if minute < 10:
             minute = '0' + str(minute)
@@ -60,16 +59,10 @@ class Clock:
             hour = '0' + str(hour)
         return str(hour) + str(minute)
 
-    def update_time(self):
-        '''
-         Updates the object's time (an instance of datetime) variable
-        '''
-        self.time = datetime.now()
-
     def get_quotes(self, filename) -> list:
         '''
-         A helper function for buffer_quotes that returns all possible quotes for a given minute.
-         Returns a list of all filepaths for a given minute.
+        A helper function for buffer_quotes that returns all possible quotes for a given minute.
+        - Returns a list of all filepaths for a given minute.
         '''
         filename = 'images/' + filename
         if glob.glob(filename):                 # get all quotes for the current time
@@ -78,46 +71,40 @@ class Clock:
 
     def init_buffer(self) -> list:
         '''
-        Initializes the buffer with the first 3 quotes.
-        The first element in the buffer will be the quote for the current time (e.g., 9:40)
-        The second element in the buffer will be the quote for the time in one minute (9:41)
-        The third element in the buffer will be the quote for the time in two minutes (9:42)
-
-        Returns a list of three Image objects
+        Initializes the buffer with the first 3 quotes; one for the current time
+        (e.g. 09:40), one for the time in one minute (e.g., 09:41), and one for
+        the time in two minutes (e.g. 09:42).
+        - Returns a list of three (open) Image objects
         '''
-        logging.info('init_buffer() called. Initializing quote_buffer...')
-
-        self.update_time() # update the time
-        curr_minute = self.get_minute()
-        curr_hour = self.get_hour()
-        curr_time = self.get_time(minute=curr_minute, hour=curr_hour)
-        logging.info(f"time: {str(self.time)} curr_minute: {curr_minute} curr_hour: {curr_hour} curr_time: {curr_time}")
+        logging.info(f'init_buffer() called. self.time: {str(self.time)}. Initializing quote_buffer...')
+        self.time = datetime.now() # update the time
+        curr_time = self.get_time(minute=self.get_minute(), hour=self.get_hour())
 
         while len(self.quote_buffer) < 3:
-            self.quotes = self.get_quotes('quote_' + curr_time + '_*' + '.bmp') # used to find all quotes for a specific time e.g. 'quote_1510_*.bmp'
-            filename = 'quote_' + curr_time + '_' + str(random.randrange(0, len(self.quotes))) + '.bmp' # pick 1 quote at random from the get_quotes() call
-
-            # this try-except solution is not the best (e.g. wont work if the first quote during init doesn't exist) but it
-            # is a short-term soultion for the meantime until I manually go through every time and make sure none are missing.
+            # this is a short-term soultion until I find quotes for times that don't have one yet.
             try:
+                self.quotes = self.get_quotes('quote_' + curr_time + '_*' + '.bmp') # used to find all quotes for a specific time e.g. 'quote_1510_*.bmp'
+                filename = 'quote_' + curr_time + '_' + str(random.randrange(0, len(self.quotes))) + '.bmp' # pick 1 quote at random from the get_quotes() call
                 image_quote = Image.open(os.path.join(self.picdir, filename))
                 self.quote_buffer.append(image_quote)
             except FileNotFoundError:
                 logging.info(f'Error! File {filename} for the time {curr_time} does not exist.\n')
-                self.quote_buffer.append(self.quote_buffer[0]) # add the current time back into the buffer to fill the gap
+                if len(self.quote_buffer) > 0:
+                    self.quote_buffer.append(self.quote_buffer[0]) # add the current time back into the buffer to fill the gap
+                else:
+                    time.sleep(60) # in the event that the first quote doesn't exist, wait a minute
             logging.info(f'The filename for the quote being added during intialization: {filename}')     
 
             # get the quotes that will be displayed one and two minutes after current quote
-            if curr_minute == 59: # if it's the 59th minute of the hour (e.g. 11:59)
+            if self.get_minute() == 59: # if it's the 59th minute of the hour (e.g. 11:59)
                 self.time = self.time.replace(minute=0,second=0, microsecond=0) + timedelta(hours=1) # set the time to the next hour (e.g. 12:00)
-                curr_hour = self.get_hour() # set current hour to next hour
-                curr_minute = self.get_minute() # set current minute to next minute (00)
             else: # it is not the 59 minute, so we only need the next minute
                 self.time = self.time.replace(second=0) + timedelta(minutes=1) # set the time to one minute from now
-                curr_minute = self.get_minute()  # set current minute to next minute
-            curr_time = self.get_time(minute=curr_minute, hour=curr_hour)
+            
+            curr_time = self.get_time(minute=self.get_minute(), hour=self.get_hour())
 
-        logging.info(f'init_buffer() finish.\n')
+        self.time = datetime.now() # set time back to actual current time
+        logging.info(f'init_buffer() finish. Buffer initialized.')
         return self.quote_buffer
 
     def update_buffer(self) -> list:
@@ -128,36 +115,34 @@ class Clock:
         minute is 57, 58, or 59 because the hour also needs to get updated when this is the case. 
 
         Returns an updated list of three Image objects
-        
         '''
-        logging.info('update_buffer() called. Updating quote_buffer...')
-        try:
-            self.update_time() # update the time
-            logging.info(f"self.time: {(self.time)}")
-            
-            difference = 60 - self.get_minute()
-            if 0 < difference <= 3: # if the current minute is the 57th, 58th, or 59th of the hour
-                self.time = self.time.replace(minute=(self.get_minute() + 3) % 10) + timedelta(hours=1) # e.g. at 13:58 we get quote for 14:01
-            else:
-                self.time = self.time.replace(minute = self.get_minute() + 3) # e.g. at 13:45 we get quote for 13:48
-            
-            curr_time = self.get_time(minute=self.get_minute(), hour=self.get_hour())
 
+        logging.info(f"update_buffer() called. self.time: {str(self.time)}. Updating quote_buffer...")
+        self.time = datetime.now() # update the time
+        
+        difference = 60 - self.get_minute() # number of mins until next hour
+        if 0 < difference <= 3: # if the current minute is the 57th, 58th, or 59th of the hour
+            self.time = self.time.replace(minute=(self.get_minute() + 3) % 10) + timedelta(hours=1) # e.g. at 13:58 we get quote for 14:01
+        else:
+            self.time = self.time.replace(minute = self.get_minute() + 3) # e.g. at 13:45 we get quote for 13:48
+        
+        curr_time = self.get_time(minute=self.get_minute(), hour=self.get_hour())
+        try:
             self.quotes = self.get_quotes('quote_' + curr_time + '_*' + '.bmp') # get all possible quotes for the minute
-            filename = 'quote_' + curr_time + '_' + str(random.randrange(0, len(self.quotes))) + '.bmp' # pick one of them at random
+            filename = 'quote_' + curr_time + '_' + str(random.randrange(0, len(self.quotes))) + '.bmp' # pick one quote at random
 
             image_quote = Image.open(os.path.join(self.picdir, filename))
             self.quote_buffer.append(image_quote) # add the quote to the buffer
             self.quote_buffer[0].close() # close the Image obj of the current quote
             self.quote_buffer.pop(0)     # remove the current quote from buffer
 
-            logging.info(f'the filename for the quote being added during update: {filename}') 
-
+            logging.info(f'Filename for the quote being added to the buffer: {filename}') 
         except FileNotFoundError:
             logging.info(f'Error! File {filename} for the time {curr_time} does not exist.\n')
             self.quote_buffer.append(self.quote_buffer[0]) # add the current time back into the buffer to fill the gap
 
-        logging.info('update_buffer() finish.\n')
+        self.time = datetime.now() # set time back to actual current time
+        logging.info('update_buffer() finish. Buffer updated.')
 
     def display_quote(self):
         '''
