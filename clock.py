@@ -33,21 +33,6 @@ class Clock:
 
         logging.info('clock obj was made.')
 
-    def get_minute(self) -> int:
-        '''
-        Returns the current minute as an integer.
-        - For example, 30 is returned for 13:30
-        '''
-        return self.time.minute
-
-    def get_hour(self) -> int:
-        '''
-        Returns the current hour as an integer.
-        - For example, 13 is returned for 13:30
-        - For example, 01 is returned for 01:30
-        '''
-        return self.time.hour
-
     def get_time(self, minute: int, hour: int) -> str: # e.g. if it's 1:30 PM, this returns '1330'
         '''
         Returns the current time as a string in the 24-hour format.
@@ -55,7 +40,7 @@ class Clock:
         '''
         if minute < 10:
             minute = '0' + str(minute)
-        if hour < 10: # if it is midnight, get_hour() returns 0, so we need to append another 0 to have '00'
+        if hour < 10: # if it is midnight, time.hour returns 0, so we need to append another 0 to have '00'
             hour = '0' + str(hour)
         return str(hour) + str(minute)
 
@@ -78,7 +63,7 @@ class Clock:
         '''
         logging.info(f'init_buffer() called. self.time: {str(self.time)}. Initializing quote_buffer...')
         self.time = datetime.now() # update the time
-        curr_time = self.get_time(minute=self.get_minute(), hour=self.get_hour())
+        curr_time = self.get_time(minute=self.time.minute, hour=self.time.hour)
 
         while len(self.quote_buffer) < 3:
             # this is a short-term soultion until I find quotes for times that don't have one yet.
@@ -96,12 +81,12 @@ class Clock:
             logging.info(f'The filename for the quote being added during intialization: {filename}')     
 
             # get the quotes that will be displayed one and two minutes after current quote
-            if self.get_minute() == 59: # if it's the 59th minute of the hour (e.g. 11:59)
+            if self.time.minute == 59: # if it's the 59th minute of the hour (e.g. 11:59)
                 self.time = self.time.replace(minute=0,second=0, microsecond=0) + timedelta(hours=1) # set the time to the next hour (e.g. 12:00)
             else: # it is not the 59 minute, so we only need the next minute
                 self.time = self.time.replace(second=0) + timedelta(minutes=1) # set the time to one minute from now
             
-            curr_time = self.get_time(minute=self.get_minute(), hour=self.get_hour())
+            curr_time = self.get_time(minute=self.time.minute, hour=self.time.hour)
 
         self.time = datetime.now() # set time back to actual current time
         logging.info(f'init_buffer() finish. Buffer initialized.')
@@ -120,13 +105,13 @@ class Clock:
         logging.info(f"update_buffer() called. self.time: {str(self.time)}. Updating quote_buffer...")
         self.time = datetime.now() # update the time
         
-        difference = 60 - self.get_minute() # number of mins until next hour
+        difference = 60 - self.time.minute # number of mins until next hour
         if 0 < difference <= 3: # if the current minute is the 57th, 58th, or 59th of the hour
-            self.time = self.time.replace(minute=(self.get_minute() + 3) % 10) + timedelta(hours=1) # e.g. at 13:58 we get quote for 14:01
+            self.time = self.time.replace(minute=(self.time.minute + 3) % 10) + timedelta(hours=1) # e.g. at 13:58 we get quote for 14:01
         else:
-            self.time = self.time.replace(minute = self.get_minute() + 3) # e.g. at 13:45 we get quote for 13:48
+            self.time = self.time.replace(minute = self.time.minute + 3) # e.g. at 13:45 we get quote for 13:48
         
-        curr_time = self.get_time(minute=self.get_minute(), hour=self.get_hour())
+        curr_time = self.get_time(minute=self.time.minute, hour=self.time.hour)
         try:
             self.quotes = self.get_quotes('quote_' + curr_time + '_*' + '.bmp') # get all possible quotes for the minute
             filename = 'quote_' + curr_time + '_' + str(random.randrange(0, len(self.quotes))) + '.bmp' # pick one quote at random
@@ -150,6 +135,7 @@ class Clock:
         the buffer and uses epd.display() to show it on the
         e-ink screen.
         '''
+        self.time = datetime.now()
         try:
             logging.info('display_quote() called. Reading .bmp file from quote_buffer...')
             logging.info('the current time is: ' + str(self.time))
@@ -166,12 +152,13 @@ class Clock:
         removes it from the buffer, and updates the buffer.
         '''
         logging.info('main() called.')
-        if (self.get_minute() % 10) == 0:
+        if (self.time.minute % 10) == 0:
             logging.info('10 minutes have passed. Performing full refresh on screen.')
             self.epd.init() # Do a full refresh every 10 minutes. This helps prevent "ghosting" and increases the screen's lifespan.
             self.epd.Clear() # Then, clear the screen before displaying new quote
         else:
             self.epd.init_fast() # speeds up updates, according to waveshare support
+
         self.display_quote()     # display the current quote
         self.update_buffer()     # call AFTER the current quote is displayed to reduce processing time.
         logging.info('main() finish.\n')
@@ -219,9 +206,8 @@ if __name__ == '__main__':
         while True:
             signal.signal(signal.SIGINT, signal_handler)
             clock.main() # display the quote and update buffer
-            curr_time = datetime.now() # get the current time
-            time.sleep(59 - curr_time.second) # sleep until the next minute (this is called 1 sec early because of processing time to show the next image)
-            logging.info(f'sleeping for {59 - curr_time.second} seconds before displaying next quote.')
+            time.sleep(59 - datetime.now().second) # sleep until the next minute (this is called 1 sec early because of processing time to show the next image)
+            logging.info(f'sleeping for {59 - datetime.now().second} seconds before displaying next quote.')
 
     except KeyboardInterrupt as e:
         logging.info('program interrupted:')
