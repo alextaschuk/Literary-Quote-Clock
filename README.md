@@ -79,7 +79,7 @@ This stage involved everything that happens in the time between a quote being di
 
 ## Credits
 
-[`make_images.py`](/make_images.py) is a modified version of [elegantalchemist's `quote_to_image.py`](https://github.com/elegantalchemist/literaryclock/blob/main/quote%20to%20image/quote_to_image.py) program.
+[`make_images.py`](/make_images.py) is a modified version of elegantalchemist's [`quote_to_image.py`](https://github.com/elegantalchemist/literaryclock/blob/main/quote%20to%20image/quote_to_image.py) program.
 
 The program parses a CSV file and converts each line into a .bmp file. I decided to use [JohannesNE's CSV file](https://github.com/JohannesNE/literature-clock/blob/master/litclock_annotated.csv) instead of [elegantalchemist's](https://github.com/elegantalchemist/literaryclock/blob/main/quote%20to%20image/litclock_annotated_br2.csv); both files contain many of the same quotes, but  JohannesNE's seems more refined and has more quotes overall. 
 
