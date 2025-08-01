@@ -21,7 +21,7 @@ SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 480
 
 QUOTE_WIDTH = SCREEN_WIDTH                      # the width (length) of the quote should be 100% of the screen's width
-QUOTE_HEIGHT = SCREEN_HEIGHT * .90             # the height of the quote should be 90% of the screen's height
+QUOTE_HEIGHT = SCREEN_HEIGHT * .90             # the height of the quote should be 90% of the screen's height (helps ensure it's not too close to author & title)
  
 # note: I renamed some of the variables for personal preference. *{var_name} denotes the original variable names in elegantalchemist's file.
 csv_path = 'litclock_annotated.csv'             # the CSV file with all quotes, author names, etc. *csvpath
@@ -71,7 +71,7 @@ def TurnQuoteIntoImage(index:int, time:str, quote:str, timestring:str,
             metadata = wrap_lines(metadata, font_mdata, mdatalength - 23)
         for line in metadata.splitlines():
             mdatastart_y -= font_mdata.getbbox("A")[3] + 4
-        quoteheight = mdatastart_y - 5
+        quoteheight = mdatastart_y - 10
         mdata_y = mdatastart_y
         for line in metadata.splitlines():
             ariandel.text((mdatastart_x, mdata_y), line, time_color,
