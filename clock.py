@@ -61,7 +61,8 @@ class Clock:
         the time in two minutes (e.g. 09:42).
         - Returns a list of three (open) Image objects
         '''
-        logging.info(f'init_buffer() called. self.time: {str(self.time)}. Initializing quote_buffer...')
+
+        logging.info(f'init_buffer() called at {str(self.time)}. Initializing quote_buffer...')
         self.time = datetime.now() # update the time
         curr_time = self.get_time(minute=self.time.minute, hour=self.time.hour)
 
@@ -89,7 +90,7 @@ class Clock:
             curr_time = self.get_time(minute=self.time.minute, hour=self.time.hour)
 
         self.time = datetime.now() # set time back to actual current time
-        logging.info(f'init_buffer() finish. Buffer initialized.')
+        logging.info(f'init_buffer() finished at {str(self.time)}.')
         return self.quote_buffer
 
     def update_buffer(self) -> list:
@@ -102,7 +103,7 @@ class Clock:
         Returns an updated list of three Image objects
         '''
 
-        logging.info(f"update_buffer() called. self.time: {str(self.time)}. Updating quote_buffer...")
+        logging.info(f"update_buffer() called at {str(self.time)}.")
         self.time = datetime.now() # update the time
         
         difference = 60 - self.time.minute # number of mins until next hour
@@ -127,41 +128,40 @@ class Clock:
             self.quote_buffer.append(self.quote_buffer[0]) # add the current time back into the buffer to fill the gap
 
         self.time = datetime.now() # set time back to actual current time
-        logging.info('update_buffer() finish. Buffer updated.')
+        logging.info(f'update_buffer() finished at {str(self.time)}.')
 
     def display_quote(self):
         '''
-        This function reads the Image object at the front of
-        the buffer and uses epd.display() to show it on the
+        Reads the `Image` object at the front of
+        the buffer and uses `epd.display()` to show it on the
         e-ink screen.
         '''
         self.time = datetime.now()
         try:
-            logging.info('display_quote() called. Reading .bmp file from quote_buffer...')
-            logging.info('the current time is: ' + str(self.time))
+            logging.info(f'display_quote() called at {str(self.time)}.')
             quote_to_display = self.quote_buffer[0] # get the quote for the current time
             self.epd.display(self.epd.getbuffer(quote_to_display))  # display the quote
             self.epd.sleep() # put screen to sleep to increase its lifespan
-            logging.info('display_quote finish\n')
+            logging.info(f'display_quote finished at {str(self.time)}.')
         except IOError as e:
-            logging.info(f'error in display_quote: {e}\n')
+            logging.info(f'error in display_quote: {e}')
 
     def main(self):
         '''
         This function displays the current time's quote, 
         removes it from the buffer, and updates the buffer.
         '''
-        logging.info('main() called.')
+        logging.info(f'main() called at {str(self.time)}.')
         if (self.time.minute % 10) == 0:
             logging.info('10 minutes have passed. Performing full refresh on screen.')
             self.epd.init() # Do a full refresh every 10 minutes. This helps prevent "ghosting" and increases the screen's lifespan.
             self.epd.Clear() # Then, clear the screen before displaying new quote
         else:
-            self.epd.init_fast() # speeds up updates, according to waveshare support
+            self.epd.init_fast() # according to waveshare support, will speed up process of displaying new image
 
         self.display_quote()     # display the current quote
         self.update_buffer()     # call AFTER the current quote is displayed to reduce processing time.
-        logging.info('main() finish.\n')
+        logging.info(f'main() finished at {str(self.time)}.')
 
 def signal_handler(sig, frame):
     '''
