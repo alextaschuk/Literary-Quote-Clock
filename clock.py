@@ -206,8 +206,8 @@ if __name__ == '__main__':
         while True:
             signal.signal(signal.SIGINT, signal_handler)
             clock.main() # display the quote and update buffer
+            logging.info(f'sleeping for {(59 - datetime.now().second)} seconds before displaying next quote.')
             time.sleep(59 - datetime.now().second) # sleep until the next minute (this is called 1 sec early because of processing time to show the next image)
-            logging.info(f'sleeping for {59 - datetime.now().second} seconds before displaying next quote.')
 
     except KeyboardInterrupt as e:
         logging.info('program interrupted:')
