@@ -35,7 +35,7 @@ I made a clock that displays the time using quotes from various books using a [R
 
     Then 
 
-    `0 4 * * * /usr/sbin/reboot`
+    `0 4 * * * /sbin/shutdown -r now`
 
 ### Other
 
