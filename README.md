@@ -3,7 +3,7 @@
 I made a clock that displays the time using quotes from various books using a [Raspberry PI Zero 2WH](https://www.raspberrypi.com/products/raspberry-pi-zero-2-w/) and Waveshare's [7.5 inch E-ink display](https://www.waveshare.com/7.5inch-e-paper-hat.htm). (Almost) every minute of the day has at least one corresponding quote, but many have multiple possible quotes that may be used (one is chosen at random).
 
 <figure class="video_container">
-  <iframe src="demo/demo.mov" frameborder="0" allowfullscreen="true"> 
+  <iframe src="demo/demo.mp4" frameborder="0" allowfullscreen="true"> 
 </iframe>
 </figure>
 
