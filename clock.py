@@ -191,15 +191,15 @@ if __name__ == '__main__':
         clock.epd.init()    # initialize the screen
         clock.epd.Clear()   # clear screen
 
-        logging.info('Displaying startup screen\n')
+        logging.info('Displaying startup screen')
         try:
             #with Image.open(os.path.join(clock.picdir, 'startup.bmp')) as startup_img: # use this if startup.bmp is in /images
             with Image.open('startup.bmp') as startup_img: # use this if startup.bmp is in root dir
                 clock.epd.display(clock.epd.getbuffer(startup_img)) # display a startup screen
+            clock.epd.sleep() # put the screen to sleep
         except FileNotFoundError:
             logging.error('error startup.bmp image not found')
 
-        clock.epd.sleep() # put the screen to sleep
         time.sleep(30) # wait for the PI's system clock to update
         clock.quote_buffer = clock.init_buffer() # initialize the quote buffer with the first 3 quotes
 
