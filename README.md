@@ -80,7 +80,7 @@ This stage involved everything that happens in the time between a quote being di
 
 [`make_images.py`](/make_images.py) is a modified version of elegantalchemist's [`quote_to_image.py`](https://github.com/elegantalchemist/literaryclock/blob/main/quote%20to%20image/quote_to_image.py) program.
 
-The program parses a CSV file and converts each line into a .bmp file. I decided to use [JohannesNE's CSV file](https://github.com/JohannesNE/literature-clock/blob/master/litclock_annotated.csv) instead of [elegantalchemist's](https://github.com/elegantalchemist/literaryclock/blob/main/quote%20to%20image/litclock_annotated_br2.csv); both files contain many of the same quotes, but JohannesNE's seems more refined and has more quotes overall.
+The program parses a CSV file and converts each line into a .bmp file. I am using [JohannesNE's CSV file](https://github.com/JohannesNE/literature-clock/blob/master/litclock_annotated.csv) (renamed to `quotes.csv) instead of [elegantalchemist's](https://github.com/elegantalchemist/literaryclock/blob/main/quote%20to%20image/litclock_annotated_br2.csv); both contain many of the same quotes, but JohannesNE's seems more refined and has more quotes overall.
 
 The biggest modification I made is to handle italic characters. JohannesNE's CSV file contains a few quotes that have italic characters (their project is a literary quote clock website that uses HTML which makes it a lot easier to handle italic text), and elegantalchemist's code doesn't have a way to detect and handle these characters. With CSS, you can easily change the `font-style` between normal, _italic_, and **bold**, but in my case a different font file is needed for italicized characters because font files can only contain one font style. My solution is to wrap italicized words in a '◻' character (White medium square, U+25FB) since each quote is written to the .bmp file word-by-word. Quotes that have the time part italicized are wrapped with a '◯' character (Large circle, U+25EF) since they'll need a font file that has bolded and italicized characters. For example, a quote might have looked like this in the CSV file: "There were only four words: _Tomorrow morning. 2 o'clock_." With my changes, it looks like this: "There were only four words: ◻Tomorrow◻ ◻morning◻. ◯2◯ ◯o'clock◯."
 
@@ -93,4 +93,8 @@ I also manually went through all ~3500 quotes in the file and am in the process 
 - A certain part of the quote is or isn't highlighted (e.g., for the quote "A man driving a tractor saw her, four hundred yards from her house, six minutes past two in the afternoon." only "six minutes past two" is highlighted when "six minutes past two in the afternoon" should be).
 - Other minor changes such as replacing three full stops (...) with a proper ellipsis unicode character (…).
 
-I also read in my free time, and will be adding quotes that I find in books as I read.
+I also like to read in my free time, and as I find quotes in the books I read, I add them `quotes.csv`. So far, I have added quotes from:
+- Battle Royale, by Koushun Takami
+- Stoner, by John Williams
+- All Quiet on the Western Front, by Erich Maria Remarque
+- In Cold Blood, by Truman Capote
