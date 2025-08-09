@@ -57,8 +57,8 @@ class Clock:
     def init_buffer(self) -> list:
         '''
         Initializes the buffer with the first 3 quotes; one for the current time
-        (e.g. 09:40), one for the time in one minute (e.g., 09:41), and one for
-        the time in two minutes (e.g. 09:42).
+        (e.g. 09:40), one for the time in one minute (09:41), and one for
+        the time in two minutes (09:42).
         - Returns a list of three (open) Image objects
         '''
 
