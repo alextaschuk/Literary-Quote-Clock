@@ -89,7 +89,7 @@ I also manually went through all ~3500 quotes in the file and am in the process 
 - I have found that some quotes can be used for both A.M and P.M. but currently aren't.
 - I'd like to add more context to some quotes (i.e., a preceding and/or succeeding sentance)
 - I am modifying some because I feel that they are too vauge (e.g., "Raymond came back with Masson around one-thirty." with "around one-thirty" highlighted for 13:31 will be used for 13:30 with "one-thirty" being highlighted)
-  - I'm keeping some instances of this in. For example, a quote such as "just past [time]," "just before [time]," or similar language will be used for either that 1st minute or 59th minute of an hour.
+  - I'm keeping some instances of this in. For example, a quote such as "just past [time]," "just before [time]," or similar language might be used for either that 1st minute or 59th minute of an hour.
 - A certain part of the quote is or isn't highlighted (e.g., for the quote "A man driving a tractor saw her, four hundred yards from her house, six minutes past two in the afternoon." only "six minutes past two" is highlighted when "six minutes past two in the afternoon" should be).
 - Other minor changes such as replacing three full stops (...) with a proper ellipsis unicode character (…).
 
