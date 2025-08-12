@@ -20,8 +20,8 @@ import unicodedata
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 480
 
-QUOTE_WIDTH = SCREEN_WIDTH                      # the width (length) of the quote should be 100% of the screen's width
-QUOTE_HEIGHT = SCREEN_HEIGHT * .90             # the height of the quote should be 90% of the screen's height (helps ensure it's not too close to author & title)
+QUOTE_WIDTH = 780                     
+QUOTE_HEIGHT = 440
  
 # note: I renamed some of the variables for personal preference. *{var_name} denotes the original variable names in elegantalchemist's file.
 #csv_path = 'quotes.csv'             # the CSV file with all quotes, author names, etc. *csvpath
@@ -37,10 +37,10 @@ time_color = 0                                  # bold the color of the time in 
 
 quote_font = 'fonts/Bookerly.ttf'                     # the font the quote will be written in *fntname_norm
 italic_quote_font = 'fonts/Bookerly-Italic.ttf'       # used if word(s) in the quote are italicized
-italic_time_font = 'fonts/Bookerly-Bold-Italic.ttf'  # used if the time part of quote is also italicized
+italic_time_font = 'fonts/Bookerly-Bold-Italic.ttf'   # used if the time part of quote is also italicized
 time_font = 'fonts/Bookerly-Bold.ttf'                 # bold version of quote_font (for time part of quote) *fntname_high
 info_font = 'fonts/Bookerly-Bold.ttf'                 # the font the book and Author's name will be written in *fntname_mdata
-info_fontsize = 25                              # the font size for the author/title *fntsize_mdata
+info_fontsize = 25                                    # the font size for the author/title *fntsize_mdata
 
 # don't touch
 imgnumber = 0
@@ -53,9 +53,9 @@ def TurnQuoteIntoImage(index:int, time:str, quote:str, timestring:str,
     quoteheight = QUOTE_HEIGHT      # How far top-to-bottom the quote spans
     quotelength = QUOTE_WIDTH       # How far left-to-right the quote spans
     quotestart_y = 00               # Y coordinate where the quote begins
-    quotestart_x = 10               # X coordinate where the quote begins
-    mdatalength = 341               # To help with text wrapping -- bigger value = longer horizontal metadata text
-    mdatastart_y = 480              # Y coordinate where the author and title text begins
+    quotestart_x = 20               # X coordinate where the quote begins
+    mdatalength = 650               # To help with text wrapping -- bigger value = longer horizontal metadata text
+    mdatastart_y = 470              # Y coordinate where the author and title text begins
     mdatastart_x = 785              # X coordinate where the author and title text begins
 
     # create the object. mode 'L' restricts to 8bit greyscale
@@ -67,12 +67,12 @@ def TurnQuoteIntoImage(index:int, time:str, quote:str, timestring:str,
         font_mdata = create_fnt(info_font, info_fontsize)
         metadata = f'—{title.strip()}, {author.strip()}' # e.g. '—Dune, Frank Herbert
         # wrap lines into a reasonable length and lower the maximum height the
-        # quote can occupy according to the number of lines the credits use
+        # quote can occupy according to the number of lines the credits use        
         if font_mdata.getlength(metadata) > mdatalength: # e.g. getlength(metadata) = 282.0 for '—Dune, Frank Herbert'
-            metadata = wrap_lines(metadata, font_mdata, mdatalength - 23)
+            metadata = wrap_lines(text=metadata, font=font_mdata, line_length=mdatalength - 23)
         for line in metadata.splitlines():
             mdatastart_y -= font_mdata.getbbox("A")[3] + 4
-        quoteheight = mdatastart_y - 10
+        quoteheight = mdatastart_y - 25
         mdata_y = mdatastart_y
         for line in metadata.splitlines():
             ariandel.text((mdatastart_x, mdata_y), line, time_color,
@@ -88,9 +88,9 @@ def TurnQuoteIntoImage(index:int, time:str, quote:str, timestring:str,
             print('error while trying to create /nometadata folder')
 
     # draw the quote (pretty)
-    quote, fntsize = calc_fntsize(quotelength, quoteheight, quote, time_font)
-    font_norm = create_fnt(quote_font, fntsize)
-    font_high = create_fnt(time_font, fntsize)
+    quote, fntsize = calc_fntsize(length=quotelength, height=quoteheight, text=quote, fntname=time_font)
+    font_norm = create_fnt(name=quote_font, size=fntsize)
+    font_high = create_fnt(name=time_font, size=fntsize)
     try:
         draw_quote(drawobj=ariandel, anchors=(quotestart_x,quotestart_y), text=quote, substr=timestring, font_norm=font_norm, font_high=font_high, fntsize=fntsize)
     # warn and discard image if timestring is just not there
@@ -149,14 +149,10 @@ def draw_quote(drawobj, anchors:tuple, text:str, substr:str,
     textlength = drawobj.textlength
     x = start_x
     y = start_y
-
     for line in lines.splitlines():
         for word in line.split():
             word += ' '
-            if '⭕' in word:
-                word = word.replace('⭕', '')
-                word = '    ' + word
-            # if the entire time quote substr is one contiguous word, split the
+            # if the entire time substr is one contiguous word, split the
             # non-substr bits stuck to it and print the whole thing in 3 parts
             if word.count(bookmark) == 2: # e.g. if word == '|◯𝘰’𝘤𝘭𝘰𝘤𝘬◯.|'
                 wordnow = word.split(bookmark)[0] # word.split(bookmark) is ['', '◯𝘰’𝘤𝘭𝘰𝘤𝘬◯', '.'], so wordnow = ''
@@ -215,36 +211,49 @@ def draw_quote(drawobj, anchors:tuple, text:str, substr:str,
 
 
 def wrap_lines(text:str, font:ImageFont.truetype, line_length:int):
-    # wraps lines to maximize the number of words within line_length. note
-    # that lines *can* exceed line_length, this is intentional, as text looks
-    # better if the font is rescaled afterwards. adapted from Chris Collett
-    # https://stackoverflow.com/a/67203353/8225672
+        '''
+         wraps lines to maximize the number of words within line_length. note
+         that lines *can* exceed line_length, this is intentional, as text looks
+         better if the font is rescaled afterwards. adapted from Chris Collett
+         https://stackoverflow.com/a/67203353/8225672
+        '''
         lines = ['']
         for word in text.split():
             line = f'{lines[-1]} {word}'.strip()
             fontlen = font.getlength(line)
-            #if font.getlength(line) <= line_length:
+
+            # when the quote is formatted with a blank line in between two
+            # lines of text (e.g. for a new paragraph)
             if '⭐' in word:
-                lines.append("")
                 word = word.replace('⭐', '')
+                lines.append('')
                 lines.append(word)
-            elif fontlen <= line_length:
+
+            # when the quote is formatted with a linebreak
+            # at a specific location 
+            elif '📖' in word:
+                word = word.replace('📖', '')
+                lines.append(word)
+
+            # this just ensures text doesn't overflow
+            elif fontlen <= line_length: 
                 lines[-1] = line
             else:
-                lines.append(word)
+                lines.append(word) # this puts the next set of text on a new line
   
         return '\n'.join(lines)
 
 
 def calc_fntsize(length:int, height:int, text:str, fntname:str, basesize=50,
-                                                              maxsize=800):
-    # this will dynamically wrap and scale text with the optimal font size to
-    # fill a given textbox, both length and height wise.
-    # manually setting basesize to just below the mean of a sample will
-    # massively reduce processing time with large batches of text, at the risk
-    # of potentially wasting it with strings much larger than the mean
-
-    # these are just for calculating the textbox size, they're discarded
+                                                              maxsize=480):
+    '''
+     this will dynamically wrap and scale text with the optimal font size to
+     fill a given textbox, both length and height wise.
+     manually setting basesize to just below the mean of a sample will
+     massively reduce processing time with large batches of text, at the risk
+     of potentially wasting it with strings much larger than the mean
+     these are just for calculating the textbox size, they're discarded
+    '''
     louvre = Image.new(mode='1', size=(0,0))
     monalisa = ImageDraw.Draw(louvre)
 
