@@ -222,6 +222,16 @@ def wrap_lines(text:str, font:ImageFont.truetype, line_length:int):
             line = f'{lines[-1]} {word}'.strip()
             fontlen = font.getlength(line)
 
+            # to accurately wrap lines without including delimiting
+            # chars in the calculation
+            temp_line = line
+            if '◻' in line:
+                temp_line = line.replace('◻', '')
+                fontlen = font.getlength(temp_line)
+            if '◯' in word:
+                temp_word = word.removeprefix('◯', '')
+                fontlen = font.getlength(temp_line)
+
             # when the quote is formatted with a blank line in between two
             # lines of text (e.g. for a new paragraph)
             if '⭐' in word:
@@ -253,7 +263,7 @@ def calc_fntsize(length:int, height:int, text:str, fntname:str, basesize=50,
      massively reduce processing time with large batches of text, at the risk
      of potentially wasting it with strings much larger than the mean
      these are just for calculating the textbox size, they're discarded
-    '''
+    ''' 
     louvre = Image.new(mode='1', size=(0,0))
     monalisa = ImageDraw.Draw(louvre)
 
