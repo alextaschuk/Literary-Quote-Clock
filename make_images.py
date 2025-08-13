@@ -200,6 +200,18 @@ def draw_quote(drawobj, anchors:tuple, text:str, substr:str,
                 write((x,y), wordnow, *fntstyle_norm)
                 x += textlength(wordnow, font_norm)
                 word = ''
+            elif '◯' in word:
+                wordnow = word.split('◯')[0]
+                write((x,y), wordnow, *fntstyle_high)
+                x += textlength(wordnow, font_high)
+                wordnow = unicodedata.normalize('NFKD', word.split('◯')[1])
+                write((x,y), wordnow, *fntstyle_italic_high)
+                x += textlength(wordnow, font_italic_high)
+                wordnow = word.split('◯')[2]
+                write((x,y), wordnow, *fntstyle_high)
+                x += textlength(wordnow, font_high)
+                word = ''
+
             else: 
                 write((x,y), word, *current_style)
                 x += textlength(word, current_style[1])
@@ -225,11 +237,11 @@ def wrap_lines(text:str, font:ImageFont.truetype, line_length:int):
             # to accurately wrap lines without including delimiting
             # chars in the calculation
             temp_line = line
-            if '◻' in line:
-                temp_line = line.replace('◻', '')
+            if '◻' in temp_line:
+                temp_line = temp_line.replace('◻', '')
                 fontlen = font.getlength(temp_line)
-            if '◯' in word:
-                temp_word = word.removeprefix('◯', '')
+            if '◯' in temp_line:
+                temp_line = temp_line.replace('◯', '')
                 fontlen = font.getlength(temp_line)
 
             # when the quote is formatted with a blank line in between two
