@@ -68,6 +68,7 @@ time|timestring|quote|title|author
 00:00|midnight|It was just after midnight, and the warehouse was lit up like a Halloween pumpkin.|In Cold Blood|Truman Capote
 00:00|midnight|In March, 1965, after Smith and Hickock had been confined in their Death Row cells almost two thousand day, the Kansas Supreme Court decreed that their lives must end between midnight and 2:00 A.M., Wednesday, April 14, 1965.|In Cold Blood|Truman Capote
 00:00|midnight|He has never attended an execution, and when on the midnight past he entered the cold warehouse, the scenary had suprised him: he had anticipated a setting of suitable dignity, not this bleakly lighted cavern cluttered with lumber and other debris.|In Cold Blood|Truman Capote
+00:00|midnight|He slept and woke and the rain slackened and after a while it stopped. He wondered if it was even midnight.|The Road|Cormac McCarthy
 00:01|one minute past midnight|“Perhaps. But it might be wise to warn them that I felt it was my duty to inform the tax authorities of your presence in Bristol, so don’t be surprised if the police board your yacht at one minute past midnight and seize it.”|This Was a Man|Jeffrey Archer
 00:01|a minute after midnight|She was wearing a watch. Not a digital one, in this life. An elegant, slender analogue one, with Roman numerals. It was about a minute after midnight.  How is this happening?|The Midnight Library|Matt Haig
 00:01|one minute past midnight|With the appointed execution time of one minute past midnight just seconds away, I knocked on the metal door twice. The lock turned and the door swiftly swung open.|Death at Midnight|Donald A. Cabana
@@ -218,7 +219,7 @@ time|timestring|quote|title|author
 01:17|seventeen minutes past one|“I don’t know how you feel, but I’m exhausted,” said Ted, bolting the kitchen door. Hazel checked her watch. It was seventeen minutes past one.|Shoeshine Boy|Jeffrey Archer
 01:17|1:17 A.M.|Friday 1:17 A.M. The room was cold. Just cold. That was the first thing he'd noticed when they shoved him in. It still was. For nine hours he'd been sitting on a hard, canvas-covered Soviet cot, shivering.|Project Daedalus|Thomas Hoover
 01:17|seventeen minutes past one in the morning|At that moment (it was seventeen minutes past one in the morning) Lieutenant Bronsfield was preparing to leave the watch and return to his cabin, when his attention was attracted by a distant hissing noise.|A Voyage Round the Moon|Jules Verne
-01:17|1:17|The clocks stopped at 1:17. A long shear of light and then a series of low concussions. He got up and went to the window. What is it? she said. He didn't answer. He went into the bathroom and threw the lightswitch but the power was already gone. A dull rose glow in the windowglass. He dropped to one knee and raised the lever to stop the tub and then turned on both taps as far as they would go.|The Road|Cormac McCarthy
+01:17|1:17|The clocks stopped at 1:17.|The Road|Cormac McCarthy
 01:18|eighteen minutes past one|It was Saturday night, or technically Sunday morning. It was eighteen minutes past one.|Summerland|Elin Hilderbrand
 01:19|nineteen past one|"Go to bed before he comes in," she ordered herself for the umpteenth time. Still, she sat looking at the clock. The minute hand had shifted to nineteen past one and her nerves grew more on edge.|Haunted Husband|Elizabeth August
 01:19|1:19|“Hickock, 33 years old, died first, at 12:41 A.M.; Smith, 36, died at 1:19 …”
@@ -1965,8 +1966,9 @@ time|timestring|quote|title|author
 12:00|noon|One umbrella, pink, had written upon it, “We Serve Valentine Ice-Cream.” At noon on Christmas Day, a quartet of women lay under and around it, a transistor radio serenading them.|In Cold Blood|Truman Capote
 12:00|noon|For Dewey and Duntz, patient professionals, had gradually narrowed the prisoner's life story to the events of the last seven weeks, then reduced those to a concentrated recapitulation of the crucial weekend—Saturday noon to Sunday noon, November 14 to 15.|In Cold Blood|Truman Capote
 12:00|noon|It was almost noon when we got to Olathe.|In Cold Blood|Truman Capote
-12:00|noon|They passed through the city at noon the day following.|The Road|Truman Capote
+12:00|noon|They passed through the city at noon the day following.|The Road|Cormac McCarthy
 12:00|noon|“I see,” said Nye. “An overnight trip. Which means they left here sometime Saturday. That would be Saturday, November fourteenth?” The old man agreed. ”And returned Sunday, November fifteenth?” “Sunday noon.”|In Cold Blood|Truman Capote
+12:00|noon|He’d put a handful of dried raisins in a cloth in his pocket and at noon they sat in the dead grass by the side of the road and ate them.|The Road|Cormac McCarthy
 12:01|one minute past midday|“Madam President …” Florentyna had to think quickly to prevent anyone noticing her instinctive response to the words. “It’s one minute past midday.”|Shall We Tell the President?|Jeffrey Archer
 12:01|one minute past twelve|At one minute past twelve, Percy stood to attention, slowly raised the Union Jack up the flagpole and delivered the exact words required by the Territories Settlement Act of 1762: “I claim this sovereign territory in the name of Her Majesty Queen Elizabeth II, to whom I swear my allegiance.”|The Undiplomatic Diplomat|Jeffrey Archer
 12:01|12:01|It was the twelfth of December, the twelfth month. A was twelve. The electric clock/radio by his bedside table said 12:01.|Boy A|Jonathan Trigell
@@ -2160,6 +2162,7 @@ time|timestring|quote|title|author
 13:16|1.16 p.m.|And the first stop had been at 1.16 p.m. which was 17 minutes later.|The Curious Incident of the Dog in the Night-Time|Mark Haddon
 13:17|1.17 pm|1.17 pm An arrest is made at Bristol Airport and police confirm that they’ve detained a person in connection with the investigation.|What She Knew|Gilly MacMillan
 13:17|one seventeen|One seventeen and four seconds. That shorter guy’s really got it made, and gets on a scooter, and that taller one, he goes in. One seventeen and forty seconds. That girl there, she’s got a green ribbon in her hair. Too bad that bus just cut her from view.|The Terrorist, He Watches|Wislawa Szymborska
+13:17|1:17|The clocks stopped at 1:17|The Road|Cormac McCarthy
 13:18|one eighteen|One eighteen exactly. Was she stupid enough to head inside? Or wasn't she? We'll know before long, When the dead are carried out.|The Terrorist, He Watches|Wislawa Szymborska
 13:19|past one in the afternoon|It was past one in the afternoon when the servant waked her and announced that M. Artynov had called. She dressed quickly and went down into the drawing-room.|The Party and Other Stories|Anton Pavlovich Chekhov
 13:20|twenty past one|"Gerard and I took the launch to Greenwich and had a pub lunch at the Trafalgar Tavern, but we didn't leave here until twenty past one."|Original Sin|P.D. James
@@ -3230,7 +3233,7 @@ time|timestring|quote|title|author
 20:00|eight o’clock in the evening|At eight o’clock in the evening he will eat some miserable rubbish they get in exchange for their food tickets, then he will take a powder for his headache and work on.|All Quiet on the Western Front|Erich Maria Remarque
 20:00|eight|“What about Yuko? How did you find her?” Yukie nodded and looked at him. “That was also pure luck. We came inside here yesterday morning—it’s a pretty good fortress, right? Anyway, it was last night, around eight I think. Yuko just happend to pass right by. She was terrified.”|Battle Royale|Koushun Takami
 20:00|8 at night|After we were married, I worked at a service-station near Kansar City. I worked from 8 at night till 8 in the morning.|In Cold Blood|Truman Capote
-20:00|eight|At eight the primrose closes.|The Road|Truman Capote
+20:00|eight|At eight the primrose closes.|The Road|Cormac McCarthy
 20:01|one minute past eight|The Lenox Station was easily reached on time. The hands of the big clock were only at one minute past eight when Cyrus entered. At the designated spot the messenger met him. Cyrus recognized the man as a porter on one of the trains of the road of which his grandfather and father were officers. Why, yes, he was the porter of the Woodbridge special car!|A Court of Inquiry|Grace S. Richmond
 20:01|a little after eight o'clock|It was only a little after eight o'clock, so all the shows were about silliness or murder.|Slaughterhouse 5|Kurt Vonnegut
 20:02|two minutes past eight|"Yes, I must go to the railway station, and if he's not there, then go there and catch him." Anna looked at the railway timetable in the newspapers. An evening train went at two minutes past eight. "Yes, I shall be in time."|Anna Karenina|Leo Tolstoy
