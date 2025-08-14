@@ -287,12 +287,16 @@ def calc_fntsize(length:int, height:int, text:str, fntname:str, basesize=50,
         fntsize += 1
         fnt = fnt.font_variant(size=fntsize)
         lines = wrap_lines(text, fnt, length)
-        boxheight = monalisa.multiline_textbbox((0,0), lines, fnt)[3]
+
+        # "Returns bounding box (in pixels) of given text relative to given anchor
+        # when rendered in font with provided direction, features, and language.
+        # Only supported for TrueType fonts." - pillow docs
+        boxheight = get_boxsize(monalisa, (0,0), lines, fnt, 3)
 
     fntsize -= 1
     fnt = fnt.font_variant(size=fntsize)
     lines = wrap_lines(text, fnt, length)
-    boxlength = monalisa.multiline_textbbox((0,0), lines, fnt)[2]
+    boxlength = get_boxsize(monalisa, (0,0), lines, fnt, 2)
     while boxlength > length:
         # note: this is a sanity check. we intentionally don't reformat lines
         # here, as wrap_lines only checks if its output is *longer* than length,
@@ -300,9 +304,9 @@ def calc_fntsize(length:int, height:int, text:str, fntname:str, basesize=50,
         # into something longer, leading to overly small and unreadable fonts
         fntsize -= 1
         fnt = fnt.font_variant(size=fntsize)
-        boxlength = monalisa.multiline_textbbox((0,0), lines, fnt)[2]
+        boxlength = get_boxsize(monalisa, (0,0), lines, fnt, 2)
     # recursive call in case original basesize was too low
-    boxheight = monalisa.multiline_textbbox((0,0), lines, fnt)[3]
+    boxheight = get_boxsize(monalisa, (0,0), lines, fnt, 3)
     if boxheight > height:
         return calc_fntsize(length, height, text, fntname, basesize-5)
     return lines, fntsize
@@ -314,6 +318,12 @@ def create_fnt(name:str, size:int, layout_engine=ImageFont.Layout.BASIC):
     # see https://github.com/python-pillow/Pillow/issues/6631
     return ImageFont.truetype(name, size, layout_engine=layout_engine)
 
+def get_boxsize(image_draw_obj: ImageDraw, coords:tuple[float, float], text: str, font: ImageFont.truetype, index: int):
+    if '◻' in text:
+        text = text.replace('◻', '')
+    if '◯' in text:
+        text = text.replace('◯', '')
+    return image_draw_obj.multiline_textbbox(coords, text, font)[index]
 
 def main():
     try:
