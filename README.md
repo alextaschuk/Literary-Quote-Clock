@@ -98,4 +98,4 @@ I also like to read in my free time, and as I find quotes in the books I read, I
 - Stoner, by John Williams
 - All Quiet on the Western Front, by Erich Maria Remarque
 - In Cold Blood, by Truman Capote
-- The Road, by Truman Capote
+- The Road, by Cormac McCarthy
