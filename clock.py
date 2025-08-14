@@ -11,17 +11,22 @@ import signal
 import sys
 import logging
 import time
+import csv
 from PIL import Image
 from waveshare_libraries import epd7in5_V2 # Waveshare's library for their 7.5 inch screen
+from make_images import TurnQuoteIntoImage
 
 logging.basicConfig(level=logging.DEBUG)
 
 class Clock:
     ''' All logic for creating and updating the quote buffer, and displaying the quotes '''
+
+    CSV_PATH = 'quotes.csv'
     curr_time: str
     quotes: list
     filename: str
     quote_buffer: list
+    curr_image: Image
 
     def __init__(self):
         self.picdir = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'Literary-Quote-Clock/images') # path to .bmp files
@@ -29,7 +34,7 @@ class Clock:
         self.time = datetime.now()
         self.quote_buffer = []
         self.quotes = []
-        self.epd = epd7in5_V2.EPD()
+        #self.epd = epd7in5_V2.EPD()
 
         logging.info('clock obj was made.')
 
@@ -130,6 +135,38 @@ class Clock:
         self.time = datetime.now() # set time back to actual current time
         logging.info(f'update_buffer() finished at {str(self.time)}.')
 
+
+    def get_image(self):
+        '''
+        This function generates images of quotes on the fly.
+        If you prefer this over generating all images locally,
+
+        '''
+        self.time = datetime.now() # update the time
+        
+        difference = 60 - self.time.minute # number of mins until next hour
+        if 0 < difference <= 3: # if the current minute is the 57th, 58th, or 59th of the hour
+            self.time = self.time.replace(minute=(self.time.minute + 3) % 10) + timedelta(hours=1) # e.g. at 13:58 we get quote for 14:01
+        else:
+            self.time = self.time.replace(minute = self.time.minute + 3) # e.g. at 13:45 we get quote for 13:48
+        
+        curr_time = self.get_time(minute=self.time.minute, hour=self.time.hour)
+        formatted_time = f'{str(self.time.hour)}:{str(self.time.minute)}' # e.g. '13:45'
+        quotes = []
+        try: 
+            print(self.CSV_PATH)
+            with open(self.CSV_PATH, newline='\n', encoding='UTF-8') as quotefile:
+                quotefile.seek(0)
+                quotereader = csv.DictReader(quotefile, delimiter='|')
+                for i, row in enumerate(quotereader):
+                    if row['time'] == formatted_time:
+                        quotes.append(row)           
+        except FileNotFoundError:
+            logging.error(f'Error: file {self.CSV_PATH} not found')
+        row = quotes[random.randrange(0, len(quotes))]
+        self.curr_image = TurnQuoteIntoImage(i, row['time'], row['quote'], row['timestring'], row['author'], row['title'])
+
+
     def display_quote(self):
         '''
         Reads the `Image` object at the front of
@@ -139,8 +176,9 @@ class Clock:
         self.time = datetime.now()
         try:
             logging.info(f'display_quote() called at {str(self.time)}.')
-            quote_to_display = self.quote_buffer[0] # get the quote for the current time
-            self.epd.display(self.epd.getbuffer(quote_to_display))  # display the quote
+            #quote_to_display = self.quote_buffer[0] # get the quote for the current time
+            #self.epd.display(self.epd.getbuffer(quote_to_display))  # display the quote
+            self.epd.display(self.epd.getbuffer(self.curr_image))
             self.epd.sleep() # put screen to sleep to increase its lifespan
             logging.info(f'display_quote finished at {str(self.time)}.')
         except IOError as e:
@@ -160,7 +198,8 @@ class Clock:
             self.epd.init_fast() # according to waveshare support, will speed up process of displaying new image
 
         self.display_quote()     # display the current quote
-        self.update_buffer()     # call AFTER the current quote is displayed to reduce processing time.
+        #self.update_buffer()     # call AFTER the current quote is displayed to reduce processing time.
+        self.get_image()
         logging.info(f'main() finished at {str(self.time)}.')
 
 def signal_handler(sig, frame):
@@ -195,13 +234,14 @@ if __name__ == '__main__':
         try:
             #with Image.open(os.path.join(clock.picdir, 'startup.bmp')) as startup_img: # use this if startup.bmp is in /images
             with Image.open('startup.bmp') as startup_img: # use this if startup.bmp is in root dir
-                clock.epd.display(clock.epd.getbuffer(startup_img)) # display a startup screen
+               clock.epd.display(clock.epd.getbuffer(startup_img)) # display a startup screen
             clock.epd.sleep() # put the screen to sleep
         except FileNotFoundError:
             logging.error('error startup.bmp image not found')
 
         time.sleep(30) # wait for the PI's system clock to update
-        clock.quote_buffer = clock.init_buffer() # initialize the quote buffer with the first 3 quotes
+        #clock.quote_buffer = clock.init_buffer() # initialize the quote buffer with the first 3 quotes
+        clock.get_image()
 
         while True:
             signal.signal(signal.SIGINT, signal_handler)

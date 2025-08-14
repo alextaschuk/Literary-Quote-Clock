@@ -24,8 +24,8 @@ QUOTE_WIDTH = 780
 QUOTE_HEIGHT = 440
  
 # note: I renamed some of the variables for personal preference. *{var_name} denotes the original variable names in elegantalchemist's file.
-#csv_path = 'quotes.csv'             # the CSV file with all quotes, author names, etc. *csvpath
-csv_path = 'test.csv'
+csv_path = 'quotes.csv'             # the CSV file with all quotes, author names, etc. *csvpath
+#csv_path = 'test.csv'
 img_dir = 'images/'                             # which directory to save images to *imgdir
 img_ext = 'bmp'                                 # images will be in BMP format *imgformat
 include_metadata = True                         # true = include the author and book's title of the quote
@@ -111,7 +111,8 @@ def TurnQuoteIntoImage(index:int, time:str, quote:str, timestring:str,
     savepath = path.normpath(savepath)
     #image = f'quote_{time}_{imgnumber}.bmp'
     #image = Image.open(img).convert('L').save(imgOut)
-    paintedworld.save(savepath)
+    #paintedworld.save(savepath)
+    return paintedworld
 
 def draw_quote(drawobj, anchors:tuple, text:str, substr:str,
         font_norm:ImageFont.truetype, font_high:ImageFont.truetype, fntsize):
@@ -328,7 +329,7 @@ def main():
     with open(csv_path, newline='\n', encoding='UTF-8') as csvfile:
         jobs = len(csvfile.readlines()) - 1 # number of quotes in CSV file
         csvfile.seek(0) # move file cursor to start of file
-        if len(argv) > 1:
+        if len(argv) > 1: # argv stores the path to this file, so this is just a check that the filepath exists.
             if argv[1].isdigit() and int(argv[1]) < jobs:
                 jobs = int(argv[1])
         quotereader = csv.DictReader(csvfile, delimiter='|')
