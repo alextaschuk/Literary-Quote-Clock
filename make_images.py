@@ -20,12 +20,12 @@ import unicodedata
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 480
 
-QUOTE_WIDTH = 780                     
-QUOTE_HEIGHT = 440
+QUOTE_WIDTH = SCREEN_WIDTH * 0.975                     
+QUOTE_HEIGHT = SCREEN_HEIGHT * 0.917
  
 # note: I renamed some of the variables for personal preference. *{var_name} denotes the original variable names in elegantalchemist's file.
-#csv_path = 'quotes.csv'             # the CSV file with all quotes, author names, etc. *csvpath
-csv_path = 'test.csv'
+csv_path = 'quotes.csv'             # the CSV file with all quotes, author names, etc. *csvpath
+#csv_path = 'test.csv'
 img_dir = 'images/'                             # which directory to save images to *imgdir
 img_ext = 'bmp'                                 # images will be in BMP format *imgformat
 include_metadata = True                         # true = include the author and book's title of the quote
@@ -40,7 +40,7 @@ italic_quote_font = 'fonts/Bookerly-Italic.ttf'       # used if word(s) in the q
 italic_time_font = 'fonts/Bookerly-Bold-Italic.ttf'   # used if the time part of quote is also italicized
 time_font = 'fonts/Bookerly-Bold.ttf'                 # bold version of quote_font (for time part of quote) *fntname_high
 info_font = 'fonts/Bookerly-Bold.ttf'                 # the font the book and Author's name will be written in *fntname_mdata
-info_fontsize = 25                                    # the font size for the author/title *fntsize_mdata
+info_fontsize = 30                                    # the font size for the author/title *fntsize_mdata
 
 # don't touch
 imgnumber = 0
@@ -55,8 +55,8 @@ def TurnQuoteIntoImage(index:int, time:str, quote:str, timestring:str,
     quotestart_y = 00               # Y coordinate where the quote begins
     quotestart_x = 20               # X coordinate where the quote begins
     mdatalength = 650               # To help with text wrapping -- bigger value = longer horizontal metadata text
-    mdatastart_y = 470              # Y coordinate where the author and title text begins
-    mdatastart_x = 785              # X coordinate where the author and title text begins
+    mdatastart_y = 485 # Y coordinate where the author and title text begins (should be around size of screen's height)
+    mdatastart_x = SCREEN_WIDTH * 0.981  # X coordinate where the author and title text begins
 
     # create the object. mode 'L' restricts to 8bit greyscale
     paintedworld = Image.new(mode='L', size=(imgsize), color=bg_color)
@@ -69,7 +69,7 @@ def TurnQuoteIntoImage(index:int, time:str, quote:str, timestring:str,
         # wrap lines into a reasonable length and lower the maximum height the
         # quote can occupy according to the number of lines the credits use        
         if font_mdata.getlength(metadata) > mdatalength: # e.g. getlength(metadata) = 282.0 for '—Dune, Frank Herbert'
-            metadata = wrap_lines(text=metadata, font=font_mdata, line_length=mdatalength - 23)
+            metadata = wrap_lines(text=metadata, font=font_mdata, line_length=(mdatalength * 0.965))
         for line in metadata.splitlines():
             mdatastart_y -= font_mdata.getbbox("A")[3] + 4
         quoteheight = mdatastart_y - 25
