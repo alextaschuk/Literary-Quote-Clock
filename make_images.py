@@ -159,13 +159,8 @@ def draw_quote(drawobj, anchors:tuple, text:str, substr:str,
                 write((x,y), wordnow, *fntstyle_norm)
                 x += textlength(wordnow, font_norm)
                 wordnow = word.split(bookmark)[1]  # wordnow = '◯𝘰’𝘤𝘭𝘰𝘤𝘬◯'
-                if '◯' in word: # words that should be italicized and are part of the time are wrapped in this character
-                    wordnow = unicodedata.normalize('NFKD', wordnow.replace('◯', '')) # get the base form (ASCII) version of the letter and remove '◯'
-                    write((x,y), wordnow, *fntstyle_italic_high) # wordnow = "o'clock" and we write it with italicized & highlighted font
-                    x += textlength(wordnow, font_italic_high)
-                else:
-                    write((x,y), wordnow, *fntstyle_high) # if the word is normal but part of time quote, just write it with highlighted font
-                    x += textlength(wordnow, font_high)
+                write((x,y), wordnow, *fntstyle_high) # if the word is normal but part of time quote, just write it with highlighted font
+                x += textlength(wordnow, font_high)
                 wordnow = word.split(bookmark)[2] # wordnow = '.'
                 write((x,y), wordnow, *fntstyle_norm) # write wordnow with normal font
                 x += textlength(wordnow, font_norm)
@@ -211,7 +206,6 @@ def draw_quote(drawobj, anchors:tuple, text:str, substr:str,
                 write((x,y), wordnow, *fntstyle_high)
                 x += textlength(wordnow, font_high)
                 word = ''
-
             else: 
                 write((x,y), word, *current_style)
                 x += textlength(word, current_style[1])
@@ -232,11 +226,11 @@ def wrap_lines(text:str, font:ImageFont.truetype, line_length:int):
         lines = ['']
         for word in text.split():
             line = f'{lines[-1]} {word}'.strip()
+            temp_line = line
             fontlen = font.getlength(line)
 
             # to accurately wrap lines without including delimiting
             # chars in the calculation
-            temp_line = line
             if '◻' in temp_line:
                 temp_line = temp_line.replace('◻', '')
                 fontlen = font.getlength(temp_line)
@@ -244,16 +238,11 @@ def wrap_lines(text:str, font:ImageFont.truetype, line_length:int):
                 temp_line = temp_line.replace('◯', '')
                 fontlen = font.getlength(temp_line)
 
-            # when the quote is formatted with a blank line in between two
-            # lines of text (e.g. for a new paragraph)
-            if '⭐' in word:
+            if '⭐' in word: # the quote is formatted with a blank line between two lines of text
                 word = word.replace('⭐', '')
                 lines.append('')
                 lines.append(word)
-
-            # when the quote is formatted with a linebreak
-            # at a specific location 
-            elif '📖' in word:
+            elif '📖' in word: # the quote is formatted with a linebreak
                 word = word.replace('📖', '')
                 lines.append(word)
 
@@ -319,6 +308,10 @@ def create_fnt(name:str, size:int, layout_engine=ImageFont.Layout.BASIC):
     return ImageFont.truetype(name, size, layout_engine=layout_engine)
 
 def get_boxsize(image_draw_obj: ImageDraw, coords:tuple[float, float], text: str, font: ImageFont.truetype, index: int):
+    '''
+    This is a function to accurately calculate `boxheight` & `boxlength`
+    for `calc_fntsize()` without including italic delimiting characters.
+    '''
     if '◻' in text:
         text = text.replace('◻', '')
     if '◯' in text:
