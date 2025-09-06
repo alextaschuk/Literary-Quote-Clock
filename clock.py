@@ -152,18 +152,20 @@ class Clock:
         
         curr_time = self.get_time(minute=self.time.minute, hour=self.time.hour)
         formatted_time = f'{str(self.time.hour)}:{str(self.time.minute)}' # e.g. '13:45'
+        logging.info(f'formatted_time: {str(formatted_time)}')
+        logging.info(f'self.CSV_PATH: {self.CSV_PATH}')
         quotes = []
-        try: 
+        try:
             print(self.CSV_PATH)
             with open(self.CSV_PATH, newline='\n', encoding='UTF-8') as quotefile:
                 quotefile.seek(0)
                 quotereader = csv.DictReader(quotefile, delimiter='|')
                 for i, row in enumerate(quotereader):
                     if row['time'] == formatted_time:
-                        quotes.append(row)        
+                        quotes.append(row)
             row = quotes[random.randrange(0, len(quotes))]
             logging.info(f'row: {str(row)}')
-            self.curr_image = TurnQuoteIntoImage(i, row['time'], row['quote'], row['timestring'], row['author'], row['title'])   
+            self.curr_image = TurnQuoteIntoImage(i, row['time'], row['quote'], row['timestring'], row['author'], row['title'])
         except FileNotFoundError:
             logging.error(f'Error: file {self.CSV_PATH} not found')
 
