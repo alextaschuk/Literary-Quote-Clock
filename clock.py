@@ -34,7 +34,7 @@ class Clock:
         self.time = datetime.now()
         self.quote_buffer = []
         self.quotes = []
-        #self.epd = epd7in5_V2.EPD()
+        self.epd = epd7in5_V2.EPD()
 
         logging.info('clock obj was made.')
 
