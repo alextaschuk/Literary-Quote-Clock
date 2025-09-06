@@ -160,11 +160,13 @@ class Clock:
                 quotereader = csv.DictReader(quotefile, delimiter='|')
                 for i, row in enumerate(quotereader):
                     if row['time'] == formatted_time:
-                        quotes.append(row)           
+                        quotes.append(row)        
+            row = quotes[random.randrange(0, len(quotes))]
+            logging.info(f'row: {str(row)}')
+            self.curr_image = TurnQuoteIntoImage(i, row['time'], row['quote'], row['timestring'], row['author'], row['title'])   
         except FileNotFoundError:
             logging.error(f'Error: file {self.CSV_PATH} not found')
-        row = quotes[random.randrange(0, len(quotes))]
-        self.curr_image = TurnQuoteIntoImage(i, row['time'], row['quote'], row['timestring'], row['author'], row['title'])
+
 
 
     def display_quote(self):
@@ -176,13 +178,12 @@ class Clock:
         self.time = datetime.now()
         try:
             logging.info(f'display_quote() called at {str(self.time)}.')
-            #quote_to_display = self.quote_buffer[0] # get the quote for the current time
-            #self.epd.display(self.epd.getbuffer(quote_to_display))  # display the quote
-            self.epd.display(self.epd.getbuffer(self.curr_image))
+            self.epd.display(self.epd.getbuffer(self.curr_image)) # display the current image
             self.epd.sleep() # put screen to sleep to increase its lifespan
             logging.info(f'display_quote finished at {str(self.time)}.')
         except IOError as e:
             logging.info(f'error in display_quote: {e}')
+
 
     def main(self):
         '''
@@ -198,8 +199,7 @@ class Clock:
             self.epd.init_fast() # according to waveshare support, will speed up process of displaying new image
 
         self.display_quote()     # display the current quote
-        #self.update_buffer()     # call AFTER the current quote is displayed to reduce processing time.
-        self.get_image()
+        self.get_image()    # get the next image to display
         logging.info(f'main() finished at {str(self.time)}.')
 
 def signal_handler(sig, frame):
@@ -240,12 +240,11 @@ if __name__ == '__main__':
             logging.error('error startup.bmp image not found')
 
         time.sleep(30) # wait for the PI's system clock to update
-        #clock.quote_buffer = clock.init_buffer() # initialize the quote buffer with the first 3 quotes
-        clock.get_image()
+        clock.get_image() # get the first image
 
         while True:
             signal.signal(signal.SIGINT, signal_handler)
-            clock.main() # display the quote and update buffer
+            clock.main() # displays the quote and performs full refresh if necessary
             logging.info(f'sleeping for {(59 - datetime.now().second)} seconds before displaying next quote.')
             time.sleep(59 - datetime.now().second) # sleep until the next minute (this is called 1 sec early because of processing time to show the next image)
 
