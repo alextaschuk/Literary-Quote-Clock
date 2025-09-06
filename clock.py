@@ -150,8 +150,15 @@ class Clock:
         else:
             self.time = self.time.replace(minute = self.time.minute + 3) # e.g. at 13:45 we get quote for 13:48
         
-        curr_time = self.get_time(minute=self.time.minute, hour=self.time.hour)
-        logging.info(f'curr_time: {str(curr_time)}')
+        min = self.time.minute
+        hour = self.time.hour
+        if min < 10:
+            minute = '0' + str(minute)
+        if hour < 10: # if it is midnight, time.hour returns 0, so we need to append another 0 to have '00'
+            hour = '0' + str(hour)
+        formatted_time = f'{min}:{hour}' # e.g. '13:45'
+        
+        logging.info(f'formatted_time: {str(formatted_time)}')
         logging.info(f'self.CSV_PATH: {self.CSV_PATH}')
         quotes = []
         try:
@@ -160,7 +167,7 @@ class Clock:
                 quotefile.seek(0)
                 quotereader = csv.DictReader(quotefile, delimiter='|')
                 for i, row in enumerate(quotereader):
-                    if row['time'] == curr_time:
+                    if row['time'] == formatted_time:
                         quotes.append(row)
             row = quotes[random.randrange(0, len(quotes))]
             logging.info(f'row: {str(row)}')
