@@ -111,7 +111,8 @@ def TurnQuoteIntoImage(index:int, time:str, quote:str, timestring:str,
     savepath = path.normpath(savepath)
     #image = f'quote_{time}_{imgnumber}.bmp'
     #image = Image.open(img).convert('L').save(imgOut)
-    paintedworld.save(savepath)
+    #paintedworld.save(savepath)
+    return paintedworld
 
 def draw_quote(drawobj, anchors:tuple, text:str, substr:str,
         font_norm:ImageFont.truetype, font_high:ImageFont.truetype, fntsize):
@@ -328,7 +329,7 @@ def main():
     with open(csv_path, newline='\n', encoding='UTF-8') as csvfile:
         jobs = len(csvfile.readlines()) - 1 # number of quotes in CSV file
         csvfile.seek(0) # move file cursor to start of file
-        if len(argv) > 1:
+        if len(argv) > 1: # argv stores the path to this file, so this is just a check that the filepath exists.
             if argv[1].isdigit() and int(argv[1]) < jobs:
                 jobs = int(argv[1])
         quotereader = csv.DictReader(csvfile, delimiter='|')
