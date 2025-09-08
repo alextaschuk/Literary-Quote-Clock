@@ -156,8 +156,8 @@ class Clock:
             minute = '0' + str(minute)
         if hour < 10: # if it is midnight, time.hour returns 0, so we need to append another 0 to have '00'
             hour = '0' + str(hour)
-        formatted_time = f'{min}:{hour}' # e.g. '13:45'
-        
+        formatted_time = f'{hour}:{min}' # e.g. '13:45'
+
         logging.info(f'formatted_time: {str(formatted_time)}')
         logging.info(f'self.CSV_PATH: {self.CSV_PATH}')
         quotes = []
