@@ -3,7 +3,6 @@
 # imports for time stuff
 from datetime import datetime, timedelta # for getting the times
 import os
-import glob
 import random
 import signal
 
@@ -14,29 +13,32 @@ import time
 import csv
 from PIL import Image
 from waveshare_libraries import epd7in5_V2 # Waveshare's library for their 7.5 inch screen
-from make_images import TurnQuoteIntoImage
+from get_image import TurnQuoteIntoImage
 
 logging.basicConfig(level=logging.DEBUG)
 
 class Clock:
-    ''' All logic for creating and updating the quote buffer, and displaying the quotes '''
+    '''
+    A clock obj contains all logic for 
+    creating and displaying the quotes
+    to the screen.
+    '''
 
     CSV_PATH = 'quotes.csv'
     curr_time: str
     quotes: list
     filename: str
-    quote_buffer: list
     curr_image: Image
 
     def __init__(self):
         self.picdir = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'Literary-Quote-Clock/images') # path to .bmp files
         logging.info(self.picdir)
         self.time = datetime.now()
-        self.quote_buffer = []
         self.quotes = []
         self.epd = epd7in5_V2.EPD()
 
         logging.info('clock obj was made.')
+
 
     def get_time(self, minute: int, hour: int) -> str: # e.g. if it's 1:30 PM, this returns '1330'
         '''
@@ -49,101 +51,11 @@ class Clock:
             hour = '0' + str(hour)
         return str(hour) + str(minute)
 
-    def get_quotes(self, filename) -> list:
-        '''
-        A helper function for buffer_quotes that returns all possible quotes for a given minute.
-        - Returns a list of all filepaths for a given minute.
-        '''
-        filename = 'images/' + filename
-        if glob.glob(filename):                 # get all quotes for the current time
-            self.quotes = glob.glob(filename)   # stores all quotes for the current time; we will choose a random quote from the list
-        return self.quotes
-
-    def init_buffer(self) -> list:
-        '''
-        Initializes the buffer with the first 3 quotes; one for the current time
-        (e.g. 09:40), one for the time in one minute (09:41), and one for
-        the time in two minutes (09:42).
-        - Returns a list of three (open) Image objects
-        '''
-
-        logging.info(f'init_buffer() called at {str(self.time)}. Initializing quote_buffer...')
-        self.time = datetime.now() # update the time
-        curr_time = self.get_time(minute=self.time.minute, hour=self.time.hour)
-
-        while len(self.quote_buffer) < 3:
-            # this is a short-term soultion until I find quotes for times that don't have one yet.
-            try:
-                self.quotes = self.get_quotes('quote_' + curr_time + '_*' + '.bmp') # used to find all quotes for a specific time e.g. 'quote_1510_*.bmp'
-                filename = 'quote_' + curr_time + '_' + str(random.randrange(0, len(self.quotes))) + '.bmp' # pick 1 quote at random from the get_quotes() call
-                image_quote = Image.open(os.path.join(self.picdir, filename))
-                self.quote_buffer.append(image_quote)
-            except FileNotFoundError:
-                logging.info(f'Error! File {filename} for the time {curr_time} does not exist.\n')
-                if len(self.quote_buffer) > 0:
-                    self.quote_buffer.append(self.quote_buffer[0]) # add the current time back into the buffer to fill the gap
-                else:
-                    time.sleep(60) # in the event that the first quote doesn't exist, wait a minute
-            logging.info(f'The filename for the quote being added during intialization: {filename}')     
-
-            # get the quotes that will be displayed one and two minutes after current quote
-            if self.time.minute == 59: # if it's the 59th minute of the hour (e.g. 11:59)
-                self.time = self.time.replace(minute=0,second=0, microsecond=0) + timedelta(hours=1) # set the time to the next hour (e.g. 12:00)
-            else: # it is not the 59 minute, so we only need the next minute
-                self.time = self.time.replace(second=0) + timedelta(minutes=1) # set the time to one minute from now
-            
-            curr_time = self.get_time(minute=self.time.minute, hour=self.time.hour)
-
-        self.time = datetime.now() # set time back to actual current time
-        logging.info(f'init_buffer() finished at {str(self.time)}.')
-        return self.quote_buffer
-
-    def update_buffer(self) -> list:
-        '''
-        To update the buffer, we need to add the quote that's 2 minutes ahead of the currently displayed quote.  
-        Because the next quote to be added is 3 minutes ahead of the current quote that is being removed, we 
-        add 3 minutes rather than 2 to get the new quote. Due to this logic, we need to check if the current 
-        minute is 57, 58, or 59 because the hour also needs to get updated when this is the case. 
-
-        Returns an updated list of three Image objects
-        '''
-
-        logging.info(f"update_buffer() called at {str(self.time)}.")
-        self.time = datetime.now() # update the time
-        
-        difference = 60 - self.time.minute # number of mins until next hour
-        if 0 < difference <= 3: # if the current minute is the 57th, 58th, or 59th of the hour
-            self.time = self.time.replace(minute=(self.time.minute + 3) % 10) + timedelta(hours=1) # e.g. at 13:58 we get quote for 14:01
-        else:
-            self.time = self.time.replace(minute = self.time.minute + 3) # e.g. at 13:45 we get quote for 13:48
-        
-        curr_time = self.get_time(minute=self.time.minute, hour=self.time.hour)
-        try:
-            self.quotes = self.get_quotes('quote_' + curr_time + '_*' + '.bmp') # get all possible quotes for the minute
-            filename = 'quote_' + curr_time + '_' + str(random.randrange(0, len(self.quotes))) + '.bmp' # pick one quote at random
-
-            image_quote = Image.open(os.path.join(self.picdir, filename))
-            self.quote_buffer.append(image_quote) # add the quote to the buffer
-            self.quote_buffer[0].close() # close the Image obj of the current quote
-            self.quote_buffer.pop(0)     # remove the current quote from buffer
-
-            logging.info(f'Filename for the quote being added to the buffer: {filename}') 
-        except FileNotFoundError:
-            logging.info(f'Error! File {filename} for the time {curr_time} does not exist.\n')
-            self.quote_buffer.append(self.quote_buffer[0]) # add the current time back into the buffer to fill the gap
-
-        self.time = datetime.now() # set time back to actual current time
-        logging.info(f'update_buffer() finished at {str(self.time)}.')
-
 
     def get_image(self):
-        '''
-        This function generates images of quotes on the fly.
-        If you prefer this over generating all images locally,
+        ''' This function generates an image for the quote to be displayed. '''
 
-        '''
         self.time = datetime.now() # update the time
-        
         difference = 60 - self.time.minute # number of mins until next hour
         if 0 < difference <= 3: # if the current minute is the 57th, 58th, or 59th of the hour
             self.time = self.time.replace(minute=(self.time.minute + 3) % 10) + timedelta(hours=1) # e.g. at 13:58 we get quote for 14:01
@@ -156,13 +68,12 @@ class Clock:
             minute = '0' + str(minute)
         if hour < 10: # if it is midnight, time.hour returns 0, so we need to append another 0 to have '00'
             hour = '0' + str(hour)
-        formatted_time = f'{hour}:{min}' # e.g. '13:45'
 
+        formatted_time = f'{hour}:{min}' # e.g. '13:45'
         logging.info(f'formatted_time: {str(formatted_time)}')
-        logging.info(f'self.CSV_PATH: {self.CSV_PATH}')
         quotes = []
         try:
-            print(self.CSV_PATH)
+            # we're going to go row-by-row through the csv and get all quotes for the upcoming time
             with open(self.CSV_PATH, newline='\n', encoding='UTF-8') as quotefile:
                 quotefile.seek(0)
                 quotereader = csv.DictReader(quotefile, delimiter='|')
@@ -174,7 +85,6 @@ class Clock:
             self.curr_image = TurnQuoteIntoImage(i, row['time'], row['quote'], row['timestring'], row['author'], row['title'])
         except FileNotFoundError:
             logging.error(f'Error: file {self.CSV_PATH} not found')
-
 
 
     def display_quote(self):
@@ -217,9 +127,9 @@ def signal_handler(sig, frame):
     command over SSH to the PI doesn't sent a `SIGINT` signal
     to the program, telling it to shutdown (i.e., clear the
     screen). I'm not totally sure why `sudo shutdown -h now`
-    doesn't trigger the program's shutdown process when sent
-    over SSH, but does when sent directly from the PI, but
-    this is a workaround to the issue.
+    only triggers the program's shutdown process when sent
+    directly from the PI and not over SSH, but this is my
+    workaround to the issue.
     '''
     logging.info('sigint() called.')
     signal.signal(sig, signal.SIG_IGN) # ignore additional signals
@@ -232,11 +142,11 @@ def signal_handler(sig, frame):
 if __name__ == '__main__':
     try:
         logging.info("Literary Quote Clock Started")
-        clock = Clock()     # create Clock object
+        clock = Clock()
 
         logging.info('Initializing and clearing the screen')
-        clock.epd.init()    # initialize the screen
-        clock.epd.Clear()   # clear screen
+        clock.epd.init()
+        clock.epd.Clear()
 
         logging.info('Displaying startup screen')
         try:
@@ -245,9 +155,9 @@ if __name__ == '__main__':
                clock.epd.display(clock.epd.getbuffer(startup_img)) # display a startup screen
             clock.epd.sleep() # put the screen to sleep
         except FileNotFoundError:
-            logging.error('error startup.bmp image not found')
+            logging.error('Error! startup.bmp image not found')
 
-        time.sleep(30) # wait for the PI's system clock to update
+        time.sleep(30) # wait for the PI's system clock to update (it has no RTC)
         clock.get_image() # get the first image
 
         while True:
