@@ -54,23 +54,22 @@ class Clock:
 
     def get_image(self):
         ''' This function generates an image for the quote to be displayed. '''
-
+        logging.info(f'get_image() called at {str(self.time)}.')
         self.time = datetime.now() # update the time
-        difference = 60 - self.time.minute # number of mins until next hour
-        if 0 < difference <= 3: # if the current minute is the 57th, 58th, or 59th of the hour
-            self.time = self.time.replace(minute=(self.time.minute + 3) % 10) + timedelta(hours=1) # e.g. at 13:58 we get quote for 14:01
-        else:
-            self.time = self.time.replace(minute = self.time.minute + 3) # e.g. at 13:45 we get quote for 13:48
-        
         min = self.time.minute
         hour = self.time.hour
+
+        if 60 - min == 1: # if the current minute is the 59th of the hour
+            self.time = self.time.replace(minute=self.time.minute + 1) + timedelta(hours=1) # e.g. at 13:59 we get quote for 14:00
+        else:
+            self.time = self.time.replace(minute = self.time.minute + 1) # e.g. at 13:45 we get quote for 13:48
+
         if min < 10:
             minute = '0' + str(minute)
         if hour < 10: # if it is midnight, time.hour returns 0, so we need to append another 0 to have '00'
             hour = '0' + str(hour)
 
         formatted_time = f'{hour}:{min}' # e.g. '13:45'
-        logging.info(f'formatted_time: {str(formatted_time)}')
         quotes = []
         try:
             # we're going to go row-by-row through the csv and get all quotes for the upcoming time
@@ -81,7 +80,7 @@ class Clock:
                     if row['time'] == formatted_time:
                         quotes.append(row)
             row = quotes[random.randrange(0, len(quotes))]
-            logging.info(f'row: {str(row)}')
+            logging.info(f'list of quotes: {str(quotes)}')
             self.curr_image = TurnQuoteIntoImage(i, row['time'], row['quote'], row['timestring'], row['author'], row['title'])
         except FileNotFoundError:
             logging.error(f'Error: file {self.CSV_PATH} not found')
