@@ -39,20 +39,24 @@ class Clock:
 
         logging.info('clock obj was made.')
 
-    def get_image(self):
-        ''' This function generates an image for the quote to be displayed. '''
-        self.time = datetime.now() # update the time
-        logging.info(f'get_image() called at {str(self.time)}.')
+    def get_image(self, quote_time: datetime):
+        '''
+        This function generates an image for the quote to be displayed.
+        - Note: we pass a `datetime` obj instead of just `self.time` because
+        the inital quote that is displayed whenever the clock is first
+        started will be wrong otherwise.
+        '''
+        logging.info(f'get_image() called at {str(quote_time)}.')
 
-        if self.time.minute == 59: # if the current minute is the 59th of the hour
-            self.time = self.time.replace(minute=0) + timedelta(hours=1) # e.g. at 13:59 we get quote for 14:00
+        if quote_time.minute == 59: # if the current minute is the 59th of the hour
+            quote_time = quote_time.replace(minute=0) + timedelta(hours=1) # e.g. at 13:59 we get quote for 14:00
         else:
-            self.time = self.time.replace(minute = self.time.minute + 1) # e.g. at 13:45 we get quote for 13:48
+            quote_time = quote_time.replace(minute = self.time.minute + 1) # e.g. at 13:45 we get quote for 13:48
         
-        min = self.time.minute
-        hour = self.time.hour
+        min = quote_time.minute
+        hour = quote_time.hour
         if min < 10:
-            minute = '0' + str(min)
+            min = '0' + str(min)
         if hour < 10: # if it is midnight, time.hour returns 0, so we need to append another 0 to have '00'
             hour = '0' + str(hour)
 
@@ -79,7 +83,6 @@ class Clock:
         the buffer and uses `epd.display()` to show it on the
         e-ink screen.
         '''
-        self.time = datetime.now()
         try:
             logging.info(f'display_quote() called at {str(self.time)}.')
             self.epd.display(self.epd.getbuffer(self.curr_image)) # display the current image
@@ -95,15 +98,17 @@ class Clock:
         removes it from the buffer, and updates the buffer.
         '''
         logging.info(f'main() called at {str(self.time)}.')
-        if (self.time.minute % 10) == 0:
-            logging.info('10 minutes have passed. Performing full refresh on screen.')
-            self.epd.init() # Do a full refresh every 10 minutes. This helps prevent "ghosting" and increases the screen's lifespan.
-            self.epd.Clear() # Then, clear the screen before displaying new quote
-        else:
-            self.epd.init_fast() # according to waveshare support, will speed up process of displaying new image
 
+        if self.time.minute == 0:
+            logging.info('60 minutes have passed. Performing full refresh on screen.')
+            self.epd.init() # Perform full refresh every hour. This helps prevent "ghosting" and increases the screen's lifespan.
+            self.epd.Clear() # Then clear the screen before displaying new quote
+        else:
+            self.epd.init_fast() # speeds up process of displaying new image, according to Waveshare support
+        
+        self.time = datetime.now() # update the time
         self.display_quote() # display the current quote
-        self.get_image()    # get the next image to display
+        self.get_image(quote_time=self.time)# get the next image to display
         logging.info(f'main() finished at {str(self.time)}.')
 
 def signal_handler(sig, frame):
@@ -145,8 +150,14 @@ if __name__ == '__main__':
 
         time.sleep(30) # wait for the PI's system clock to update (it has no RTC)
 
-       # this will be the wrong time b/c of how the function works
-        clock.get_image() # get the first image
+        # since `get_image()` generates the image for the next quote, we need to set
+        # the current minute back by 1 to get the image for the first (initial) quote
+        if clock.time.minute == 0:
+            clock.time = clock.time.replace(minute=clock.time.minute - 1) - timedelta(hours=1) # e.g. at 14:00 set time to 13:59
+        else:
+            clock.time = clock.time.replace(minute = clock.time.minute - 1) # e.g. at 13:45 set time to 13:44
+        logging.info(f'time for quote: {str(clock.time)}')
+        clock.get_image(quote_time=clock.time) # get the first image
 
         while True:
             signal.signal(signal.SIGINT, signal_handler)
