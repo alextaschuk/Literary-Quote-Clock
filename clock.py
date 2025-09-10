@@ -65,7 +65,7 @@ class Clock:
         min = self.time.minute
         hour = self.time.hour
         if min < 10:
-            minute = '0' + str(minute)
+            minute = '0' + str(min)
         if hour < 10: # if it is midnight, time.hour returns 0, so we need to append another 0 to have '00'
             hour = '0' + str(hour)
 
