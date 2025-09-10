@@ -57,14 +57,13 @@ class Clock:
         self.time = datetime.now() # update the time
         logging.info(f'get_image() called at {str(self.time)}.')
 
-        min = self.time.minute
-        hour = self.time.hour
-
-        if 60 - min == 1: # if the current minute is the 59th of the hour
+        if 60 - self.time.minute == 1: # if the current minute is the 59th of the hour
             self.time = self.time.replace(minute=self.time.minute + 1) + timedelta(hours=1) # e.g. at 13:59 we get quote for 14:00
         else:
             self.time = self.time.replace(minute = self.time.minute + 1) # e.g. at 13:45 we get quote for 13:48
-        logging.info(f'self.time after update: {str(self.time)}')
+        
+        min = self.time.minute
+        hour = self.time.hour
         if min < 10:
             minute = '0' + str(minute)
         if hour < 10: # if it is midnight, time.hour returns 0, so we need to append another 0 to have '00'
