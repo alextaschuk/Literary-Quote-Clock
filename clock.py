@@ -79,8 +79,8 @@ class Clock:
                 for i, row in enumerate(quotereader):
                     if row['time'] == formatted_time:
                         quotes.append(row)
-            row = quotes[random.randrange(0, len(quotes))]
             logging.info(f'list of quotes: {str(quotes)}')
+            row = quotes[random.randrange(0, len(quotes))]
             self.curr_image = TurnQuoteIntoImage(i, row['time'], row['quote'], row['timestring'], row['author'], row['title'])
         except FileNotFoundError:
             logging.error(f'Error: file {self.CSV_PATH} not found')
