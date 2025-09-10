@@ -54,8 +54,9 @@ class Clock:
 
     def get_image(self):
         ''' This function generates an image for the quote to be displayed. '''
-        logging.info(f'get_image() called at {str(self.time)}.')
         self.time = datetime.now() # update the time
+        logging.info(f'get_image() called at {str(self.time)}.')
+
         min = self.time.minute
         hour = self.time.hour
 
@@ -63,7 +64,7 @@ class Clock:
             self.time = self.time.replace(minute=self.time.minute + 1) + timedelta(hours=1) # e.g. at 13:59 we get quote for 14:00
         else:
             self.time = self.time.replace(minute = self.time.minute + 1) # e.g. at 13:45 we get quote for 13:48
-
+        logging.info(f'self.time after update: {str(self.time)}')
         if min < 10:
             minute = '0' + str(minute)
         if hour < 10: # if it is midnight, time.hour returns 0, so we need to append another 0 to have '00'
