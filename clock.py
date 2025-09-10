@@ -58,7 +58,7 @@ class Clock:
         logging.info(f'get_image() called at {str(self.time)}.')
 
         if 60 - self.time.minute == 1: # if the current minute is the 59th of the hour
-            self.time = self.time.replace(minute=self.time.minute + 1) + timedelta(hours=1) # e.g. at 13:59 we get quote for 14:00
+            self.time = self.time.replace(minute=0) + timedelta(hours=1) # e.g. at 13:59 we get quote for 14:00
         else:
             self.time = self.time.replace(minute = self.time.minute + 1) # e.g. at 13:45 we get quote for 13:48
         
@@ -115,7 +115,7 @@ class Clock:
         else:
             self.epd.init_fast() # according to waveshare support, will speed up process of displaying new image
 
-        self.display_quote()     # display the current quote
+        self.display_quote() # display the current quote
         self.get_image()    # get the next image to display
         logging.info(f'main() finished at {str(self.time)}.')
 
@@ -157,6 +157,13 @@ if __name__ == '__main__':
             logging.error('Error! startup.bmp image not found')
 
         time.sleep(30) # wait for the PI's system clock to update (it has no RTC)
+
+        # since `get_image()` gets the image for the next quote, to get the image for
+        # the first quote, we need to set the current minute back by 1
+        if clock.time.minute == 0:
+            clock.time = clock.time.replace(minute=clock.time.minute - 1) - timedelta(hours=1) # e.g. at 14:00 set time to 13:59
+        else:
+            clock.time = clock.time.replace(minute = clock.time.minute - 1) # e.g. at 13:45 set time to 13:44
         clock.get_image() # get the first image
 
         while True:
