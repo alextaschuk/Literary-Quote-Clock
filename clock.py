@@ -39,25 +39,12 @@ class Clock:
 
         logging.info('clock obj was made.')
 
-
-    def get_time(self, minute: int, hour: int) -> str: # e.g. if it's 1:30 PM, this returns '1330'
-        '''
-        Returns the current time as a string in the 24-hour format.
-        - For example, '1330' is returned for 13:30.
-        '''
-        if minute < 10:
-            minute = '0' + str(minute)
-        if hour < 10: # if it is midnight, time.hour returns 0, so we need to append another 0 to have '00'
-            hour = '0' + str(hour)
-        return str(hour) + str(minute)
-
-
     def get_image(self):
         ''' This function generates an image for the quote to be displayed. '''
         self.time = datetime.now() # update the time
         logging.info(f'get_image() called at {str(self.time)}.')
 
-        if 60 - self.time.minute == 1: # if the current minute is the 59th of the hour
+        if self.time.minute == 59: # if the current minute is the 59th of the hour
             self.time = self.time.replace(minute=0) + timedelta(hours=1) # e.g. at 13:59 we get quote for 14:00
         else:
             self.time = self.time.replace(minute = self.time.minute + 1) # e.g. at 13:45 we get quote for 13:48
@@ -158,13 +145,7 @@ if __name__ == '__main__':
 
         time.sleep(30) # wait for the PI's system clock to update (it has no RTC)
 
-        # since `get_image()` gets the image for the next quote, to get the image for
-        # the first quote, we need to set the current minute back by 1
-        if clock.time.minute == 0:
-            clock.time = clock.time.replace(minute=clock.time.minute - 1) - timedelta(hours=1) # e.g. at 14:00 set time to 13:59
-        else:
-            clock.time = clock.time.replace(minute = clock.time.minute - 1) # e.g. at 13:45 set time to 13:44
-        logging.info(f'time for quote: {str(clock.time)}')
+       # this will be the wrong time b/c of how the function works
         clock.get_image() # get the first image
 
         while True:
