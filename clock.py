@@ -164,6 +164,7 @@ if __name__ == '__main__':
             clock.time = clock.time.replace(minute=clock.time.minute - 1) - timedelta(hours=1) # e.g. at 14:00 set time to 13:59
         else:
             clock.time = clock.time.replace(minute = clock.time.minute - 1) # e.g. at 13:45 set time to 13:44
+        logging.info(f'time for quote: {str(clock.time)}')
         clock.get_image() # get the first image
 
         while True:
