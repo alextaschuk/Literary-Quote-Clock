@@ -84,7 +84,6 @@ class Clock:
 
         logging.info(f'init_buffer() called at {str(self.time)}. Initializing quote_buffer...')
         quote_time = datetime.now() # update the time
-
         for i in range(3):
             # get the quotes that will be displayed one, two, and three minutes after current quote
             if quote_time.minute == 59: # if it's the 59th minute of the hour (e.g. 11:59)
@@ -92,7 +91,7 @@ class Clock:
             else: # it is not the 59 minute (e.g. 13:21), so we only need the next minute
                 quote_time = quote_time.replace(second=0) + timedelta(minutes=1) # set the time to one minute from now (13:22)
             
-            self.quote_buffer[i] = self.get_image(quote_time=quote_time)
+            self.quote_buffer.append(self.get_image(quote_time=quote_time))
 
         self.time = datetime.now() # set time back to actual current time
         logging.info(f'init_buffer() finished at {str(self.time)}.')
