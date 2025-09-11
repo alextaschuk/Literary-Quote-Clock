@@ -25,10 +25,8 @@ class Clock:
     '''
 
     CSV_PATH = 'quotes.csv'
-    curr_time: str
     time: datetime
     quotes: list
-    filename: str
     curr_image: Image
     quote_buffer: list
 
@@ -37,6 +35,7 @@ class Clock:
         self.picdir = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'Literary-Quote-Clock/images') # path to .bmp files
         self.time = datetime.now()
         self.quotes = []
+        self.quote_buffer = []
         self.epd = epd7in5_V2.EPD()
 
         logging.info('clock obj was made.')
