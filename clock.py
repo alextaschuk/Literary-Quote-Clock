@@ -107,8 +107,8 @@ class Clock:
         else:
             self.epd.init_fast() # speeds up process of displaying new image, according to Waveshare support
         
+        self.get_image(quote_time=self.time)# get the next image to display        
         self.display_quote() # display the current quote
-        self.get_image(quote_time=self.time)# get the next image to display
         logging.info(f'main() finished at {str(self.time)}.')
 
 def signal_handler(sig, frame):
