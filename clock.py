@@ -155,8 +155,8 @@ class Clock:
         else:
             self.epd.init_fast() # speeds up process of displaying new image, according to Waveshare support
         
-        self.display_quote() # display the current quote
         if self.quote_buffer:
+            self.display_quote() # display the current quote
             self.update_buffer()
         else:
             self.init_buffer()
