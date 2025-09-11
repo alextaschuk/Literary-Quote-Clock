@@ -148,14 +148,6 @@ if __name__ == '__main__':
             logging.error('Error! startup.bmp image not found')
 
         time.sleep(30) # wait for the PI's system clock to update (it has no RTC)
-
-        # since `get_image()` generates the image for the next quote, we need to set
-        # the current minute back by 1 to get the image for the first (initial) quote
-        if clock.time.minute == 0:
-            clock.time = clock.time.replace(minute=clock.time.minute - 1) - timedelta(hours=1) # e.g. at 14:00 set time to 13:59
-        else:
-            clock.time = clock.time.replace(minute = clock.time.minute - 1) # e.g. at 13:45 set time to 13:44
-        logging.info(f'time for quote: {str(clock.time)}')
         clock.get_image(quote_time=clock.time) # get the first image
 
         while True:
