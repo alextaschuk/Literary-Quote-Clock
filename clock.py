@@ -83,6 +83,7 @@ class Clock:
         the buffer and uses `epd.display()` to show it on the
         e-ink screen.
         '''
+        self.time = datetime.now() # update the time
         try:
             logging.info(f'display_quote() called at {str(self.time)}.')
             self.epd.display(self.epd.getbuffer(self.curr_image)) # display the current image
@@ -106,7 +107,6 @@ class Clock:
         else:
             self.epd.init_fast() # speeds up process of displaying new image, according to Waveshare support
         
-        self.time = datetime.now() # update the time
         self.display_quote() # display the current quote
         self.get_image(quote_time=self.time)# get the next image to display
         logging.info(f'main() finished at {str(self.time)}.')
@@ -141,7 +141,6 @@ if __name__ == '__main__':
 
         logging.info('Displaying startup screen')
         try:
-            #with Image.open(os.path.join(clock.picdir, 'startup.bmp')) as startup_img: # use this if startup.bmp is in /images
             with Image.open('startup.bmp') as startup_img: # use this if startup.bmp is in root dir
                clock.epd.display(clock.epd.getbuffer(startup_img)) # display a startup screen
             clock.epd.sleep() # put the screen to sleep
@@ -162,7 +161,7 @@ if __name__ == '__main__':
         while True:
             signal.signal(signal.SIGINT, signal_handler)
             clock.main() # displays the quote and performs full refresh if necessary
-            logging.info(f'sleeping for {(59 - datetime.now().second)} seconds before displaying next quote.')
+            logging.info(f'sleep for {(59 - datetime.now().second)} seconds before displaying next quote.')
             time.sleep(59 - datetime.now().second) # sleep until the next minute (this is called 1 sec early because of processing time to show the next image)
 
     except KeyboardInterrupt as e:
