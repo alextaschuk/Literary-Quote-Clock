@@ -202,12 +202,18 @@ if __name__ == '__main__':
 
         time.sleep(30) # wait for the PI's system clock to update (it has no RTC)
         clock.get_image(quote_time=datetime.now()) # get the first image
-
-        while True:
-            signal.signal(signal.SIGINT, signal_handler)
-            clock.main() # displays the quote and performs full refresh if necessary
-            logging.info(f'sleep for {(59 - datetime.now().second)} seconds before displaying next quote.')
-            time.sleep(59 - datetime.now().second) # sleep until the next minute (this is called 1 sec early because of processing time to show the next image)
+        try:
+            while True:
+                signal.signal(signal.SIGINT, signal_handler)
+                clock.main() # displays the quote and performs full refresh if necessary
+                logging.info(f'sleep for {(59 - datetime.now().second)} seconds before displaying next quote.')
+                time.sleep(59 - datetime.now().second) # sleep until the next minute (this is called 1 sec early because of processing time to show the next image)
+        except BaseException as e:
+            logging.info(f'error: {e}')
+            clock.epd.init()
+            clock.epd.Clear()
+            clock.epdconfig.module_exit(cleanup=True)
+            exit()
 
     except KeyboardInterrupt as e:
         logging.info('program interrupted:')
