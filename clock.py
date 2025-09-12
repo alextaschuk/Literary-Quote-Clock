@@ -158,7 +158,9 @@ class Clock:
             self.display_quote() # display the current quote
             self.update_buffer()
         else:
-            self.init_buffer()
+            self.epd.display(self.epd.getbuffer(self.curr_image)) # display the first image when the clock turns on
+            self.epd.sleep()
+            self.init_buffer() # initialize the buffer
             
         logging.info(f'main() finished at {str(self.time)}.')
 
@@ -199,7 +201,7 @@ if __name__ == '__main__':
             logging.error('Error! startup.bmp image not found')
 
         time.sleep(30) # wait for the PI's system clock to update (it has no RTC)
-        clock.get_image(quote_time=datetime.now()) # get the first image
+        clock.curr_image = clock.get_image(quote_time=datetime.now()) # get the first image
         try:
             while True:
                 signal.signal(signal.SIGINT, signal_handler)
