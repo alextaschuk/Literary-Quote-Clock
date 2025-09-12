@@ -158,6 +158,7 @@ class Clock:
             self.display_quote() # display the current quote
             self.update_buffer()
         else:
+            logging.info(f'Displaying first quote and initializing buffer.')
             self.epd.display(self.epd.getbuffer(self.curr_image)) # display the first image when the clock turns on
             self.epd.sleep()
             self.init_buffer() # initialize the buffer
