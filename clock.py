@@ -147,9 +147,9 @@ class Clock:
         '''
         logging.info(f'main() called at {str(self.time)}.')
 
-        if self.time.minute == 0:
-            logging.info('60 minutes have passed. Performing full refresh on screen.')
-            self.epd.init() # Perform full refresh every hour. This helps prevent "ghosting" and increases the screen's lifespan.
+        if self.time.minute == 30:
+            logging.info('30 minutes have passed. Performing full refresh on screen.')
+            self.epd.init() # Perform full refresh every half hour. This helps prevent "ghosting" and increases the screen's lifespan.
             self.epd.Clear() # Then clear the screen before displaying new quote
         else:
             self.epd.init_fast() # speeds up process of displaying new image, according to Waveshare support
