@@ -2,19 +2,13 @@
  This is a modified version of elegantalchemist's quote_to_image.py program. The original file can be
  found at https://github.com/elegantalchemist/literaryclock/blob/main/quote%20to%20image/quote_to_image.py.
 
- This program is used to generate .bmp images that will be displayed to the e-ink screen. It will automatically
- put the generated files into the /images folder in this project's root directory.
-'''
+ This program is used to generate .bmp images that will be displayed to the e-ink screen.
+ The `TurnQuoteToImage()` function is called by the `get_image()` function in `clock.py`.
+ '''
 
 # imports for image generation
-from sys import argv, exit
-from os import path
-import os
-import csv
 from PIL import Image, ImageFont, ImageDraw
-from time import sleep
 import unicodedata
-
 
 # Stuff for read and writing files
 SCREEN_WIDTH = 800
@@ -25,9 +19,6 @@ QUOTE_HEIGHT = SCREEN_HEIGHT * 0.917
  
 # note: I renamed some of the variables for personal preference. *{var_name} denotes the original variable names in elegantalchemist's file.
 csv_path = 'quotes.csv'             # the CSV file with all quotes, author names, etc. *csvpath
-#csv_path = 'test.csv'
-img_dir = 'images/'                             # which directory to save images to *imgdir
-img_ext = 'bmp'                                 # images will be in BMP format *imgformat
 include_metadata = True                         # true = include the author and book's title of the quote
 imgsize = (SCREEN_WIDTH,SCREEN_HEIGHT)
 bg_color = 255                                  # set the image's background color to white (Hex equivalent is #0xFFFFFF) *color_bg
@@ -48,8 +39,11 @@ previoustime = ''
 
 def TurnQuoteIntoImage(index:int, time:str, quote:str, timestring:str,
                                                author:str, title:str):
+    '''
+    The main function to generate an image of a quote. 
+    - Returns an `Image` object
+    '''
     global imgnumber, previoustime
-    savepath = img_dir
     quoteheight = QUOTE_HEIGHT      # How far top-to-bottom the quote spans
     quotelength = QUOTE_WIDTH       # How far left-to-right the quote spans
     quotestart_y = 00               # Y coordinate where the quote begins
@@ -63,29 +57,19 @@ def TurnQuoteIntoImage(index:int, time:str, quote:str, timestring:str,
     ariandel = ImageDraw.Draw(paintedworld)
 
     # draw the title and author name
-    if include_metadata:
-        font_mdata = create_fnt(info_font, info_fontsize)
-        metadata = f'—{title.strip()}, {author.strip()}' # e.g. '—Dune, Frank Herbert
-        # wrap lines into a reasonable length and lower the maximum height the
-        # quote can occupy according to the number of lines the credits use        
-        if font_mdata.getlength(metadata) > mdatalength: # e.g. getlength(metadata) = 282.0 for '—Dune, Frank Herbert'
-            metadata = wrap_lines(text=metadata, font=font_mdata, line_length=(mdatalength * 0.965))
-        for line in metadata.splitlines():
-            mdatastart_y -= font_mdata.getbbox("A")[3] + 4
-        quoteheight = mdatastart_y - 25
-        mdata_y = mdatastart_y
-        for line in metadata.splitlines():
-            ariandel.text((mdatastart_x, mdata_y), line, time_color,
-                                                    font_mdata, anchor='rm')
-            mdata_y += font_mdata.getbbox("A")[3] + 4
-    else:
-        try:
-            savepath += 'nometadata/'
-            if not path.exists(savepath):
-                print('/nometadata folder not found. Creating new folder...')
-                os.mkdir(savepath)
-        except OSError:
-            print('error while trying to create /nometadata folder')
+    font_mdata = create_fnt(info_font, info_fontsize)
+    metadata = f'—{title.strip()}, {author.strip()}' # e.g. '—Dune, Frank Herbert
+    # wrap lines into a reasonable length and lower the maximum height the
+    # quote can occupy according to the number of lines the credits use        
+    if font_mdata.getlength(metadata) > mdatalength: # e.g. getlength(metadata) = 282.0 for '—Dune, Frank Herbert'
+        metadata = wrap_lines(text=metadata, font=font_mdata, line_length=(mdatalength * 0.965))
+    for line in metadata.splitlines():
+        mdatastart_y -= font_mdata.getbbox("A")[3] + 4
+    quoteheight = mdatastart_y - 25
+    mdata_y = mdatastart_y
+    for line in metadata.splitlines():
+        ariandel.text((mdatastart_x, mdata_y), line, time_color, font_mdata, anchor='rm')
+        mdata_y += font_mdata.getbbox("A")[3] + 4
 
     # draw the quote (pretty)
     quote, fntsize = calc_fntsize(length=quotelength, height=quoteheight, text=quote, fntname=time_font)
@@ -107,11 +91,6 @@ def TurnQuoteIntoImage(index:int, time:str, quote:str, timestring:str,
         imgnumber = 0
         previoustime = time
     time = time.replace(':','')
-    savepath += f'quote_{time}_{imgnumber}.{img_ext}'
-    savepath = path.normpath(savepath)
-    #image = f'quote_{time}_{imgnumber}.bmp'
-    #image = Image.open(img).convert('L').save(imgOut)
-    #paintedworld.save(savepath)
     return paintedworld
 
 def draw_quote(drawobj, anchors:tuple, text:str, substr:str,
@@ -318,38 +297,3 @@ def get_boxsize(image_draw_obj: ImageDraw, coords:tuple[float, float], text: str
     if '◯' in text:
         text = text.replace('◯', '')
     return image_draw_obj.multiline_textbbox(coords, text, font)[index]
-
-def main():
-    try:
-        if not path.exists(img_dir):
-            print('/images folder not found. Creating new folder...')
-            os.mkdir(img_dir)
-    except OSError:
-        print('error while trying to create /images folder')
-    with open(csv_path, newline='\n', encoding='UTF-8') as csvfile:
-        jobs = len(csvfile.readlines()) - 1 # number of quotes in CSV file
-        csvfile.seek(0) # move file cursor to start of file
-        if len(argv) > 1: # argv stores the path to this file, so this is just a check that the filepath exists.
-            if argv[1].isdigit() and int(argv[1]) < jobs:
-                jobs = int(argv[1])
-        quotereader = csv.DictReader(csvfile, delimiter='|')
-        for i, row in enumerate(quotereader):
-            if i >= jobs:
-                break
-            else:
-                #time = [[t.replace('\ufeff', '') for t in row] for row in csvfile]
-                #if '\ufeff' in row['time']:
-                #    row['time'] = row['time'].replace('\ufeff', '')
-                TurnQuoteIntoImage(i, row['time'], row['quote'], row['timestring'], row['author'], row['title'])
-            progressbar = f'Creating images... {i+1}/{jobs}'
-            print(progressbar, end='\r', flush=True)
-    print("")
-
-
-if __name__ == '__main__':
-    try:
-        main()
-        print("Image generation complete.")
-    except KeyboardInterrupt:
-        print("\nProcess interrupted.")
-        exit(0)
