@@ -67,8 +67,8 @@ class Clock:
                     if row['time'] == formatted_time:
                         quotes.append(row)
 
-            logging.info(f'list of quotes: {str(quotes)}')
             row = quotes[random.randrange(0, len(quotes))] # the selected quote to display
+            logging.info(f'selected quote for {formatted_time}: {row}')
             return TurnQuoteIntoImage(i, row['time'], row['quote'], row['timestring'], row['author'], row['title'])
         except FileNotFoundError:
             logging.error(f'Error: file {self.CSV_PATH} not found')
@@ -112,7 +112,9 @@ class Clock:
         
         difference = 60 - quote_time.minute # number of mins until next hour
         if 0 < difference <= 3: # if the current minute is the 57th, 58th, or 59th of the hour
+            logging.info(f'time being added to the quote is 57th, 58th, or 59th of the hour. current quote_time: {str(quote_time)}')
             quote_time = quote_time.replace(minute=(quote_time.minute + 3) % 10) + timedelta(hours=1) # e.g. at 13:58 we get quote for 14:01
+            logging.info(f'time being added to the quote is 57th, 58th, or 59th of the hour. updated quote_time: {str(quote_time)}')
         else:
             quote_time = quote_time.replace(minute = quote_time.minute + 3) # e.g. at 13:45 we get quote for 13:48
         
