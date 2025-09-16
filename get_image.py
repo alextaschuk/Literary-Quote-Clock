@@ -6,9 +6,11 @@
  The `TurnQuoteToImage()` function is called by the `get_image()` function in `clock.py`.
  '''
 
-# imports for image generation
 from PIL import Image, ImageFont, ImageDraw
 import unicodedata
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 
 # Stuff for read and writing files
 SCREEN_WIDTH = 800
@@ -79,18 +81,17 @@ def TurnQuoteIntoImage(index:int, time:str, quote:str, timestring:str,
         draw_quote(drawobj=ariandel, anchors=(quotestart_x,quotestart_y), text=quote, substr=timestring, font_norm=font_norm, font_high=font_high, fntsize=fntsize)
     # warn and discard image if timestring is just not there
     except LookupError:
-        print(f"WARNING: missing timestring at csv line {index+2}, skipping")
-        return
+        # if there is no quote for a time, generate and return an error image instead
+        paintedworld = Image.new(mode='L', size=(imgsize), color=bg_color)
+        ariandel = ImageDraw.Draw(paintedworld)
+        quote = f"Oops! There is currently no quote for {time}."
+        quote, fntsize = calc_fntsize(length=quotelength, height=quoteheight, text=quote, fntname=time_font)
+        font_norm = create_fnt(name=quote_font, size=fntsize)
+        font_high = create_fnt(name=time_font, size=fntsize)
+        draw_quote(drawobj=ariandel, anchors=(quotestart_x,quotestart_y), text=quote, substr=timestring, font_norm=font_norm, font_high=font_high, fntsize=fntsize)
 
-    # increment a number if time is identical to the last one, so
-    # images can't be overwritten
-    # this assumes lines are actually chronological
-    if time == previoustime:
-        imgnumber += 1
-    else:
-        imgnumber = 0
-        previoustime = time
-    time = time.replace(':','')
+        logging.error(f"WARNING: missing timestring at csv line {index+2}, skipping")
+
     return paintedworld
 
 def draw_quote(drawobj, anchors:tuple, text:str, substr:str,
@@ -107,7 +108,7 @@ def draw_quote(drawobj, anchors:tuple, text:str, substr:str,
     try:
         substr_starts = flattened.lower().index(substr.lower())
     except ValueError:
-        print('Error at: ' + flattened)
+        logging.error('Error at: ' + flattened)
         raise LookupError
     substr_ends = substr_starts + len(substr)
     bookmark = '|'
