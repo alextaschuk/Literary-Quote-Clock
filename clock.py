@@ -117,8 +117,9 @@ class Clock:
         else:
             quote_time = quote_time.replace(minute = quote_time.minute + 3) # e.g. at 13:45 we get quote for 13:48
         
-            self.quote_buffer.append(self.get_image(quote_time=quote_time)) # add new quote to buffer
-            self.quote_buffer.pop(0) # remove the current quote from buffer
+        image_quote = self.get_image(quote_time=quote_time)
+        self.quote_buffer.append(image_quote) # add the quote to the buffer
+        self.quote_buffer.pop(0)     # remove the current quote from buffer
 
         logging.info(f'update_buffer() finished at {str(datetime.now())}. Image for {str(quote_time.hour)}:{str(quote_time.minute)} added.')
 
