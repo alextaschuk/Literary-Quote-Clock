@@ -79,7 +79,7 @@ class Clock:
         to display for the next 3 minutes. E.g. `init_buffer()`
         is called at 09:40, so the buffer stores the quotes for
         09:41, 09:42, and 09:43.
-        - Returns a list of three (open) Image objects
+        - Returns a list of three Image objects
         '''
 
         logging.info(f'init_buffer() called at {str(datetime.now())}. Initializing quote_buffer...')
@@ -91,10 +91,9 @@ class Clock:
             else: # it is not the 59 minute (e.g. 13:21), so we only need the next minute
                 quote_time = quote_time.replace(second=0) + timedelta(minutes=1) # set the time to one minute from now (13:22)
             
-            self.quote_buffer.append(self.get_image(quote_time=quote_time))
+            self.quote_buffer.append(self.get_image(quote_time=quote_time)) # add new quote to buffer
 
         logging.info(f'init_buffer() finished at {str(datetime.now())}.')
-        return self.quote_buffer
 
 
     def update_buffer(self) -> list:
@@ -118,11 +117,11 @@ class Clock:
         else:
             quote_time = quote_time.replace(minute = quote_time.minute + 3) # e.g. at 13:45 we get quote for 13:48
         
-            image_quote = self.get_image(quote_time=quote_time)
-            self.quote_buffer.append(image_quote) # add the quote to the buffer
-            self.quote_buffer.pop(0)     # remove the current quote from buffer
+            self.quote_buffer.append(self.get_image(quote_time=quote_time)) # add new quote to buffer
+            self.quote_buffer.pop(0) # remove the current quote from buffer
 
         logging.info(f'update_buffer() finished at {str(datetime.now())}. Image for {str(quote_time.hour)}:{str(quote_time.minute)} added.')
+
 
     def display_quote(self):
         '''
