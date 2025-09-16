@@ -38,7 +38,7 @@ info_fontsize = 30                                    # the font size for the au
 imgnumber = 0
 previoustime = ''
 
-def TurnQuoteIntoImage(index:int, time:str, quote:str, timestring:str, author:str, title:str, inclue_metadata: bool):
+def TurnQuoteIntoImage(index:int, time:str, quote:str, timestring:str, author:str, title:str, include_metadata: bool):
     '''
     The main function to generate an image of a quote. 
     - Returns an `Image` object
