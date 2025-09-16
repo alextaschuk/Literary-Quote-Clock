@@ -73,10 +73,10 @@ class Clock:
                 row = quotes[random.randrange(0, len(quotes))] # the selected quote to display
                 logging.info(f'selected quote for {formatted_time}: {row}')
             else:
-                quote= f'Error: There is currently no quote for {time}.'
+                quote= f'Error: There is currently no quote for {formatted_time}.'
                 row = {'time': formatted_time, 'quote': quote, 'timestring': 'Error', 'author': '', 'title': ''}
                 include_metadata = False
-                logging.info(f'Missing quote for {time}')
+                logging.info(f'Missing quote for {formatted_time}')
         except FileNotFoundError:
             logging.error(f'Error: file {self.CSV_PATH} not found')
         
