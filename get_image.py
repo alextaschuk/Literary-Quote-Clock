@@ -38,8 +38,7 @@ info_fontsize = 30                                    # the font size for the au
 imgnumber = 0
 previoustime = ''
 
-def TurnQuoteIntoImage(index:int, time:str, quote:str, timestring:str,
-                                               author:str, title:str):
+def TurnQuoteIntoImage(index:int, time:str, quote:str, timestring:str, author:str, title:str, inclue_metadata: bool):
     '''
     The main function to generate an image of a quote. 
     - Returns an `Image` object
@@ -52,7 +51,6 @@ def TurnQuoteIntoImage(index:int, time:str, quote:str, timestring:str,
     mdatalength = 650               # To help with text wrapping -- bigger value = longer horizontal metadata text
     mdatastart_y = 485 # Y coordinate where the author and title text begins (should be around size of screen's height)
     mdatastart_x = SCREEN_WIDTH * 0.981  # X coordinate where the author and title text begins
-    include_metadata = True # true = include the author and book's title of the quote
 
     # create the object. mode 'L' restricts to 8bit greyscale
     paintedworld = Image.new(mode='L', size=(imgsize), color=bg_color)
@@ -98,16 +96,6 @@ def TurnQuoteIntoImage(index:int, time:str, quote:str, timestring:str,
         draw_quote(drawobj=ariandel, anchors=(quotestart_x,quotestart_y), text=quote, substr=timestring, font_norm=font_norm, font_high=font_high, fntsize=fntsize)
     # warn and discard image if timestring is just not there
     except LookupError:
-        # if there is no quote for a time, generate and return an error image instead
-        paintedworld = Image.new(mode='L', size=(imgsize), color=bg_color)
-        ariandel = ImageDraw.Draw(paintedworld)
-        quote = f"Error: There is currently no quote for {time}."
-        timestring = 'Error'
-        quote, fntsize = calc_fntsize(length=quotelength, height=quoteheight, text=quote, fntname=time_font)
-        font_norm = create_fnt(name=quote_font, size=fntsize)
-        font_high = create_fnt(name=time_font, size=fntsize)
-        draw_quote(drawobj=ariandel, anchors=(quotestart_x,quotestart_y), text=quote, substr=timestring, font_norm=font_norm, font_high=font_high, fntsize=fntsize)
-
         logging.error(f"WARNING: missing timestring at csv line {index+2}, skipping")
 
     return paintedworld

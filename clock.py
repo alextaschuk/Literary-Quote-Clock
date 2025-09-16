@@ -57,6 +57,7 @@ class Clock:
 
         formatted_time = f'{hour}:{min}' # e.g. '13:45'
         quotes = []
+        include_metadata = True # true = include the author and book's title of the quote
         try:
             with open(self.CSV_PATH, newline='\n', encoding='UTF-8') as quotefile:
                 quotefile.seek(0)
@@ -66,14 +67,21 @@ class Clock:
                 for i, row in enumerate(quotereader):
                     if row['time'] == formatted_time:
                         quotes.append(row)
-
-            row = quotes[random.randrange(0, len(quotes))] # the selected quote to display
-            logging.info(f'selected quote for {formatted_time}: {row}')
+            
+            # if there is no quote for a time, generate and return an error image instead
+            if quotes:
+                row = quotes[random.randrange(0, len(quotes))] # the selected quote to display
+                logging.info(f'selected quote for {formatted_time}: {row}')
+            else:
+                quote= f'Error: There is currently no quote for {time}.'
+                row = {'time': formatted_time, 'quote': quote, 'timestring': 'Error', 'author': '', 'title': ''}
+                include_metadata = False
+                logging.info(f'Missing quote for {time}')
         except FileNotFoundError:
             logging.error(f'Error: file {self.CSV_PATH} not found')
         
         logging.info(f'get_image() finished at {str(self.time)}.')
-        return TurnQuoteIntoImage(i, row['time'], row['quote'], row['timestring'], row['author'], row['title'])
+        return TurnQuoteIntoImage(i, row['time'], row['quote'], row['timestring'], row['author'], row['title'], include_metadata)
 
 
 
