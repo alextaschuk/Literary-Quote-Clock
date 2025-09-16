@@ -21,7 +21,6 @@ QUOTE_HEIGHT = SCREEN_HEIGHT * 0.917
  
 # note: I renamed some of the variables for personal preference. *{var_name} denotes the original variable names in elegantalchemist's file.
 csv_path = 'quotes.csv'             # the CSV file with all quotes, author names, etc. *csvpath
-include_metadata = True                         # true = include the author and book's title of the quote
 imgsize = (SCREEN_WIDTH,SCREEN_HEIGHT)
 bg_color = 255                                  # set the image's background color to white (Hex equivalent is #0xFFFFFF) *color_bg
 quote_color1 = 192                              # set the color of text to light grey/silver (Hex equivalent is #0xC0C0C0) *color_norm
@@ -53,6 +52,7 @@ def TurnQuoteIntoImage(index:int, time:str, quote:str, timestring:str,
     mdatalength = 650               # To help with text wrapping -- bigger value = longer horizontal metadata text
     mdatastart_y = 485 # Y coordinate where the author and title text begins (should be around size of screen's height)
     mdatastart_x = SCREEN_WIDTH * 0.981  # X coordinate where the author and title text begins
+    include_metadata = True # true = include the author and book's title of the quote
 
     # create the object. mode 'L' restricts to 8bit greyscale
     paintedworld = Image.new(mode='L', size=(imgsize), color=bg_color)
