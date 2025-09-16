@@ -58,20 +58,37 @@ def TurnQuoteIntoImage(index:int, time:str, quote:str, timestring:str,
     paintedworld = Image.new(mode='L', size=(imgsize), color=bg_color)
     ariandel = ImageDraw.Draw(paintedworld)
 
-    # draw the title and author name
-    font_mdata = create_fnt(info_font, info_fontsize)
-    metadata = f'—{title.strip()}, {author.strip()}' # e.g. '—Dune, Frank Herbert
-    # wrap lines into a reasonable length and lower the maximum height the
-    # quote can occupy according to the number of lines the credits use        
-    if font_mdata.getlength(metadata) > mdatalength: # e.g. getlength(metadata) = 282.0 for '—Dune, Frank Herbert'
-        metadata = wrap_lines(text=metadata, font=font_mdata, line_length=(mdatalength * 0.965))
-    for line in metadata.splitlines():
-        mdatastart_y -= font_mdata.getbbox("A")[3] + 4
-    quoteheight = mdatastart_y - 25
-    mdata_y = mdatastart_y
-    for line in metadata.splitlines():
-        ariandel.text((mdatastart_x, mdata_y), line, time_color, font_mdata, anchor='rm')
-        mdata_y += font_mdata.getbbox("A")[3] + 4
+    # first, we want to check that there are no errors with the quote
+    # If there is, replace the quote with an error message to display
+    temp_flattened = quote.replace('\n',' ')
+    try:
+        temp = temp_flattened.lower().index(timestring.lower())
+    except ValueError:
+        logging.error(f'Error: The timestring was not found in the quote.\n The quote throwing the error is: {temp_flattened} \nIts substr is: {timestring}')
+
+        # create an error message to display instead and update necessary values
+        quote = f'Error: Quote that begins with ⭐{quote[:10]} ⭐does not have a matching timestring.'
+        timestring = 'Error'
+        include_metadata = False
+
+    if include_metadata:
+        # draw the title and author name
+        font_mdata = create_fnt(info_font, info_fontsize)
+        metadata = f'—{title.strip()}, {author.strip()}' # e.g. '—Dune, Frank Herbert
+        # wrap lines into a reasonable length and lower the maximum height the
+        # quote can occupy according to the number of lines the credits use        
+        if font_mdata.getlength(metadata) > mdatalength: # e.g. getlength(metadata) = 282.0 for '—Dune, Frank Herbert'
+            metadata = wrap_lines(text=metadata, font=font_mdata, line_length=(mdatalength * 0.965))
+
+        for line in metadata.splitlines():
+            mdatastart_y -= font_mdata.getbbox("A")[3] + 4
+
+        quoteheight = mdatastart_y - 25
+        mdata_y = mdatastart_y
+
+        for line in metadata.splitlines():
+            ariandel.text((mdatastart_x, mdata_y), line, time_color, font_mdata, anchor='rm')
+            mdata_y += font_mdata.getbbox("A")[3] + 4
 
     # draw the quote (pretty)
     quote, fntsize = calc_fntsize(length=quotelength, height=quoteheight, text=quote, fntname=time_font)
@@ -84,7 +101,8 @@ def TurnQuoteIntoImage(index:int, time:str, quote:str, timestring:str,
         # if there is no quote for a time, generate and return an error image instead
         paintedworld = Image.new(mode='L', size=(imgsize), color=bg_color)
         ariandel = ImageDraw.Draw(paintedworld)
-        quote = f"Oops! There is currently no quote for {time}."
+        quote = f"Error: There is currently no quote for {time}."
+        timestring = 'Error'
         quote, fntsize = calc_fntsize(length=quotelength, height=quoteheight, text=quote, fntname=time_font)
         font_norm = create_fnt(name=quote_font, size=fntsize)
         font_high = create_fnt(name=time_font, size=fntsize)
@@ -96,8 +114,22 @@ def TurnQuoteIntoImage(index:int, time:str, quote:str, timestring:str,
 
 def draw_quote(drawobj, anchors:tuple, text:str, substr:str,
         font_norm:ImageFont.truetype, font_high:ImageFont.truetype, fntsize):
-    # draws text with substr highlighted. doesn't check if it will fit the
-    # image or anything else
+    '''
+    This function draws the quote with the timestring highlighted to the
+    `drawobj` object that is passed in the function header. It will format
+    the quote (i.e., check for italics, etc.), but it does not check if the
+    quote will fit in the image or anything else.
+    
+    This function accepts (requires) the following arguments:
+    - `drawobj`: An `ImageDraw` obj
+    - `anchors`: A tuple containing the x and y starting coordinates for the quote
+    - `text`: The quote
+    - `substr`: The timestring of the quote (i.e., the part that should be highlighted)
+    - `font_norm`: A `FreeTypeFont` obj containing the quote's font
+    - `font_high`: A `FreeTypeFont` obj containing the quote's bolded font (for highlighting the time)
+    - `fntsize`: A value returned from `calc_fntsize()` that determines how large the text should be
+    '''
+
     start_x = anchors[0]
     start_y = anchors[1]
 
@@ -108,8 +140,8 @@ def draw_quote(drawobj, anchors:tuple, text:str, substr:str,
     try:
         substr_starts = flattened.lower().index(substr.lower())
     except ValueError:
-        logging.error('Error at: ' + flattened)
-        raise LookupError
+        logging.error(f'Error: The timestring (substr) was not found in the quote (text).\n The quote throwing the error is: {flattened} \nIts substr is: {substr}')
+
     substr_ends = substr_starts + len(substr)
     bookmark = '|'
     lines = text[:substr_starts]
