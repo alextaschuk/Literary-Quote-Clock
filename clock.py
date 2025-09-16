@@ -69,9 +69,13 @@ class Clock:
 
             row = quotes[random.randrange(0, len(quotes))] # the selected quote to display
             logging.info(f'selected quote for {formatted_time}: {row}')
-            return TurnQuoteIntoImage(i, row['time'], row['quote'], row['timestring'], row['author'], row['title'])
         except FileNotFoundError:
             logging.error(f'Error: file {self.CSV_PATH} not found')
+        
+        logging.info(f'get_image() finished at {str(self.time)}.')
+        return TurnQuoteIntoImage(i, row['time'], row['quote'], row['timestring'], row['author'], row['title'])
+
+
 
     def init_buffer(self) -> list:
         '''
@@ -81,8 +85,8 @@ class Clock:
         09:41, 09:42, and 09:43.
         - Returns a list of three Image objects
         '''
-
         logging.info(f'init_buffer() called at {str(datetime.now())}. Initializing quote_buffer...')
+
         quote_time = datetime.now() # update the time
         for i in range(3):
             # get the quotes that will be displayed one, two, and three minutes after current quote
@@ -105,11 +109,11 @@ class Clock:
 
         - Returns an updated list of three Image objects
         '''
-
         logging.info(f"update_buffer() called at {str(datetime.now())}.")
+
         quote_time = datetime.now() # update the time
-        
         difference = 60 - quote_time.minute # number of mins until next hour
+
         if 0 < difference <= 3: # if the current minute is the 57th, 58th, or 59th of the hour
             logging.info(f'time being added to the quote is 57th, 58th, or 59th of the hour. current quote_time: {str(quote_time)}')
             quote_time = quote_time.replace(minute=(quote_time.minute + 3) % 10) + timedelta(hours=1) # e.g. at 13:58 we get quote for 14:01
@@ -117,9 +121,8 @@ class Clock:
         else:
             quote_time = quote_time.replace(minute = quote_time.minute + 3) # e.g. at 13:45 we get quote for 13:48
         
-        image_quote = self.get_image(quote_time=quote_time)
-        self.quote_buffer.append(image_quote) # add the quote to the buffer
-        self.quote_buffer.pop(0)     # remove the current quote from buffer
+        self.quote_buffer.append(self.get_image(quote_time=quote_time)) # get quote and add to buffer
+        self.quote_buffer.pop(0) # remove the current quote from buffer
 
         logging.info(f'update_buffer() finished at {str(datetime.now())}. Image for {str(quote_time.hour)}:{str(quote_time.minute)} added.')
 
@@ -132,13 +135,13 @@ class Clock:
         '''
         self.time = datetime.now() # update the time
         try:
-            logging.info(f'display_quote() called at {str(self.time)}.')
+            logging.info(f'display_quote() called at {str(datetime.now())}.')
             self.curr_image = self.quote_buffer[0]
             self.epd.display(self.epd.getbuffer(self.curr_image)) # display the current image
             self.epd.sleep() # put screen to sleep to increase its lifespan
-            logging.info(f'display_quote finished at {str(self.time)}.')
+            logging.info(f'display_quote finished at {str(datetime.now())}.')
         except IOError as e:
-            logging.info(f'error in display_quote: {e}')
+            logging.info('IOError in display_quote:', e)
 
 
     def main(self):
@@ -146,7 +149,7 @@ class Clock:
         This function displays the current time's quote, 
         removes it from the buffer, and updates the buffer.
         '''
-        logging.info(f'main() called at {str(self.time)}.')
+        logging.info(f'main() called at {str(datetime.now())}.')
 
         if self.time.minute == 30:
             logging.info('30 minutes have passed. Performing full refresh on screen.')
@@ -177,11 +180,10 @@ def signal_handler(sig, frame):
     directly from the PI and not over SSH, but this is my
     workaround to the issue.
     '''
-    logging.info('sigint() called.')
+    logging.info('sigint() called. Clearing screen and shutting clock down...\n')
     signal.signal(sig, signal.SIG_IGN) # ignore additional signals
     clock.epd.init() # wake the screen so that it can be cleared
     clock.epd.Clear()
-    logging.info("clearing screen and shutting clock down...\n")
     clock.epdconfig.module_exit(cleanup=True)
     sys.exit(0)
 
@@ -210,7 +212,7 @@ if __name__ == '__main__':
                 clock.main() # displays the quote and performs full refresh if necessary
                 logging.info(f'sleep for {(59 - datetime.now().second)} seconds before displaying next quote.')
                 time.sleep(59 - datetime.now().second) # sleep until the next minute (this is called 1 sec early because of processing time to show the next image)
-        except BaseException as e:
+        except BaseException as e: # if something breaks clear the screen in case its state is stuck and needs to be manually restarted
             logging.info(f'error: {e}')
             clock.epd.init()
             clock.epd.Clear()
