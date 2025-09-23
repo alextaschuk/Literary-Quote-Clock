@@ -73,7 +73,7 @@ class Clock:
                     quote = f'Error: Quote that begins with {quote[:10]} does not have a matching timestring.'
                     row = {'time': formatted_time, 'quote': quote, 'timestring': 'Error', 'author': '', 'title': ''}
                     include_metadata = False
-                    logging.error(f'Error: The timestring was not found in the quote.\n The quote throwing the error is: {valid_quote} \nIts substr is: {row['timestring']}')
+                    logging.error(f'Error: The timestring was not found in the quote.\n The quote throwing the error is: {valid_quote} \nIts substr is: {row["timestring"]}')
 
             # if quote is missing altogether, display error message
             else:
