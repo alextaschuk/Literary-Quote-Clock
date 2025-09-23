@@ -160,7 +160,7 @@ class Clock:
         '''
         logging.info(f'main() called at {str(datetime.now())}.')
 
-        if datetime.now().minute == 30 or 00:
+        if datetime.now().minute == 29 or 59:
             logging.info('30 minutes have passed. Performing full refresh on screen.')
             self.epd.init() # Perform full refresh every half hour. This helps prevent "ghosting" and increases the screen's lifespan.
             self.epd.Clear() # Then clear the screen before displaying new quote
