@@ -19,26 +19,18 @@ logging.basicConfig(level=logging.DEBUG)
 
 class Clock:
     '''
-    A clock obj contains all logic for 
-    creating and displaying the quotes
-    to the screen.
+    A clock obj contains all logic for creating and
+    displaying the quotes to the screen.
     '''
 
     CSV_PATH = 'quotes.csv'
-    time: datetime
-    quotes: list
     curr_image: Image
-    quote_buffer: list
-
 
     def __init__(self):
-        self.picdir = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'Literary-Quote-Clock/images') # path to .bmp files
-        self.time = datetime.now()
         self.quotes = []
         self.quote_buffer = []
         self.epd = epd7in5_V2.EPD()
-
-        logging.info('clock obj was made.')
+        logging.info('created clock obj.')
 
     def get_image(self, quote_time: datetime) -> Image:
         '''
@@ -47,7 +39,7 @@ class Clock:
         generates an image for the quote to be displayed.
         - Returns an `Image` obj
         '''
-        logging.info(f'get_image() called at {str(self.time)}.')
+        logging.info(f'get_image() called at {str(datetime.now())}.')
         min = quote_time.minute
         hour = quote_time.hour
         if min < 10:
@@ -56,7 +48,7 @@ class Clock:
             hour = '0' + str(hour)
 
         formatted_time = f'{hour}:{min}' # e.g. '13:45'
-        quotes = []
+        quotes = [] # not to be confused w/ self.quotes
         include_metadata = True # true = include the author and book's title of the quote
         try:
             with open(self.CSV_PATH, newline='\n', encoding='UTF-8') as quotefile:
@@ -67,11 +59,23 @@ class Clock:
                 for i, row in enumerate(quotereader):
                     if row['time'] == formatted_time:
                         quotes.append(row)
-            
-            # if there is no quote for a time, generate and return an error image instead
+
+            # if there's at least one quote for a time, check that the timestring is in the
+            # quote, and display error image if mismatch
             if quotes:
                 row = quotes[random.randrange(0, len(quotes))] # the selected quote to display
                 logging.info(f'selected quote for {formatted_time}: {row}')
+
+                valid_quote = row['quote'].replace('\n',' ')
+                try:
+                    temp = valid_quote.lower().index(row['timestring'].lower())
+                except ValueError:
+                    quote = f'Error: Quote that begins with {quote[:10]} does not have a matching timestring.'
+                    row = {'time': formatted_time, 'quote': quote, 'timestring': 'Error', 'author': '', 'title': ''}
+                    include_metadata = False
+                    logging.error(f'Error: The timestring was not found in the quote.\n The quote throwing the error is: {valid_quote} \nIts substr is: {row['timestring']}')
+
+            # if quote is missing altogether, display error message
             else:
                 quote= f'Error: There is currently no quote for {formatted_time}.'
                 row = {'time': formatted_time, 'quote': quote, 'timestring': 'Error', 'author': '', 'title': ''}
@@ -80,9 +84,8 @@ class Clock:
         except FileNotFoundError:
             logging.error(f'Error: file {self.CSV_PATH} not found')
         
-        logging.info(f'get_image() finished at {str(self.time)}.')
+        logging.info(f'get_image() finished at {str(datetime.now())}.')
         return TurnQuoteIntoImage(i, row['time'], row['quote'], row['timestring'], row['author'], row['title'], include_metadata)
-
 
 
     def init_buffer(self) -> list:
@@ -94,15 +97,14 @@ class Clock:
         - Returns a list of three Image objects
         '''
         logging.info(f'init_buffer() called at {str(datetime.now())}. Initializing quote_buffer...')
-
-        quote_time = datetime.now() # update the time
-        for i in range(3):
+        quote_time = datetime.now()
+        
+        while len(self.quote_buffer) < 3:
             # get the quotes that will be displayed one, two, and three minutes after current quote
             if quote_time.minute == 59: # if it's the 59th minute of the hour (e.g. 11:59)
                 quote_time = quote_time.replace(minute=0,second=0, microsecond=0) + timedelta(hours=1) # set the time to the next hour (e.g. 12:00)
             else: # it is not the 59 minute (e.g. 13:21), so we only need the next minute
                 quote_time = quote_time.replace(second=0) + timedelta(minutes=1) # set the time to one minute from now (13:22)
-            
             self.quote_buffer.append(self.get_image(quote_time=quote_time)) # add new quote to buffer
 
         logging.info(f'init_buffer() finished at {str(datetime.now())}.')
@@ -141,7 +143,6 @@ class Clock:
         the buffer and uses `epd.display()` to show it on the
         e-ink screen.
         '''
-        self.time = datetime.now() # update the time
         try:
             logging.info(f'display_quote() called at {str(datetime.now())}.')
             self.curr_image = self.quote_buffer[0]
@@ -159,7 +160,7 @@ class Clock:
         '''
         logging.info(f'main() called at {str(datetime.now())}.')
 
-        if self.time.minute == 30:
+        if datetime.now().minute == 30 or 00:
             logging.info('30 minutes have passed. Performing full refresh on screen.')
             self.epd.init() # Perform full refresh every half hour. This helps prevent "ghosting" and increases the screen's lifespan.
             self.epd.Clear() # Then clear the screen before displaying new quote
@@ -175,7 +176,7 @@ class Clock:
             self.epd.sleep()
             self.init_buffer() # initialize the buffer
             
-        logging.info(f'main() finished at {str(self.time)}.')
+        logging.info(f'main() finished at {str(datetime.now())}.')
 
 def signal_handler(sig, frame):
     '''
@@ -220,7 +221,8 @@ if __name__ == '__main__':
                 clock.main() # displays the quote and performs full refresh if necessary
                 logging.info(f'sleep for {(59 - datetime.now().second)} seconds before displaying next quote.')
                 time.sleep(59 - datetime.now().second) # sleep until the next minute (this is called 1 sec early because of processing time to show the next image)
-        except BaseException as e: # if something breaks clear the screen in case its state is stuck and needs to be manually restarted
+        except BaseException as e:
+            # if something breaks clear the screen in case its state is stuck and needs to be manually restarted
             logging.info(f'error: {e}')
             clock.epd.init()
             clock.epd.Clear()

@@ -56,19 +56,6 @@ def TurnQuoteIntoImage(index:int, time:str, quote:str, timestring:str, author:st
     paintedworld = Image.new(mode='L', size=(imgsize), color=bg_color)
     ariandel = ImageDraw.Draw(paintedworld)
 
-    # first, we want to check that there are no errors with the quote
-    # If there is, replace the quote with an error message to display
-    temp_flattened = quote.replace('\n',' ')
-    try:
-        temp = temp_flattened.lower().index(timestring.lower())
-    except ValueError:
-        logging.error(f'Error: The timestring was not found in the quote.\n The quote throwing the error is: {temp_flattened} \nIts substr is: {timestring}')
-
-        # create an error message to display instead and update necessary values
-        quote = f'Error: Quote that begins with ⭐{quote[:10]} ⭐does not have a matching timestring.'
-        timestring = 'Error'
-        include_metadata = False
-
     if include_metadata:
         # draw the title and author name
         font_mdata = create_fnt(info_font, info_fontsize)
