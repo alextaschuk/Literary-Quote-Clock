@@ -1,8 +1,7 @@
 ''' This file contains all logic for displaying images to the screen. '''
 
 # imports for time stuff
-from datetime import datetime, timedelta # for getting the times
-import os
+from datetime import datetime, timedelta
 import random
 import signal
 
@@ -13,7 +12,7 @@ import time
 import csv
 from PIL import Image
 from waveshare_libraries import epd7in5_V2 # Waveshare's library for their 7.5 inch screen
-from get_image import TurnQuoteIntoImage
+from get_image import TurnQuoteIntoImage # function to dynamically generate quote's image
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -66,11 +65,11 @@ class Clock:
                 row = quotes[random.randrange(0, len(quotes))] # the selected quote to display
                 logging.info(f'selected quote for {formatted_time}: {row}')
 
-                valid_quote = row['quote'].replace('\n',' ')
+                valid_quote = row['quote'].replace('\n',' ') # to validate quote
                 try:
                     temp = valid_quote.lower().index(row['timestring'].lower())
                 except ValueError:
-                    quote = f'Error: Quote that begins with {quote[:10]} does not have a matching timestring.'
+                    quote = f'Error: Quote that begins with {valid_quote[:10]} does not have a matching timestring.'
                     row = {'time': formatted_time, 'quote': quote, 'timestring': 'Error', 'author': '', 'title': ''}
                     include_metadata = False
                     logging.error(f'Error: The timestring was not found in the quote.\n The quote throwing the error is: {valid_quote} \nIts substr is: {row["timestring"]}')
@@ -91,9 +90,11 @@ class Clock:
     def init_buffer(self) -> list:
         '''
         Initializes the buffer that will store the quotes
-        to display for the next 3 minutes. E.g. `init_buffer()`
-        is called at 09:40, so the buffer stores the quotes for
+        to display for the next 3 minutes. 
+
+        E.g. `init_buffer()` is called at 09:40, so the buffer stores the quotes for
         09:41, 09:42, and 09:43.
+
         - Returns a list of three Image objects
         '''
         logging.info(f'init_buffer() called at {str(datetime.now())}. Initializing quote_buffer...')
@@ -140,9 +141,8 @@ class Clock:
 
     def display_quote(self):
         '''
-        Reads the `Image` object at the front of
-        the buffer and uses `epd.display()` to show it on the
-        e-ink screen.
+        Reads the `Image` object at the front of the buffer and
+        uses `epd.display()` to show it on the e-ink screen.
         '''
         try:
             logging.info(f'display_quote() called at {str(datetime.now())}.')
