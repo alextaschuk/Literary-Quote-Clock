@@ -32,7 +32,7 @@ italic_quote_font = 'fonts/Bookerly-Italic.ttf'       # used if word(s) in the q
 italic_time_font = 'fonts/Bookerly-Bold-Italic.ttf'   # used if the time part of quote is also italicized
 time_font = 'fonts/Bookerly-Bold.ttf'                 # bold version of quote_font (for time part of quote) *fntname_high
 info_font = 'fonts/Bookerly-Bold.ttf'                 # the font the book and Author's name will be written in *fntname_mdata
-info_fontsize = 30                                    # the font size for the author/title *fntsize_mdata
+info_fontsize = 33                                    # the font size for the author/title *fntsize_mdata
 
 # don't touch
 imgnumber = 0
