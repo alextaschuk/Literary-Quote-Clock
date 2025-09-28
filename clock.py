@@ -1,6 +1,5 @@
 ''' This file contains all logic for displaying images to the screen. '''
 
-# imports for time stuff
 from datetime import datetime, timedelta
 import random
 import signal
@@ -113,27 +112,28 @@ class Clock:
 
     def update_buffer(self) -> list:
         '''
-        To update the buffer, we need to add the quote that's 2 minutes ahead of the currently
-        displayed quote. Because the next quote to be added is 3 minutes ahead of the current quote
-        that is being removed, we add 3 minutes rather than 2 to get the new quote. Due to this
-        logic, we need to check if the current  minute is 57, 58, or 59 because the hour also needs
-        to get updated when this is the case. 
+        This function's purpose is to update `self.quote_buffer` with a new quote. To update the
+        buffer, we need to add the quote that's 3 minutes ahead of the currently displayed quote.
+        Due to this logic, we need to check if the current minute is 57, 58, or 59 because the
+        hour also needs to get updated when this is the case. Then, we add the new quote to the
+        back of the buffer and pop the quote at the front of the buffer (which is currently
+        being displayed.)
 
         - Returns an updated list of three Image objects
         '''
         logging.info(f"update_buffer() called at {str(datetime.now())}.")
 
-        quote_time = datetime.now() # update the time
+        quote_time = datetime.now()
         difference = 60 - quote_time.minute # number of mins until next hour
 
         if 0 < difference <= 3: # if the current minute is the 57th, 58th, or 59th of the hour
-            logging.info(f'time being added to the quote is 57th, 58th, or 59th of the hour. current quote_time: {str(quote_time)}')
             quote_time = quote_time.replace(minute=(quote_time.minute + 3) % 10) + timedelta(hours=1) # e.g. at 13:58 we get quote for 14:01
+            logging.info(f'time being added to the quote is 57th, 58th, or 59th of the hour. current quote_time: {str(quote_time)}')
             logging.info(f'time being added to the quote is 57th, 58th, or 59th of the hour. updated quote_time: {str(quote_time)}')
         else:
             quote_time = quote_time.replace(minute = quote_time.minute + 3) # e.g. at 13:45 we get quote for 13:48
 
-        self.quote_buffer.append(self.get_image(quote_time=quote_time)) # get quote and add to buffer
+        self.quote_buffer.append(self.get_image(quote_time=quote_time)) # generate image and add to buffer
         self.quote_buffer.pop(0) # remove the current quote from buffer
 
         logging.info(f'update_buffer() finished at {str(datetime.now())}. Image for {str(quote_time.hour)}:{str(quote_time.minute)} added.')
@@ -161,9 +161,10 @@ class Clock:
         '''
         logging.info(f'main() called at {str(datetime.now())}.')
 
+        # Perform full refresh every half hour, which helps prevent "ghosting" and increases the screen's lifespan.
         if datetime.now().minute == 29 or  datetime.now().minute == 59:
             logging.info('30 minutes have passed. Performing full refresh on screen.')
-            self.epd.init() # Perform full refresh every half hour. This helps prevent "ghosting" and increases the screen's lifespan.
+            self.epd.init()
             self.epd.Clear() # Then clear the screen before displaying new quote
         else:
             self.epd.init_fast() # speeds up process of displaying image, according to Waveshare support
