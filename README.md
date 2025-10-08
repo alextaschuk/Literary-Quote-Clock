@@ -15,7 +15,7 @@ I made a clock that displays the time using quotes from various books using a [R
 
 ## Setting the Pi Up
 
-1. Waveshare has provided a handy guide for configuring a Pi to use their screen. The guide can be accessed [here](https://www.waveshare.com/wiki/7.5inch_e-Paper_HAT_Manual). The [Working With Raspberry Pi](https://www.waveshare.com/wiki/7.5inch_e-Paper_HAT_Manual#Working_With_Raspberry_Pi) section pertians to this specific project.
+1. Waveshare has provided a handy guide for configuring a Pi to use their screen. The guide can be accessed [here](https://www.waveshare.com/wiki/7.5inch_e-Paper_HAT_Manual). The [Working With Raspberry Pi](https://www.waveshare.com/wiki/7.5inch_e-Paper_HAT_Manual#Working_With_Raspberry_Pi) section pertains to this specific project.
 
 2. After you have verified that the screen is working via Waveshare's demo, clone this repository to the Pi.
 
@@ -43,7 +43,7 @@ I made a clock that displays the time using quotes from various books using a [R
 
 All of the clock's logic lies in `clock.py`. There are three stages that the clock runs in: the initialization stage, the display & update stage, and the in-between stage.
 
-### The Intialization Stage
+### The Initialization Stage
 
 This stage occurs only once when the clock is plugged in. This project was a gift to my girlfriend for her birthday, so I wanted it to be as plug-and-place as possible. To achieve this, I created a simple systemd unit configuration file ([`clock.service`](/clock.service)) that runs once the Pi has an internet connection, and starts the clock by running the [`clock.py`](/clock.py) file. It still takes about 30 seconds for the Pi's internal clock to be updated from this point, so the clock performs a full initialization on the screen to remove any ghosted Pixels and displays this startup image in the meantime:
 
@@ -51,11 +51,11 @@ This stage occurs only once when the clock is plugged in. This project was a gif
 <img src="startup.bmp" alt="drawing" width="400"/>
 </p>
 
-After 30 seconds, the `get_image()` function is called to display a quote for the current time. Then, the clock's quote buffer is initalized.
+After 30 seconds, the `get_image()` function is called to display a quote for the current time. Then, the clock's quote buffer is initialized.
 
 - Note: Because it may take a second or two for the program to read, process, and display an image, a list is used as a buffer to store three `Image` objects. The buffer contains images for the next minute's quote, the quote two minutes ahead of the current quote, and the quote three minutes ahead of the current quote.
 
-Example: The clock is started at 12:51:15. The startup image has been displayed for 30 seconds, so the quote for 12:51 is displayed at 12:51:45, and the number of seconds until 12:52 is calculated; the program sleeps for this amount of time minus 1 second (it takes ~1 second for the screen to update, so 14 seconds). Then the buffer, `clock.quote_buffer` is initalized with `Image` objects for 12:52, 12:53, and 12:54.
+Example: The clock is started at 12:51:15. The startup image has been displayed for 30 seconds, so the quote for 12:51 is displayed at 12:51:45, and the number of seconds until 12:52 is calculated; the program sleeps for this amount of time minus 1 second (it takes ~1 second for the screen to update, so 14 seconds). Then the buffer, `clock.quote_buffer` is initialized with `Image` objects for 12:52, 12:53, and 12:54.
 
 
 ### The Display & Update Stage
@@ -71,17 +71,17 @@ This stage involves everything that happens in the time between a quote being di
 
 ## Credits
 
-Both [`get_image.py`](./get_image.py) and [`make_images.py`](./misc/make_images.py) are modified versions of elegantalchemist's [`quote_to_image.py`](https://github.com/elegantalchemist/literaryclock/blob/main/quote%20to%20image/quote_to_image.py) program. [`get_image.py`](./get_image.py) serves as an auxiliary program to generate images on the fly, which are appened to the clock's quote buffer. [`make_images.py`](./misc/make_images.py) can be ran independently to generate and save all of the images to an `/images` folder.
+Both [`get_image.py`](./get_image.py) and [`make_images.py`](./misc/make_images.py) are modified versions of elegantalchemist's [`quote_to_image.py`](https://github.com/elegantalchemist/literaryclock/blob/main/quote%20to%20image/quote_to_image.py) program. [`get_image.py`](./get_image.py) serves as an auxiliary program to generate images on the fly, which are appended to the clock's quote buffer. [`make_images.py`](./misc/make_images.py) can be ran independently to generate and save all of the images to an `/images` folder.
 
-Both files generate images by parsing a CSV file and converting each line into a .bmp file. I am using [JohannesNE's CSV file](https://github.com/JohannesNE/literature-clock/blob/master/litclock_annotated.csv) (renamed to `quotes.csv) instead of [elegantalchemist's](https://github.com/elegantalchemist/literaryclock/blob/main/quote%20to%20image/litclock_annotated_br2.csv); both contain many of the same quotes, but JohannesNE's seems more refined and has more quotes overall.
+Both files generate images by parsing a CSV file and converting each row into a .bmp file. I am using [JohannesNE's CSV file](https://github.com/JohannesNE/literature-clock/blob/master/litclock_annotated.csv) (renamed to `quotes.csv`) instead of [elegantalchemist's](https://github.com/elegantalchemist/literaryclock/blob/main/quote%20to%20image/litclock_annotated_br2.csv). Both contain many of the same quotes but JohannesNE's seems more refined and has more quotes overall.
 
 The biggest modification I made is to the image generation files is to handle italic characters. JohannesNE's CSV file contains a few quotes that have italic characters (their project is a literary quote clock website that uses HTML which makes it a lot easier to handle italic text), and elegantalchemist's code doesn't have a way to detect and handle these characters. With CSS, you can easily change the `font-style` between normal, _italic_, and **bold**, but in my case a different font file is needed for italicized characters because font files can only contain one font style. My solution is to wrap italicized words in a `◻` character (white medium square, `U+25FB`) since each quote is written to the .bmp file word-by-word. Quotes that have the time part italicized are wrapped with a `◯` character (large circle, `U+25EF`) since they'll need a font file that has bolded and italicized characters. For example, a quote might have looked like this in the CSV file: "There were only four words: _Tomorrow morning._ *_2 o'clock_*." With my changes, it looks like this: "There were only four words: ◻Tomorrow◻ ◻morning◻. ◯2◯ ◯o'clock◯."
 
 I also manually went through all ~3500 quotes in the file and am in the process of modifying the CSV for the following reasons:
 
 - I have found that some quotes can be used for both A.M and P.M. but currently aren't.
-- I'd like to add more context to some quotes (i.e., a preceding and/or succeeding sentance)
-- I am modifying some because I feel that they are too vauge (e.g., "Raymond came back with Masson around one-thirty." with "around one-thirty" highlighted for 13:31 will be used for 13:30 with "one-thirty" being highlighted)
+- I'd like to add more context to some quotes (i.e., a preceding and/or succeeding sentence)
+- I am modifying some because I feel that they are too vague (e.g., "Raymond came back with Masson around one-thirty." with "around one-thirty" highlighted for 13:31 will be used for 13:30 with "one-thirty" being highlighted)
   - I'm keePing some instances of this in. For example, a quote such as "just past [time]," "just before [time]," or similar language might be used for either that 1st minute or 59th minute of an hour.
 - A certain part of the quote is or isn't highlighted (e.g., for the quote "A man driving a tractor saw her, four hundred yards from her house, six minutes past two in the afternoon." only "six minutes past two" is highlighted when "six minutes past two in the afternoon" should be).
 - Other minor changes such as replacing three full stops (...) with a proper ellipsis unicode character (…).
