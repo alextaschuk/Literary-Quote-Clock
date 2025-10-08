@@ -4,6 +4,8 @@
 
  This program is used to generate .bmp images that will be displayed to the e-ink screen. It will automatically
  put the generated files into the /images folder in this project's root directory.
+
+ To generate the images from the root directory, run `python3 ./misc/make_images.py`
 '''
 
 # imports for image generation

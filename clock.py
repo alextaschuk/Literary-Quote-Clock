@@ -22,7 +22,7 @@ class Clock:
     '''
 
     CSV_PATH = 'quotes.csv'
-    curr_image: Image
+    curr_image: Image # holds the `Image` obj for the current time's quote
 
     def __init__(self):
         self.quotes = []
