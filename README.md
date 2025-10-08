@@ -19,15 +19,13 @@ I made a clock that displays the time using quotes from various books using a [R
 
 2. After you have verified that the screen is working via Waveshare's demo, clone this repository to the Pi.
 
-3. Initialize a venv with `python3 -m venv venv`, activate it with `source venv/bin/activate`, then install necessary packages with `Pip install -r requirements.txt`.
+3. Initialize a venv with `python3 -m venv venv`, activate it with `source venv/bin/activate`, then install necessary packages with `pip install -r requirements.txt`.
 
-4. Run [`make_images.py`](make_images.py) to generate all of the `.bmp` images that will be used to display the time. The images will be located in the [`/images`](/images) folder.
+4. In the [`clock.service`](\clock.service) script, modify the `WorkingDirectory` variable to store the path to the cloned repo and the `ExecStart` variable to store the path to `clock.py` in the cloned repo. Then, move the [`clock.service`](\clock.service) file into `/etc/systemd/system`.
 
-5. In the [`clock.service`](\clock.service) script, modify the `WorkingDirectory` variable to store the path to the cloned repo and the `ExecStart` variable to store the path to `clock.py` in the cloned repo. Then, move the file to `/etc/systemd/system`.
+5. Run `sudo systemctl restart clock.service` to start the clock. The script will now automatically start the clock any time that the Pi is turned on.
 
-6. Run `sudo systemctl restart clock.service` to start the clock. The script will now automatically start the clock any time that the Pi is turned on.
-
-7. (Optional) I've noticed that sometimes the clock seems get out of sync with the actual time, meaning quotes don't change at the correct moment. It's pretty gradual and also seems to fix itself so I'm not sure if this is an issue with my code or the Pi's internal clock. A workaround to the issue is to add a crontab that reboots the Pi everyday at 4AM. You can add this cronjob by running:
+6. (Optional) I've noticed that sometimes the clock seems get out of sync with the actual time, meaning quotes don't change at the correct moment. It's pretty gradual and also seems to fix itself so I'm not sure if this is an issue with my code, the Pi's internal clock, or something else. A workaround to the issue is to add a crontab that reboots the Pi everyday at 4AM. You can add this cronjob by running:
 
    `sudo crontab -e`
 
