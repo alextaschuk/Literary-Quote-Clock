@@ -86,7 +86,7 @@ class Clock:
         return TurnQuoteIntoImage(i, row['time'], row['quote'], row['timestring'], row['author'], row['title'], include_metadata)
 
 
-    def init_buffer(self) -> list:
+    def init_buffer(self):
         '''
         Initializes the buffer that will store the quotes
         to display for the next 3 minutes. 
@@ -110,7 +110,8 @@ class Clock:
         logging.info(f'init_buffer() finished at {str(datetime.now())}.')
 
 
-    def update_buffer(self) -> list:
+
+    def update_buffer(self):
         '''
         This function's purpose is to update `self.quote_buffer` with a new quote. To update the
         buffer, we need to add the quote that's 3 minutes ahead of the currently displayed quote.
