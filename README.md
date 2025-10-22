@@ -61,7 +61,8 @@ Example: The clock is started at 12:51:15. The startup image has been displayed 
 ### The Display & Update Stage
 
 This stage occurs once every minute, and most of the magic happens here. First, we check if `main()` is being called at the 29th or 59th minute of the hour. If it is, perform a full refresh (i.e., every 30 minutes). Then, two things happen. First, we display a new quote, and then we update the quote buffer. At the 59th second of a minute [`display_quote()`](/clock.py#L142) is called, which updates the `curr_image` variable to hold the `Image` obj  stored at `quote_buffer[0]`. Then, [`update_buffer()`](/clock.py#L113) is called, which appends the `Image` obj for the quote that is two minutes ahead of the `Image` obj stored at `quote_buffer[1]` and removes the `Image` obj at `quote_buffer[0]` (the currently displayed quote).
-- Note: `Image` objects are generated on the fly with the `get_image()` function.
+
+- Note: `Image` objects are generated on the fly with the [`get_image()`](/clock.py#L33) function.
 
 This may be easier to understand with an example. Suppose the current time is 13:31:40, so `curr_image` stores the `Image` obj for 13:31, and `quote_buffer` stores the following: `[1332_Img, 1333_Img, 1334_Img]`. At 13:31:59, [`display_quote()`](/clock.py#L142) is called, which updates `curr_image` with `self.curr_image = self.quote_buffer[0]`, then displays the quote using `self.epd.display(self.epd.getbuffer(self.curr_image))` to display the quote for 13:32. Then, `1335_Img` is appended to the buffer and `1332_Img` is removed, resulting in the buffer looking like this: `[1333_Img, 1334_Img, 1335_Img]`.
 
