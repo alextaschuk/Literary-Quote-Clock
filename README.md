@@ -75,7 +75,15 @@ Both [`get_image.py`](./get_image.py) and [`make_images.py`](./misc/make_images.
 
 Both files generate images by parsing a CSV file and converting each row into a .bmp file. I am using [JohannesNE's CSV file](https://github.com/JohannesNE/literature-clock/blob/master/litclock_annotated.csv) (renamed to `quotes.csv`) instead of [elegantalchemist's](https://github.com/elegantalchemist/literaryclock/blob/main/quote%20to%20image/litclock_annotated_br2.csv). Both contain many of the same quotes but JohannesNE's seems more refined and has more quotes overall.
 
-The biggest modification I made is to the image generation files is to handle italic characters. JohannesNE's CSV file contains a few quotes that have italic characters (their project is a literary quote clock website that uses HTML which makes it a lot easier to handle italic text), and elegantalchemist's code doesn't have a way to detect and handle these characters. With CSS, you can easily change the `font-style` between normal, _italic_, and **bold**, but in my case a different font file is needed for italicized characters because font files can only contain one font style. My solution is to wrap italicized words in a `◻` character (white medium square, `U+25FB`) since each quote is written to the .bmp file word-by-word. Quotes that have the time part italicized are wrapped with a `◯` character (large circle, `U+25EF`) since they'll need a font file that has bolded and italicized characters. For example, a quote might have looked like this in the CSV file: "There were only four words: _Tomorrow morning._ *_2 o'clock_*." With my changes, it looks like this: "There were only four words: ◻Tomorrow◻ ◻morning◻. ◯2◯ ◯o'clock◯."
+The biggest modification I made is to the image generation files is to handle italic characters. JohannesNE's CSV file contains a few quotes that have italic characters (their project is a literary quote clock website that uses HTML which makes it a lot easier to handle italic text), and elegantalchemist's code doesn't have a way to detect and handle these characters. With CSS, you can easily change the `font-style` between normal, _italic_, and **bold**, but in my case a different font file is needed for italicized characters because font files can only contain one font style. My solution is to wrap italicized words in a `◻` character (white medium square, `U+25FB`) since each quote is written to the .bmp file word-by-word. Quotes that have the time part italicized are wrapped with a `◯` character (large circle, `U+25EF`) since they'll need a font file that has bolded and italicized characters. 
+
+For example, part of a quote for 2 A.M. needs to be formatted as:
+
+> There were only four words: *Tomorrow morning*. ***2 o’clock***.
+
+With my changes, this formatting can be specified in the CSV file with:
+
+>…There were only four words: ◻Tomorrow◻ ◻morning◻. ◯2◯ ◯o’clock◯.
 
 I also manually went through all ~3500 quotes in the file and am in the process of modifying the CSV for the following reasons:
 
