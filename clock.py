@@ -17,7 +17,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 class Clock:
     '''
-    A clock obj contains all logic for creating and
+    A `Clock` obj contains all logic for creating and
     displaying the quotes to the screen.
     '''
 
@@ -32,10 +32,11 @@ class Clock:
 
     def get_image(self, quote_time: datetime) -> Image:
         '''
-        This function finds all possible quotes for the 
+        Finds all possible quotes for the 
         provided `quote_time`, selects one at random, and
         generates an image for the quote to be displayed.
-        - Returns an `Image` obj
+
+        - Returns an `Image` obj of the quote for the given time
         '''
         logging.info(f'get_image() called at {str(datetime.now())}.')
         minute = quote_time.minute
@@ -66,7 +67,7 @@ class Clock:
 
                 valid_quote = row['quote'].replace('\n',' ') # to validate quote
                 try:
-                    temp = valid_quote.lower().index(row['timestring'].lower())
+                    temp = valid_quote.lower().index(row['timestring'].lower()) # TODO: Replace with hasattr()?
                 except ValueError:
                     quote = f'Error: Quote that begins with {valid_quote[:10]} does not have a matching timestring.'
                     row = {'time': formatted_time, 'quote': quote, 'timestring': 'Error', 'author': '', 'title': ''}
@@ -82,19 +83,19 @@ class Clock:
         except FileNotFoundError:
             logging.error(f'Error: file {self.CSV_PATH} not found')
         
+        quote_image = TurnQuoteIntoImage(i, row['time'], row['quote'], row['timestring'], row['author'], row['title'], include_metadata)
         logging.info(f'get_image() finished at {str(datetime.now())}.')
-        return TurnQuoteIntoImage(i, row['time'], row['quote'], row['timestring'], row['author'], row['title'], include_metadata)
+        
+        return quote_image
 
 
-    def init_buffer(self) -> list:
+    def init_buffer(self):
         '''
-        Initializes the buffer that will store the quotes
+        Initializes a buffer that stores the quotes
         to display for the next 3 minutes. 
 
         E.g. `init_buffer()` is called at 09:40, so the buffer stores the quotes for
         09:41, 09:42, and 09:43.
-
-        - Returns a list of three Image objects
         '''
         logging.info(f'init_buffer() called at {str(datetime.now())}. Initializing quote_buffer...')
         quote_time = datetime.now()
@@ -106,20 +107,14 @@ class Clock:
             else: # it is not the 59 minute (e.g. 13:21), so we only need the next minute
                 quote_time = quote_time.replace(second=0) + timedelta(minutes=1) # set time to one minute from now (13:22)
             self.quote_buffer.append(self.get_image(quote_time=quote_time)) # add new quote
-
         logging.info(f'init_buffer() finished at {str(datetime.now())}.')
 
 
-    def update_buffer(self) -> list:
+    def update_buffer(self):
         '''
-        This function's purpose is to update `self.quote_buffer` with a new quote. To update the
-        buffer, we need to add the quote that's 3 minutes ahead of the currently displayed quote.
-        Due to this logic, we need to check if the current minute is 57, 58, or 59 because the
-        hour also needs to get updated when this is the case. Then, we add the new quote to the
-        back of the buffer and pop the quote at the front of the buffer (which is currently
-        being displayed.)
-
-        - Returns an updated list of three Image objects
+        Updates `self.quote_buffer` by adding adding a quote for the time 3 minutes ahead of the
+        currently displayed quote, then removing the currently displayed quote. If the current
+        minute of the hour is 57, 58, or 59, the hour value also needs to get updated.
         '''
         logging.info(f"update_buffer() called at {str(datetime.now())}.")
 
@@ -135,14 +130,13 @@ class Clock:
 
         self.quote_buffer.append(self.get_image(quote_time=quote_time)) # generate image and add to buffer
         self.quote_buffer.pop(0) # remove the current quote from buffer
-
         logging.info(f'update_buffer() finished at {str(datetime.now())}. Image for {str(quote_time.hour)}:{str(quote_time.minute)} added.')
 
 
     def display_quote(self):
         '''
-        Reads the `Image` object at the front of the buffer and
-        uses `epd.display()` to show it on the e-ink screen.
+        Reads the `Image` obj at the front of the buffer and
+        uses `epd.display()` to display it to the e-ink screen.
         '''
         try:
             logging.info(f'display_quote() called at {str(datetime.now())}.')
@@ -156,8 +150,8 @@ class Clock:
 
     def main(self):
         '''
-        This function displays the current time's quote, 
-        removes it from the buffer, and updates the buffer.
+        Runs in a continuous loop once every minute to display
+        the current time's quote, then update the `self.quote_buffer`.
         '''
         logging.info(f'main() called at {str(datetime.now())}.')
 
@@ -230,10 +224,9 @@ if __name__ == '__main__':
             exit()
 
     except KeyboardInterrupt as e:
-        logging.info('program interrupted:')
-        logging.info(e)
+        logging.info(f'program interrupted: {e}')
+        logging.info("clearing screen and shutting clock down...\n")
         clock.epd.init() # wake the screen so that it can be cleared
         clock.epd.Clear()
-        logging.info("clearing screen and shutting clock down...\n")
         clock.epdconfig.module_exit(cleanup=True)
         exit()
