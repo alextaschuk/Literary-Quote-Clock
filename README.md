@@ -25,13 +25,17 @@ I made a clock that displays the time using quotes from various books using a [R
 
 5. Run `sudo systemctl restart clock.service` to start the clock. The script will now automatically start the clock any time that the Pi is turned on.
 
-6. (Optional) I've noticed that sometimes the clock seems get out of sync with the actual time, meaning quotes don't change at the correct moment. It's pretty gradual and also seems to fix itself so I'm not sure if this is an issue with my code, the Pi's internal clock, or something else. A workaround to the issue is to add a crontab that reboots the Pi everyday at 4AM. You can add this cronjob by running:
+6. (Optional) It seems that an unstable WiFi connection can cause the clock to desync with the actual time, meaning quotes don't change at the correct moment. A workaround to the issue is to add a crontab that reboots the Pi everyday at 4AM. This doesn't always fix the problem, and sometimes I have to unplug the Pi from its power source which usually does the trick for some reason. You can add this cronjob by running:
 
-   `sudo crontab -e`
+   ```sh
+   sudo crontab -e
+   ```
 
    Then
 
-   `0 4 * * * /sbin/shutdown -r now`
+   ```sh
+   0 4 * * * /sbin/shutdown -r now
+   ```
 
 ### Other
 
@@ -82,7 +86,7 @@ I also manually went through all ~3500 quotes in the file and am in the process 
 - I have found that some quotes can be used for both A.M and P.M. but currently aren't.
 - I'd like to add more context to some quotes (i.e., a preceding and/or succeeding sentence)
 - I am modifying some because I feel that they are too vague (e.g., "Raymond came back with Masson around one-thirty." with "around one-thirty" highlighted for 13:31 will be used for 13:30 with "one-thirty" being highlighted)
-  - I'm keePing some instances of this in. For example, a quote such as "just past [time]," "just before [time]," or similar language might be used for either that 1st minute or 59th minute of an hour.
+  - I'm keeping some instances of this in. For example, a quote such as "just past [time]," "just before [time]," or similar language might be used for either that 1st minute or 59th minute of an hour.
 - A certain part of the quote is or isn't highlighted (e.g., for the quote "A man driving a tractor saw her, four hundred yards from her house, six minutes past two in the afternoon." only "six minutes past two" is highlighted when "six minutes past two in the afternoon" should be).
 - Other minor changes such as replacing three full stops (...) with a proper ellipsis unicode character (…).
 
@@ -96,12 +100,13 @@ Additionally, I like to read in my free time, and as I find quotes in the books 
 - The Road, by Cormac McCarthy
 - Butcher’s Crossing, by John Williams
 - The Great Gatsby, by F. Scott Fitzgerald
+- 2001: A Space Odyssey, by Arthur C. Clarke
 
 ## Other Notes
 
 ### Troubleshooting the Pi
 
-- The Raspberry Pi Zero 2W cannot connect to a 5 Ghz WiF channel; it only works with 2.4 GHz. If you have issues connecting try the following to troubleshoot:
+- The Raspberry Pi Zero 2W cannot connect to a 5 Ghz WiFi channel; it only works with 2.4 GHz. If you have issues connecting try the following to troubleshoot:
 
   1. Log into your modem and temporarily disable the 5 GHz channel, allowing the Pi to connect only to the 2.4 GHz channel. After it connects, you can re-enable the 5 GHz channel.
      - _Note: You shouldn't have to do this every time you turn the Pi on. Once it connects to your WiFi on the 2.4 GHz channel for the first time, it should do so automatically every time moving forward._
