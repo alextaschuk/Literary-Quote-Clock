@@ -40,7 +40,8 @@ previoustime = ''
 
 def TurnQuoteIntoImage(index:int, time:str, quote:str, timestring:str, author:str, title:str, include_metadata: bool):
     '''
-    The main function to generate an image of a quote. 
+    Generates an image of a quote using a row from `quotes.csv`.
+    
     - Returns an `Image` object
     '''
     global imgnumber, previoustime
