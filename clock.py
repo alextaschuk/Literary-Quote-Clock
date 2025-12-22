@@ -43,7 +43,7 @@ class Clock:
         hour = quote_time.hour
         if minute < 10:
             minute = '0' + str(minute)
-        if hour < 10: # if it is midnight, time.hour returns 0, so we need to append another 0 to have '00'
+        if hour < 10:
             hour = '0' + str(hour)
 
         formatted_time = f'{hour}:{minute}' # e.g. '13:45'
