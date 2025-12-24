@@ -131,6 +131,7 @@ Additionally, I like to read in my free time, and as I find quotes in the books 
 - Butcher’s Crossing, by John Williams
 - The Great Gatsby, by F. Scott Fitzgerald
 - 2001: A Space Odyssey, by Arthur C. Clarke
+- Before the Coffee Gets Cold, by Toshikazu Kawaguchi
 
 ## Other Notes
 
