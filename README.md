@@ -76,7 +76,7 @@ This stage involves everything that happens in the time between a quote being di
 
 ## Credits
 
-Both [`get_image.py`](./get_image.py) and [`make_images.py`](./misc/make_images.py) are modified versions of elegantalchemist's [`quote_to_image.py`](https://github.com/elegantalchemist/literaryclock/blob/main/quote%20to%20image/quote_to_image.py) program. [`get_image.py`](./get_image.py) serves as an auxiliary program to generate images on the fly, which are appended to the clock's quote buffer. [`make_images.py`](./misc/make_images.py) can be ran independently to generate and save all of the images to an `/images` folder.
+Both [`get_image.py`](./get_image.py) and [`make_images.py`](./misc/make_images.py) are modified versions of elegantalchemist's [`quote_to_image.py`](https://github.com/elegantalchemist/literaryclock/blob/main/quote%20to%20image/quote_to_image.py) program. [`get_image.py`](./get_image.py) serves as an auxiliary program to generate images on the fly, which are appended to the clock's quote buffer and discarded after they’re displayed. [`make_images.py`](./misc/make_images.py) can be ran independently to generate and save all of the images to an `/images` folder.
 
 Both files generate images by parsing a CSV file and converting each row into a .bmp file. I am using [JohannesNE's CSV file](https://github.com/JohannesNE/literature-clock/blob/master/litclock_annotated.csv) (renamed to `quotes.csv`) instead of [elegantalchemist's](https://github.com/elegantalchemist/literaryclock/blob/main/quote%20to%20image/litclock_annotated_br2.csv). Both contain many of the same quotes but JohannesNE's seems more refined and has more quotes overall.
 
