@@ -100,7 +100,7 @@ This will result in the following image (with the full quote):
     <img src="misc/demo/italic-example.bmp" width="600"/>
 </p>
 
-There are also some quotes where preserving its original formatting can help to improve the readability of the quote. This is not always the case, as there is limited screen space to work with, but so far I have added two other formatting options:
+There are also some instances where preserving a quote's original formatting can help to improve the readability of the quote. This is not always the case, as there is limited screen space to work with, but I have added two other formatting options so far:
 
 **'📖' (Open Book Unicode Character, `U+1F4D6`):** Equivalent to `\r\n`. 
 
@@ -108,19 +108,19 @@ For example, the CSV stores:
 
 > He smiled to himself and went to his office and waited for the telephone call that he knew would come. 📖It came at two o’clock that afternoon.
 
-Which will be formatted as 
+Which will be formatted as:
 
 <p align="center">
     <img src="misc/demo/newline.bmp" width="600"/>
 </p>
 
-Without this formatting, the quote would have been printed as
+Without this formatting, the quote would have been printed as:
 
 <p align="center">
     <img src="misc/demo/without-newline.bmp" width="600"/>
 </p>
 
-This option is rarely useful (i.e., doesn’t make much of a difference), but I’ve still added it to some quotes.
+This option is rarely useful (because it doesn’t make much of a difference), but I’ve still added it to some quotes.
 
 **'⭐' (White Medium Star, `U+2B50`):** Equivalent to `\r\n` x2.
 
@@ -128,13 +128,13 @@ For example, the CSV stores:
 
 > A full one hundred meters down the slope, Kazuo Kiriyama didn't look back. Instead, he glanced down at his watch. ⭐The second hand had just made its seventh click past five.
 
-Which will be formatted as
+Which will be formatted as:
 
 <p align="center">
     <img src="misc/demo/double-newline.bmp" width="600"/>
 </p>
 
-Without this formatting, the quote would have been printed as
+Without this formatting, the quote would have been printed as:
 
 <p align="center">
     <img src="misc/demo/without-double-newline.bmp" width="600"/>
