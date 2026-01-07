@@ -82,11 +82,11 @@ Both [`get_image.py`](./get_image.py) and [`make_images.py`](./misc/make_images.
 
 Both files generate images by parsing a CSV file and converting each row into a .bmp file. I am using [JohannesNE's CSV file](https://github.com/JohannesNE/literature-clock/blob/master/litclock_annotated.csv) (renamed to `quotes.csv`) instead of [elegantalchemist's](https://github.com/elegantalchemist/literaryclock/blob/main/quote%20to%20image/litclock_annotated_br2.csv). Both contain many of the same quotes but JohannesNE's seems more refined and has more quotes overall.
 
-The biggest modification I made is to the image generation files is to handle italic characters. JohannesNE's CSV file contains a few quotes that have italic characters (their project is a literary quote clock website that uses HTML which makes it a lot easier to handle italic text), and elegantalchemist's code doesn't have a way to detect and handle these characters. With CSS, you can easily change the `font-style` and  between normal, _italic_, and the `font-weight` to **bold** (and even combine them for text the is _**italicized and bolded**_), but in my case a different font file is needed for italicized characters because font files can only contain one font style. 
+The biggest modification I made is to the image generation files is to handle italic characters. JohannesNE's CSV file contains a few quotes that have italic characters (their project is a literary quote clock website that uses HTML which makes it a lot easier to handle italic text), and elegantalchemist's code doesn't have a way to detect and handle these characters. With CSS, you can easily change the `font-style` between normal and _italic_, and the `font-weight` to **bold** (and even combine them for text that is _**italicized and bolded**_). However, in my case a different font file is needed for italicized characters because font files can only contain one font style. 
 
 My solution is to wrap italicized words in a `◻` character (white medium square, `U+25FB`) since each quote is written to the .bmp file word-by-word. Quotes that have the time part italicized are wrapped with a `◯` character (large circle, `U+25EF`) since they'll need a font file that has bolded and italicized characters.
 
-For example, part of a quote for 2 A.M. needs to be formatted as: 
+For example, part of a quote for 02:00 is formatted in the book as: 
 
 >There were only four words: *Tomorrow morning*. ***2 o’clock***.
 
@@ -94,15 +94,17 @@ With my changes, this formatting can be specified in the CSV file with:
 
 >There were only four words: ◻Tomorrow◻ ◻morning◻. ◯2◯ ◯o’clock◯.
 
-This will result in the following image:
+This will result in the following image (with the full quote):
 
 <p align="center">
     <img src="misc/demo/italic-example.bmp" width="600"/>
 </p>
 
-There are also some quotes where additional formatting helps with the readability of the quote. So far, I have added two other formatting options:
+There are also some quotes where preserving its original formatting can help to improve the readability of the quote. This is not always the case, as there is limited screen space to work with, but so far I have added two other formatting options:
 
-'📖' (Open Book Unicode Character, `U+1F4D6`): Equivalent to `\r\n`. For example, the CSV stores:
+**'📖' (Open Book Unicode Character, `U+1F4D6`):** Equivalent to `\r\n`. 
+
+For example, the CSV stores:
 
 > He smiled to himself and went to his office and waited for the telephone call that he knew would come. 📖It came at two o’clock that afternoon.
 
@@ -118,9 +120,11 @@ Without this formatting, the quote would have been printed as
     <img src="misc/demo/without-newline.bmp" width="600"/>
 </p>
 
-This option is rarely useful, but I’ve still added it to some quotes.
+This option is rarely useful (i.e., doesn’t make much of a difference), but I’ve still added it to some quotes.
 
-'⭐' (White Medium Star, `U+2B50`): Equivalent to `\r\n` x2. For example, the CSV stores:
+**'⭐' (White Medium Star, `U+2B50`):** Equivalent to `\r\n` x2.
+
+For example, the CSV stores:
 
 > A full one hundred meters down the slope, Kazuo Kiriyama didn't look back. Instead, he glanced down at his watch. ⭐The second hand had just made its seventh click past five.
 
