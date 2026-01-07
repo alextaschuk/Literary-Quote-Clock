@@ -64,7 +64,7 @@ def TurnQuoteIntoImage(index:int, time:str, quote:str, timestring:str, author:st
         # wrap lines into a reasonable length and lower the maximum height the
         # quote can occupy according to the number of lines the credits use        
         if font_mdata.getlength(metadata) > mdatalength: # e.g. getlength(metadata) = 282.0 for '—Dune, Frank Herbert'
-            metadata = wrap_lines(text=metadata, font=font_mdata, line_length=(mdatalength * 0.965))
+            metadata = wrap_lines(text=metadata, font=font_mdata, line_length=int(mdatalength * 0.965))
 
         for line in metadata.splitlines():
             mdatastart_y -= font_mdata.getbbox("A")[3] + 4
@@ -91,7 +91,7 @@ def TurnQuoteIntoImage(index:int, time:str, quote:str, timestring:str, author:st
 def draw_quote(drawobj, anchors:tuple, text:str, substr:str,
         font_norm:ImageFont.truetype, font_high:ImageFont.truetype, fntsize):
     '''
-    This function draws the quote with the timestring highlighted to the
+    Draw the quote with the timestring highlighted to the
     `drawobj` object that is passed in the function header. It will format
     the quote (i.e., check for italics, etc.), but it does not check if the
     quote will fit in the image or anything else.
@@ -138,6 +138,7 @@ def draw_quote(drawobj, anchors:tuple, text:str, substr:str,
     textlength = drawobj.textlength
     x = start_x
     y = start_y
+
     for line in lines.splitlines():
         for word in line.split():
             word += ' '
@@ -205,7 +206,7 @@ def draw_quote(drawobj, anchors:tuple, text:str, substr:str,
         x = start_x
 
 
-def wrap_lines(text:str, font:ImageFont.truetype, line_length:int):
+def wrap_lines(text:str, font:ImageFont.truetype, line_length:float):
         '''
          wraps lines to maximize the number of words within line_length. note
          that lines *can* exceed line_length, this is intentional, as text looks
@@ -244,7 +245,7 @@ def wrap_lines(text:str, font:ImageFont.truetype, line_length:int):
         return '\n'.join(lines)
 
 
-def calc_fntsize(length:int, height:int, text:str, fntname:str, basesize=50,
+def calc_fntsize(length:float, height:float, text:str, fntname:str, basesize=50,
                                                               maxsize=480):
     '''
      this will dynamically wrap and scale text with the optimal font size to
@@ -252,8 +253,8 @@ def calc_fntsize(length:int, height:int, text:str, fntname:str, basesize=50,
      manually setting basesize to just below the mean of a sample will
      massively reduce processing time with large batches of text, at the risk
      of potentially wasting it with strings much larger than the mean
-     these are just for calculating the textbox size, they're discarded
     ''' 
+    # these are just for calculating the textbox size, they're discarded
     louvre = Image.new(mode='1', size=(0,0))
     monalisa = ImageDraw.Draw(louvre)
 

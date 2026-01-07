@@ -26,7 +26,7 @@ QUOTE_WIDTH = SCREEN_WIDTH * 0.975
 QUOTE_HEIGHT = SCREEN_HEIGHT * 0.917
  
 # note: I renamed some of the variables for personal preference. *{var_name} denotes the original variable names in elegantalchemist's file.
-csv_path = 'quotes.csv'             # the CSV file with all quotes, author names, etc. *csvpath
+csv_path = 'a.csv'             # the CSV file with all quotes, author names, etc. *csvpath
 img_dir = 'images/'                             # which directory to save images to *imgdir
 img_ext = 'bmp'                                 # images will be in BMP format *imgformat
 include_metadata = True                         # true = include the author and book's title of the quote
@@ -63,21 +63,23 @@ def TurnQuoteIntoImage(index:int, time:str, quote:str, timestring:str,
     paintedworld = Image.new(mode='L', size=(imgsize), color=bg_color)
     ariandel = ImageDraw.Draw(paintedworld)
 
-    # draw the title and author name
     if include_metadata:
+        # draw the title and author name
         font_mdata = create_fnt(info_font, info_fontsize)
         metadata = f'—{title.strip()}, {author.strip()}' # e.g. '—Dune, Frank Herbert
         # wrap lines into a reasonable length and lower the maximum height the
         # quote can occupy according to the number of lines the credits use
         if font_mdata.getlength(metadata) > mdatalength: # e.g. getlength(metadata) = 282.0 for '—Dune, Frank Herbert'
-            metadata = wrap_lines(metadata, font_mdata, mdatalength - 23)
+            metadata = wrap_lines(text=metadata, font=font_mdata, line_length=mdatalength * 0.965)
+
         for line in metadata.splitlines():
             mdatastart_y -= font_mdata.getbbox("A")[3] + 4
+
         quoteheight = mdatastart_y - 25
         mdata_y = mdatastart_y
+
         for line in metadata.splitlines():
-            ariandel.text((mdatastart_x, mdata_y), line, time_color,
-                                                    font_mdata, anchor='rm')
+            ariandel.text((mdatastart_x, mdata_y), line, time_color, font_mdata, anchor='rm')
             mdata_y += font_mdata.getbbox("A")[3] + 4
     else:
         try:
@@ -89,9 +91,9 @@ def TurnQuoteIntoImage(index:int, time:str, quote:str, timestring:str,
             print('error while trying to create /nometadata folder')
 
     # draw the quote (pretty)
-    quote, fntsize = calc_fntsize(quotelength, quoteheight, quote, time_font)
-    font_norm = create_fnt(quote_font, fntsize)
-    font_high = create_fnt(time_font, fntsize)
+    quote, fntsize = calc_fntsize(length=quotelength, height=quoteheight, text=quote, fntname=time_font)
+    font_norm = create_fnt(name=quote_font, size=fntsize)
+    font_high = create_fnt(name=time_font, size=fntsize)
     try:
         draw_quote(drawobj=ariandel, anchors=(quotestart_x,quotestart_y), text=quote, substr=timestring, font_norm=font_norm, font_high=font_high, fntsize=fntsize)
     # warn and discard image if timestring is just not there
@@ -154,9 +156,6 @@ def draw_quote(drawobj, anchors:tuple, text:str, substr:str,
     for line in lines.splitlines():
         for word in line.split():
             word += ' '
-            if '⭕' in word:
-                word = word.replace('⭕', '')
-                word = '    ' + word
             # if the entire time quote substr is one contiguous word, split the
             # non-substr bits stuck to it and print the whole thing in 3 parts
             if word.count(bookmark) == 2: # e.g. if word == '|◯𝘰’𝘤𝘭𝘰𝘤𝘬◯.|'
@@ -164,13 +163,8 @@ def draw_quote(drawobj, anchors:tuple, text:str, substr:str,
                 write((x,y), wordnow, *fntstyle_norm)
                 x += textlength(wordnow, font_norm)
                 wordnow = word.split(bookmark)[1]  # wordnow = '◯𝘰’𝘤𝘭𝘰𝘤𝘬◯'
-                if '◯' in word: # words that should be italicized and are part of the time are wrapped in this character
-                    wordnow = unicodedata.normalize('NFKD', wordnow.replace('◯', '')) # get the base form (ASCII) version of the letter and remove '◯'
-                    write((x,y), wordnow, *fntstyle_italic_high) # wordnow = "o'clock" and we write it with italicized & highlighted font
-                    x += textlength(wordnow, font_italic_high)
-                else:
-                    write((x,y), wordnow, *fntstyle_high) # if the word is normal but part of time quote, just write it with highlighted font
-                    x += textlength(wordnow, font_high)
+                write((x,y), wordnow, *fntstyle_high) # if the word is normal but part of time quote, just write it with highlighted font
+                x += textlength(wordnow, font_high)
                 wordnow = word.split(bookmark)[2] # wordnow = '.'
                 write((x,y), wordnow, *fntstyle_norm) # write wordnow with normal font
                 x += textlength(wordnow, font_norm)
@@ -205,6 +199,17 @@ def draw_quote(drawobj, anchors:tuple, text:str, substr:str,
                 write((x,y), wordnow, *fntstyle_norm)
                 x += textlength(wordnow, font_norm)
                 word = ''
+            elif '◯' in word:
+                wordnow = word.split('◯')[0]
+                write((x,y), wordnow, *fntstyle_high)
+                x += textlength(wordnow, font_high)
+                wordnow = unicodedata.normalize('NFKD', word.split('◯')[1])
+                write((x,y), wordnow, *fntstyle_italic_high)
+                x += textlength(wordnow, font_italic_high)
+                wordnow = word.split('◯')[2]
+                write((x,y), wordnow, *fntstyle_high)
+                x += textlength(wordnow, font_high)
+                word = ''
             else: 
                 write((x,y), word, *current_style)
                 x += textlength(word, current_style[1])
@@ -215,35 +220,54 @@ def draw_quote(drawobj, anchors:tuple, text:str, substr:str,
         x = start_x
 
 
-def wrap_lines(text:str, font:ImageFont.truetype, line_length:int):
-    # wraps lines to maximize the number of words within line_length. note
-    # that lines *can* exceed line_length, this is intentional, as text looks
-    # better if the font is rescaled afterwards. adapted from Chris Collett
-    # https://stackoverflow.com/a/67203353/8225672
+def wrap_lines(text:str, font:ImageFont.truetype, line_length:float):
+        '''
+         wraps lines to maximize the number of words within line_length. note
+         that lines *can* exceed line_length, this is intentional, as text looks
+         better if the font is rescaled afterwards. adapted from Chris Collett
+         https://stackoverflow.com/a/67203353/8225672
+        '''
         lines = ['']
         for word in text.split():
             line = f'{lines[-1]} {word}'.strip()
+            temp_line = line
             fontlen = font.getlength(line)
-            #if font.getlength(line) <= line_length:
-            if '⭐' in word:
-                lines.append("")
+
+            # to accurately wrap lines without including delimiting
+            # chars in the calculation
+            if '◻' in temp_line:
+                temp_line = temp_line.replace('◻', '')
+                fontlen = font.getlength(temp_line)
+            if '◯' in temp_line:
+                temp_line = temp_line.replace('◯', '')
+                fontlen = font.getlength(temp_line)
+
+            if '⭐' in word: # the quote is formatted with a blank line between two lines of text
                 word = word.replace('⭐', '')
+                lines.append('')
                 lines.append(word)
-            elif fontlen <= line_length:
+            elif '📖' in word: # the quote is formatted with a linebreak
+                word = word.replace('📖', '')
+                lines.append(word)
+
+            # this just ensures text doesn't overflow
+            elif fontlen <= line_length: 
                 lines[-1] = line
             else:
-                lines.append(word)
+                lines.append(word) # this puts the next set of text on a new line
   
         return '\n'.join(lines)
 
 
-def calc_fntsize(length:int, height:int, text:str, fntname:str, basesize=50,
-                                                              maxsize=800):
-    # this will dynamically wrap and scale text with the optimal font size to
-    # fill a given textbox, both length and height wise.
-    # manually setting basesize to just below the mean of a sample will
-    # massively reduce processing time with large batches of text, at the risk
-    # of potentially wasting it with strings much larger than the mean
+def calc_fntsize(length:float, height:float, text:str, fntname:str, basesize=50,
+                                                              maxsize=480):
+    '''
+     this will dynamically wrap and scale text with the optimal font size to
+     fill a given textbox, both length and height wise.
+     manually setting basesize to just below the mean of a sample will
+     massively reduce processing time with large batches of text, at the risk
+     of potentially wasting it with strings much larger than the mean
+    ''' 
 
     # these are just for calculating the textbox size, they're discarded
     louvre = Image.new(mode='1', size=(0,0))
@@ -284,6 +308,16 @@ def create_fnt(name:str, size:int, layout_engine=ImageFont.Layout.BASIC):
     # see https://github.com/python-pillow/Pillow/issues/6631
     return ImageFont.truetype(name, size, layout_engine=layout_engine)
 
+def get_boxsize(image_draw_obj: ImageDraw, coords:tuple[float, float], text: str, font: ImageFont.truetype, index: int):
+    '''
+    This is a function to accurately calculate `boxheight` & `boxlength`
+    for `calc_fntsize()` without including italic delimiting characters.
+    '''
+    if '◻' in text:
+        text = text.replace('◻', '')
+    if '◯' in text:
+        text = text.replace('◯', '')
+    return image_draw_obj.multiline_textbbox(coords, text, font)[index]
 
 def main():
     try:
