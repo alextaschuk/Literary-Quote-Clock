@@ -1,5 +1,15 @@
 # Literary Quote Clock
 
+## Contents
+1. **[About](#about)**
+2. **[Materials](#materials)**
+3. **[Setting the Pi Up](#setting-the-pi-up)**
+4. **[How the Clock Works](#how-the-clock-works)**
+5. **[Credits](#credits)**
+6. **[Other Notes](#other-notes)**
+
+## About
+
 I made a clock that displays the time using quotes from various books using a [Raspberry Pi Zero 2WH](https://www.raspberryPi.com/products/raspberry-Pi-zero-2-w/) and Waveshare's [7.5 inch E-ink display](https://www.waveshare.com/7.5inch-e-paper-hat.htm). (Almost) every minute of the day has at least one corresponding quote, but many have multiple possible quotes that may be used (one is chosen at random).
 
 <p align="center">
