@@ -76,7 +76,7 @@ Example: The clock is started at 12:51:15. The startup image has been displayed 
 
 ### The Display & Update Stage
 
-This stage occurs once every minute, and most of the magic happens here. First, we check if `main()` is being called at the 29th or 59th minute of the hour. If it is, perform a full refresh (i.e., every 30 minutes). Then, two things happen. First, we display a new quote, and then we update the quote buffer. At the 59th second of a minute [`display_quote()`](/clock.py#L142) is called, which updates the `curr_image` variable to hold the `Image` obj  stored at `quote_buffer[0]`. Then, [`update_buffer()`](/clock.py#L113) is called, which appends the `Image` obj for the quote that is two minutes ahead of the `Image` obj stored at `quote_buffer[1]` and removes the `Image` obj at `quote_buffer[0]` (the currently displayed quote).
+This stage occurs once every minute, and most of the magic happens here. First, we check if `main()` is being called at the 59th minute of the hour. If it is, perform a full refresh (i.e., at the top of every hour). Then, two things happen. First, we display a new quote, and then we update the quote buffer. At the 59th second of a minute [`display_quote()`](/clock.py#L142) is called, which updates the `curr_image` variable to hold the `Image` obj  stored at `quote_buffer[0]`. Then, [`update_buffer()`](/clock.py#L113) is called, which appends the `Image` obj for the quote that is two minutes ahead of the `Image` obj stored at `quote_buffer[1]` and removes the `Image` obj at `quote_buffer[0]` (the currently displayed quote).
 
 - _Note_: `Image` objects are generated on the fly with the [`get_image()`](/clock.py#L33) function.
 

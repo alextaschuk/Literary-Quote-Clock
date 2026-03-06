@@ -153,7 +153,7 @@ class Clock:
         logging.info(f'main() called at {str(datetime.now())}.')
 
         # Perform a full refresh every hour. This helps prevent "ghosting" and increases the screen's lifespan.
-        if datetime.now().minute == 00:
+        if datetime.now().minute == 59:
             logging.info('An hour has passed. Performing full refresh on screen.')
             self.epd.init()
             self.epd.Clear() # Then, clear the screen before displaying new quote
