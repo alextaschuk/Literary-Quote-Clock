@@ -1,5 +1,3 @@
-''' This file contains all logic for displaying images to the screen. '''
-
 from datetime import datetime, timedelta
 import random
 import signal
@@ -32,9 +30,9 @@ class Clock:
 
     def get_image(self, quote_time: datetime) -> Image:
         '''
-        Finds all possible quotes for the 
-        provided `quote_time`, selects one at random, and
-        generates an image for the quote to be displayed.
+        Find all possible quotes for the  provided `quote_time`,
+        selects one at random, and generates an image for the
+        quote to be displayed.
 
         - Returns an `Image` obj of the quote for the given time
         '''
@@ -91,8 +89,7 @@ class Clock:
 
     def init_buffer(self):
         '''
-        Initializes a buffer that stores the quotes
-        to display for the next 3 minutes. 
+        Initialize a buffer that stores the quotes to display for the next 3 minutes. 
 
         E.g. `init_buffer()` is called at 09:40, so the buffer stores the quotes for
         09:41, 09:42, and 09:43.
@@ -112,7 +109,7 @@ class Clock:
 
     def update_buffer(self):
         '''
-        Updates `self.quote_buffer` by adding adding a quote for the time 3 minutes ahead of the
+        Update `self.quote_buffer` by adding adding a quote for the time 3 minutes ahead of the
         currently displayed quote, then removing the currently displayed quote. If the current
         minute of the hour is 57, 58, or 59, the hour value also needs to get updated.
         '''
@@ -135,8 +132,8 @@ class Clock:
 
     def display_quote(self):
         '''
-        Reads the `Image` obj at the front of the buffer and
-        uses `epd.display()` to display it to the e-ink screen.
+        Read the `Image` obj at the front of the `self.quote_buffer` and
+        use `epd.display()` to display it to the e-ink screen.
         '''
         try:
             logging.info(f'display_quote() called at {str(datetime.now())}.')
@@ -155,11 +152,11 @@ class Clock:
         '''
         logging.info(f'main() called at {str(datetime.now())}.')
 
-        # Perform full refresh every half hour, which helps prevent "ghosting" and increases the screen's lifespan.
-        if datetime.now().minute == 29 or  datetime.now().minute == 59:
-            logging.info('30 minutes have passed. Performing full refresh on screen.')
+        # Perform a full refresh every hour. This helps prevent "ghosting" and increases the screen's lifespan.
+        if datetime.now().minute == 00:
+            logging.info('An hour has passed. Performing full refresh on screen.')
             self.epd.init()
-            self.epd.Clear() # Then clear the screen before displaying new quote
+            self.epd.Clear() # Then, clear the screen before displaying new quote
         else:
             self.epd.init_fast() # speeds up process of displaying image, according to Waveshare support
 
