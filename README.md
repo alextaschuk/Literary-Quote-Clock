@@ -37,17 +37,19 @@ I made a clock that displays the time using quotes from various books using a [R
 
 5. Run `sudo systemctl restart clock.service` to start the clock. The script will now automatically start the clock any time that the Pi is turned on.
 
-6. (Optional) It seems that an unstable WiFi connection can cause the clock to desync with the actual time, meaning quotes don't change at the correct moment. A workaround to the issue is to add a crontab that reboots the Pi everyday at 4AM. This doesn't always fix the problem, and sometimes I have to unplug the Pi from its power source which usually does the trick for some reason. You can add this cronjob by running:
+6. (Optional) It seems that an unstable WiFi connection can cause the clock to desync with the actual time, meaning quotes don't change at the correct moment. A workaround to the issue is to add a crontab that reboots the Pi everyday at 4AM. This doesn't always fix the problem, and sometimes I have to unplug the Pi from its power source which usually does the trick for some reason. You can add this cron job by running:
 
    ```sh
    sudo crontab -e
    ```
 
-   Then
+   Then, add the following in the file that opens:
 
    ```sh
-   0 4 * * * /sbin/shutdown -r now
+   0 4 * * * bash /path/to/Literary-Quote-Clock/update_clock.sh
    ```
+   
+   - _Note_: This script will attempt to pull changes from the clock's remote repository first, then it will reboot the Pi.
 
 ### Other
 
