@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# This is ran by a Cronjob once a day at 5:00 AM 
+# This is ran by a Cronjob once a day at 4:00 AM 
 # to pull any changes from the remote repository
 
 #echo Stopping clock.service > /home/alex/Desktop/log.txt
