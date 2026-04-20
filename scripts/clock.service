@@ -1,6 +1,9 @@
 # The startup script for the clock.
 # This should go into /etc/systemd/system/
 
+# Don't forget to modify WorkingDirectory and ExecStart
+# to point to the correct directory and file.
+
 [Unit]
 Description = Book Quote Clock
 After=network-online.target
