@@ -6,7 +6,7 @@
 3. **[Setting the Pi Up](#setting-the-pi-up)**
 4. **[How the Clock Works](#how-the-clock-works)**
 5. **[Credits](#credits)**
-6. **[Handling Italic Text](#Handling-Italic-Text)**
+6. **[Handling _Italic_ Text](#Handling-Italic-Text)**
 7. **[Editing and Adding Quotes](#editing-and-adding-quotes)**
 8. **[Other Notes](#other-notes)**
 
@@ -65,7 +65,7 @@ All of the clock's logic lies in [`clock.py`](./clock.py). There are three stage
 
 ### The Initialization Stage
 
-This stage occurs only once when the clock is plugged in. This project was a gift to my girlfriend for her birthday, so I wanted it to be as plug-and-play as possible. To achieve this, I created a simple systemd unit configuration file ([`clock.service`](/clock.service)) that runs once the Pi has an internet connection, and starts the clock by running the [clock.py](/clock.py) file. It still takes about 30 seconds for the Pi's internal clock to be updated from this point, so the clock performs a full initialization on the screen to remove any ghosted Pixels and displays this startup image in the meantime:
+This stage occurs only once when the clock is plugged in. This project was a gift, so I wanted it to be as plug-and-play as possible. To achieve this, I created a simple systemd unit configuration file ([`clock.service`](/clock.service)) that runs once the Pi has an internet connection, and starts the clock by running the [clock.py](/clock.py) file. It still takes about 30 seconds for the Pi's internal clock to be updated from this point, so the clock performs a full initialization on the screen to remove any ghosted Pixels and displays this startup image in the meantime:
 
 <p align="center">
 <img src="startup.bmp" alt="drawing" width="400"/>
@@ -247,9 +247,9 @@ This sentence should have "in the afternoon" as a part of the time quote because
 > A man driving a tractor saw her, four hundred yards from her house, **six minutes past two in the afternoon**. —_A Change of Climate_, Hilary Mantel
 
 Minor changes to character formatting, including:
-- Replacing instances of three full stops (...) with a proper horizontal ellipsis character (`…`, `U+2026`)
-- Replacing instances of two hyphens (--) with an em dash (—)
-- Replacing all instances of double quotation marks (") with a left double quotation mark (`“`, `U+201C`) or a right double quotation mark (`”`, `U+201D`) for the opening and closing of quotes.
+- Replacing instances of three full stops (`...`) with a proper horizontal ellipsis character (`…`, `U+2026`)
+- Replacing instances of two hyphens (`--`) with an em dash (`—`)
+- Replacing all instances of double quotation marks (`"`) with a left double quotation mark (`“`, `U+201C`) or a right double quotation mark (`”`, `U+201D`) for the opening and closing of quotes.
 
 ---
 
@@ -286,7 +286,6 @@ I like to read in my free time, and as I find quotes in the books I read, I add 
      - E.g. `SSID-Name-2_4GHz`
 
 - If the you take the clock into a new timezone, the Pi's localization settings need to be changed manually. Otherwise the clock won't display the correct time.
-  - Maybe there's a way to read Pi's IP address when it connects to WiFi and update the setting if its timezone is different?
 
 ### Misc.
 
