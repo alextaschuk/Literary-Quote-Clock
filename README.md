@@ -147,7 +147,7 @@ There are also some instances where preserving a quote's original formatting can
 
 ### '📖' (Open Book Unicode Character, `U+1F4D6`)
 
-Add this character to put all of the succeeding text on a new line (equivalent to `\r\n`). This option is rarely useful (because it doesn’t make much of a difference), but I’ve still added it to some quotes to keep them consistent with the book's formatting.
+Add this character to put all of the succeeding text on a new line (equivalent to `\r\n`). Though this option makes very little difference, I've decided to keep it jsut in case.
 
 For example, the CSV stores:
 
@@ -159,7 +159,7 @@ Which will be formatted as:
     <img src="misc/demo/newline.bmp" width="600"/>
 </p>
 
-Without this formatting, the quote would have been printed as:
+Without this character, the quote would have been formatted as:
 
 <p align="center">
     <img src="misc/demo/without-newline.bmp" width="600"/>
@@ -181,11 +181,12 @@ Which will be formatted as:
     <img src="misc/demo/double-newline.bmp" width="600"/>
 </p>
 
-Without this formatting, the quote would have been printed as:
+Without this character, the quote would have been formatted as:
 
 <p align="center">
     <img src="misc/demo/without-double-newline.bmp" width="600"/>
 </p>
+
 
 <h2 align="center">Editing and Adding Quotes</h2>
 
@@ -321,9 +322,9 @@ Waveshare has some additional helpful [documentation](https://www.waveshare.com/
 
 <h3>Times Without a Quote / In Need of a Better One</h3>
 
-There are a few quotes that are still without any quote at all. Instead an error message is displayed for these quotes.
+There are a few times that are still without any quote at all (an error message is currently displayed in lieu of the missing images)
 
-There are also some times who only have one quote option, and that quote is one that I would like to remove/replace, but can't since it's the only option for that minute.
+There are also some times that I am looking for better quotes for. This is because they have only one quote option, and that quote is one that I would like to remove/replace, but can't since it's the only option for that minute.
 
 | Missing Times | Looking for Better Option |
 | ------------- | ------------------------- |
