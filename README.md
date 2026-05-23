@@ -9,25 +9,58 @@ I made a clock that displays the time using quotes from various books using a [R
 <h2 align="center">Materials</h2>
 
 - [Waveshare 7.5 inch E-ink Display & HAT](https://www.waveshare.com/7.5inch-e-paper-hat.htm)
-
 - [Raspberry Pi Zero 2WH](https://www.raspberryPi.com/products/raspberry-Pi-zero-2-w/)
   - _Note:_ Waveshare sells a [pre-soldered Pi](https://www.waveshare.com/product/raspberry-Pi/boards-kits/raspberry-Pi-zero-2-w-cat/raspberry-Pi-zero-2-w.htm?sku=21039), which is what I used
-
 - The frame was handmade using walnut wood.
 
-<h2 align="center">Setting the Pi Up</h2>
+<h2 align="center">How to Setup the Clock</h2>
+
+The Pi running the clock uses a headless version of the Raspberry Pi OS.
+
+- _Note:_ Any Unix-like OS should work, but I haven't tried anything else personally. You may need to place the startup script in a different location, and the process of making a crontab may be a bit different.
+
+Prior to following the instructions below, make sure you have completed a basic setup of your Pi (at a minimum, make sure you've configured your timezone, have connected the Pi to a WiFi network, and have some version of Python3 installed).
 
 1. Waveshare has provided a handy guide for configuring a Pi to use their screen. The guide can be accessed [here](https://www.waveshare.com/wiki/7.5inch_e-Paper_HAT_Manual). The [Working With Raspberry Pi](https://www.waveshare.com/wiki/7.5inch_e-Paper_HAT_Manual#Working_With_Raspberry_Pi) section pertains to this specific project.
 
-2. After you have verified that the screen is working via Waveshare's demo, clone this repository to the Pi.
+2. After you have verified that the screen is working via Waveshare's demo, clone this repository to the Pi with:
 
-3. Initialize a venv with `python3 -m venv venv`, activate it with `source venv/bin/activate`, then install necessary packages with `pip install -r requirements.txt`.
+    ```sh
+    git clone https://github.com/alextaschuk/Literary-Quote-Clock.git
+    ```
 
-4. In the [`clock.service`](\clock.service) script, modify the `WorkingDirectory` variable to store the path to the cloned repo and the `ExecStart` variable to store the path to `clock.py` in the cloned repo. Then, move the [`clock.service`](\clock.service) file into `/etc/systemd/system`.
+3. Configure a virtual environment within the cloned repo.
 
-5. Run `sudo systemctl restart clock.service` to start the clock. The script will now automatically start the clock any time that the Pi is turned on.
+    First, `cd` into the cloned repo and initialize a venv with:
 
-6. (Optional) It seems that an unstable WiFi connection can cause the clock to desync with the actual time, meaning quotes don't change at the correct moment. A workaround to the issue is to add a crontab that reboots the Pi every day at 4 AM. This doesn't always fix the problem, and sometimes I have to unplug the Pi from its power source, which usually does the trick for some reason. You can add this cron job by running:
+    ```sh
+    python3 -m venv venv
+    ```
+    
+    Then, activate the venv:
+    ```sh
+    source venv/bin/activate
+    ```
+    
+    Lastly, install the clock's necessary packages:
+    
+    ```sh
+    pip install -r requirements.txt
+    ```
+
+4. In the [`clock.service`](/scripts/clock.service) script, modify the `WorkingDirectory` variable to store the path to the cloned repo and the `ExecStart` variable to store the path to `clock.py` in the cloned repo. Then, move the [`clock.service`](/scripts/clock.service) file into `/etc/systemd/system`.
+
+    - For example, if the repo was cloned into the `Desktop` directory, change the `WorkingDirectory` variable to `WorkingDirectory=/home/[username]/Desktop/Literary-Quote-Clock`. Similarly, change `ExecStart` to `ExecStart=/home/[username]/Desktop/Literary-Quote-Clock/clock.py`.
+
+5. To run the clock's startup script, run:
+
+    ```sh
+    sudo systemctl restart clock.service
+    ```
+
+    The script will now automatically start the clock when the Pi is powered on.
+
+6. (Optional) It seems that an unstable WiFi connection can cause the clock to desync with the actual time, meaning quotes don't change at the correct moment. A workaround to the issue is to add a crontab that reboots the Pi every day at 4 AM. This doesn't always fix the problem, and sometimes the Pi has to be unplugged from its power source, which usually does the trick for some reason. You can add this cron job by running:
 
    ```sh
    sudo crontab -e
@@ -36,24 +69,23 @@ I made a clock that displays the time using quotes from various books using a [R
    Then, add the following in the file that opens:
 
    ```sh
-   0 4 * * * bash /path/to/Literary-Quote-Clock/update_clock.sh
+   0 4 * * * bash /path/to/Literary-Quote-Clock/scripts/update_clock.sh
    ```
    
-   - _Note_: This script will attempt to pull changes from the clock's remote repository first, then it will reboot the Pi.
+   - _Note_: Before rebooting the Pi, the script will pull changes from the clock's remote repository first, so any updates I make (e.g., adding new quotes will be automatically downloaded).
 
-### Other Commands
+<h3>Other Commands</h3>
 
 - To view the top (start) of the clock's logs: `journalctl -u clock.service`
-
 - To view the clock's most recent logs: `journalctl -e -u clock.service`
 
 <h2 align="center">How the Clock Works</h2>
 
-All of the clock's logic lies in [clock.py](./clock.py). There are three stages that the clock runs in: the initialization stage, the display & update stage, and the in-between stage. All of the clock's quotes live in [quotes.csv](./quotes.csv).
+All of the clock's logic lies in [clock.py](./clock.py), and all of its quotes live in [quotes.csv](./quotes.csv). The clock's logic can be broken down into two main parts: an initialization stage, and everything else that occurs afterwards in a continuous loop.
 
-### The Initialization Stage
+<h3>The Initialization Stage</h3>
 
-This stage occurs only once when the clock is plugged in. This project was a gift, so I wanted it to be as plug-and-play as possible. To achieve this, I created a simple systemd unit configuration file ([clock.service](/clock.service)) that runs once the Pi has an internet connection, and starts the clock by running the [clock.py](/clock.py) file. It still takes about 30 seconds for the Pi's internal clock to be updated from this point, so the clock performs a full initialization on the screen to remove any ghosted Pixels and displays this startup image in the meantime:
+This project was a gift, so I wanted it to be as plug-and-play as possible. To achieve this, I created a simple systemd unit configuration file ([clock.service](/clock.service)) that starts the clock by running the [clock.py](/clock.py) file after the Pi connects to a WiFi network. It still takes about 30 seconds for the Pi's internal clock to be updated from this point, so the clock performs a full initialization on the screen to remove any ghosted Pixels and displays this startup image in the meantime:
 
 <p align="center">
 <img src="startup.bmp" alt="drawing" width="400"/>
@@ -61,26 +93,36 @@ This stage occurs only once when the clock is plugged in. This project was a gif
 
 After 30 seconds, the `get_image()` function is called to display a quote for the current time. Then, the clock's quote buffer is initialized.
 
-- _Note_: Because it may take a second or two for the program to read, process, and display an image, a list is used as a buffer to store three `Image` objects. The buffer contains images for the next minute's quote, the quote two minutes ahead of the current quote, and the quote three minutes ahead of the current quote.
+- _Note_: Because it may take a second or two for the program to read, process, and display an image, the generated images for the next three minutes worth of quotes are buffered.
 
-Example: The clock is started at 12:51:15. The startup image has been displayed for 30 seconds, so the quote for 12:51 is displayed at 12:51:45, and the number of seconds until 12:52 is calculated; the program sleeps for this amount of time minus 1 second (it takes ~1 second for the screen to update, so 14 seconds). Then the buffer, `clock.quote_buffer` is initialized with `Image` objects for 12:52, 12:53, and 12:54.
+Example: The Pi is plugged in and the startup script runs clock.py at 12:51:15. The startup image is been displayed for 30 seconds, so at 12:51:45, the quote for 12:51 is displayed, and the number of seconds until 12:52 is calculated. The clock sleeps for this amount of time minus 1 second (since it takes ~1 second for the screen to update), so in this case, it sleeps for 14 seconds. Lastly, the `Image` objects for 12:52, 12:53, and 12:54 are buffered.
 
 
-### The Display & Update Stage
+<h3>The Continuous Loop</h3>
 
-This stage occurs once every minute, and most of the magic happens here. First, we check if `main()` is being called at the 59th minute of the hour. If it is, perform a full refresh (i.e., at the top of every hour). Then, two things happen. First, we display a new quote, and then we update the quote buffer. At the 59th second of a minute [`display_quote()`](/clock.py#L142) is called, which updates the `curr_image` variable to hold the `Image` object  stored at `quote_buffer[0]`. Then, [`update_buffer()`](/clock.py#L113) is called, which appends the `Image` object for the quote that is two minutes ahead of the `Image` object stored at `quote_buffer[1]` and removes the `Image` object at `quote_buffer[0]` (the currently displayed quote).
+This stage occurs at the 59th second of every minute; most of the magic happens here. Since it takes ~1 second for everything to occur, all of the preparation and changes to display the next minute's quote occur at the current minute's 59th second, but the visual change (i.e., the quote changing to the next minute's quote) occurs at the 0th second of the next minute.
 
-- _Note_: `Image` objects are generated on the fly with the [`get_image()`](/clock.py#L33) function.
+There are four steps involved in this loop, and I will include an example to show what happens at each step. For the example, suppose the current time is 13:31:40, meaning `self.curr_image` stores the `Image` object for 13:31, and the buffer stores the `Image` objects for 13:32, 13:33, and 13:34.
 
-This may be easier to understand with an example. Suppose the current time is 13:31:40, so `curr_image` stores the `Image` obj for 13:31, and `quote_buffer` stores the following: `[1332_Img, 1333_Img, 1334_Img]`. At 13:31:59, [`display_quote()`](/clock.py#L142) is called, which updates `curr_image` with `self.curr_image = self.quote_buffer[0]`, then displays the quote using `self.epd.display(self.epd.getbuffer(self.curr_image))` to display the quote for 13:32. Then, `1335_Img` is appended to the buffer and `1332_Img` is removed, resulting in the buffer looking like this: `[1333_Img, 1334_Img, 1335_Img]`.
+At 13:31:59, the following occurs:
 
-### The In-Between Stage
+1. If it is the 59th minute of the hour, perform a full refresh to help prevent ghosting. 
+    - 34 ≠ 59, so we skip this step.
 
-This stage involves everything that happens in the time between a quote being displayed and waiting for the end of the current minute. First, the screen is put to sleep to reduce its power consumption, then we calculate how long until the next minute so that we know when to wake screen and re-enter the Display & Update Stage. The cycle between the Display & Update Stage and the In-Between Stage continues as long as the clock runs.
+2. `self.curr_image` is updated to store the image at that is at the front of the buffer (the image for the upcoming minute), then display that image. Then, the screen is put to sleep to reduce its power consumption (e-paper doesn't require a constant flow of electricity to display things, so the image will be retained on the screen).
+    - `self.curr_image = buffer[0]`. It now stores the `Image` object for 13:32. Display the image stored in `self.curr_buffer`.
+
+3. Generate an image for the quote that is 3 minutes ahead of upcoming minute, add it to the end of the buffer, and remove the image at the front of the buffer
+    - `buffer[4]` would store the `Image` object for 13:35 and `buffer[0]`, which stores the `Image` object for 13:32, is removed (`buffer[4]` moves to `buffer[3]`).
+
+4. Calculate how many seconds remain until the next minute so that we know when to wake the screen and restart the loop, then have the program sleep for that many seconds minus one (to restart the loop at the 59th second of the minute).
+    - Suppose it is now 13:32:00. There are 60 seconds until the next minute, so the program sleeps for 59.
+
 
 <h2 align="center">Credits</h2>
 
-Both [get_image.py](./get_image.py) and [make_images.py](./misc/make_images.py) are modified versions of elegantalchemist's [quote_to_image.py](https://github.com/elegantalchemist/literaryclock/blob/main/quote%20to%20image/quote_to_image.py) program.
+Both [get_image.py](./get_image.py) and [make_images.py](./misc/make_images.py) are modified versions of [elegantalchemist's quote_to_image.py](https://github.com/elegantalchemist/literaryclock/blob/main/quote%20to%20image/quote_to_image.py) program.
+
 - [get_image.py](./get_image.py) serves as an auxiliary program to generate images on the fly, which are appended to the clock's quote buffer and discarded after they’re displayed.
 - [make_images.py](./misc/make_images.py) can be ran independently to generate and save all of the images to an `/images` folder.
 
@@ -157,7 +199,7 @@ I have manually read through all ~3500 quotes in the CSV and am in the process o
 **Can the quote be used for both the A.M. and P.M. times of the day (e.g., 07:00 and 19:00)?**
     
 - If the answer is "yes", check if the quote has already been used twice. If not, add it to the other time.
-    
+
 - If the answer is "no", check that the quote wasn't mistakenly added to both times of the day. If it was, remove it from the second time.
 
 Example 1:
@@ -242,7 +284,7 @@ Minor changes to character formatting, including:
 
 ---
 
-### Adding my Own Quotes
+<h3>Adding my Own Quotes</h3>
 
 I like to read in my free time, and as I find quotes in the books I read, I add them to [quotes.csv](./quotes.csv) (see [my-quotes.csv](./misc/my-quotes.csv) for only the quotes I have found). I have added quotes from these books:
 
@@ -265,7 +307,7 @@ I like to read in my free time, and as I find quotes in the books I read, I add 
 
 <h2 align="center">Other Notes</h2>
 
-### Troubleshooting the Pi
+<h3>Troubleshooting the Pi</h3>
 
 - The Raspberry Pi Zero 2W cannot connect to a 5 Ghz WiFi channel; it only works with 2.4 GHz. If you have issues connecting try the following to troubleshoot:
 
@@ -276,11 +318,11 @@ I like to read in my free time, and as I find quotes in the books I read, I add 
 
 - If the you take the clock into a new timezone, the Pi's localization settings need to be changed manually. Otherwise the clock won't display the correct time.
 
-### Misc.
+<h3>Misc.</h3>
 
 Waveshare has some additional helpful [documentation](https://www.waveshare.com/wiki/E-Paper_APi_Analysis#Python) on other functions and things that can be done on the screen (separate from their config guide).
 
-### Times Without a Quote / In Need of a Better One
+<h3>Times Without a Quote / In Need of a Better One</h3>
 
 There are a few quotes that are still without any quote at all. Instead an error message is displayed for these quotes.
 
