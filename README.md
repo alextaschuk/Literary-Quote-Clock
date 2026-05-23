@@ -10,7 +10,7 @@ I made a clock that displays the time using quotes from various books using a [R
 
 - [Waveshare 7.5 inch E-ink Display & HAT](https://www.waveshare.com/7.5inch-e-paper-hat.htm)
 - [Raspberry Pi Zero 2WH](https://www.raspberryPi.com/products/raspberry-Pi-zero-2-w/)
-  - _Note:_ Waveshare sells a [pre-soldered Pi](https://www.waveshare.com/product/raspberry-Pi/boards-kits/raspberry-Pi-zero-2-w-cat/raspberry-Pi-zero-2-w.htm?sku=21039), which is what I used
+  - _Note:_ Waveshare sells a [pre-soldered Pi](https://www.waveshare.com/product/raspberry-Pi/boards-kits/raspberry-Pi-zero-2-w-cat/raspberry-Pi-zero-2-w.htm?sku=21039), which is what I used.
 - The frame was handmade using walnut wood.
 
 <h2 align="center">How to Setup the Clock</h2>
@@ -31,7 +31,7 @@ Prior to following the instructions below, make sure you have completed a basic 
 
 3. Configure a virtual environment within the cloned repo.
 
-    First, `cd` into the cloned repo and initialize a venv with:
+    First, `cd` into the cloned repo and initialize a venv:
 
     ```sh
     python3 -m venv venv
@@ -72,7 +72,7 @@ Prior to following the instructions below, make sure you have completed a basic 
    0 4 * * * bash /path/to/Literary-Quote-Clock/scripts/update_clock.sh
    ```
    
-   - _Note_: Before rebooting the Pi, the script will pull changes from the clock's remote repository first, so any updates I make (e.g., adding new quotes will be automatically downloaded).
+   - _Note_: the script will pull changes from the clock's remote repository first, so any updates I make (e.g., adding new quotes) will be automatically downloaded.
 
 <h3>Other Commands</h3>
 
@@ -81,38 +81,31 @@ Prior to following the instructions below, make sure you have completed a basic 
 
 <h2 align="center">How the Clock Works</h2>
 
-All of the clock's logic lies in [clock.py](./clock.py), and all of its quotes live in [quotes.csv](./quotes.csv). The clock's logic can be broken down into two main parts: an initialization stage, and everything else that occurs afterwards in a continuous loop.
+All of the clock's logic lies in [clock.py](./clock.py), and all of the quotes are stored in [quotes.csv](./quotes.csv). The clock's logic can be broken down into two main parts: an initialization stage and everything else that occurs afterwards in a continuous loop.
 
 <h3>The Initialization Stage</h3>
-
-This project was a gift, so I wanted it to be as plug-and-play as possible. To achieve this, I created a simple systemd unit configuration file ([clock.service](/clock.service)) that starts the clock by running the [clock.py](/clock.py) file after the Pi connects to a WiFi network. It still takes about 30 seconds for the Pi's internal clock to be updated from this point, so the clock performs a full initialization on the screen to remove any ghosted Pixels and displays this startup image in the meantime:
 
 <p align="center">
 <img src="startup.bmp" alt="drawing" width="400"/>
 </p>
 
-After 30 seconds, the `get_image()` function is called to display a quote for the current time. Then, the clock's quote buffer is initialized.
-
-- _Note_: Because it may take a second or two for the program to read, process, and display an image, the generated images for the next three minutes worth of quotes are buffered.
-
-Example: The Pi is plugged in and the startup script runs clock.py at 12:51:15. The startup image is been displayed for 30 seconds, so at 12:51:45, the quote for 12:51 is displayed, and the number of seconds until 12:52 is calculated. The clock sleeps for this amount of time minus 1 second (since it takes ~1 second for the screen to update), so in this case, it sleeps for 14 seconds. Lastly, the `Image` objects for 12:52, 12:53, and 12:54 are buffered.
-
+This project was a gift, so I wanted it to be as plug-and-play as possible. To achieve this, I created a simple systemd unit configuration file ([clock.service](/clock.service)) that starts the clock by running the [clock.py](/clock.py) file after the Pi connects to a WiFi network. It still takes about 30 seconds for the Pi's internal clock to be updated from this point, so the clock performs a full initialization on the screen to remove any ghosted Pixels and displays a startup image in the meantime. After 30 seconds, the `get_image()` function is called to display a quote for the current time. Since it may take a second or two for the program to read, process, and display an image, the generated images for the next three minutes worth of quotes are buffered. After displaying the first quote, the clock's buffer is initialized.
 
 <h3>The Continuous Loop</h3>
 
 This stage occurs at the 59th second of every minute; most of the magic happens here. Since it takes ~1 second for everything to occur, all of the preparation and changes to display the next minute's quote occur at the current minute's 59th second, but the visual change (i.e., the quote changing to the next minute's quote) occurs at the 0th second of the next minute.
 
-There are four steps involved in this loop, and I will include an example to show what happens at each step. For the example, suppose the current time is 13:31:40, meaning `self.curr_image` stores the `Image` object for 13:31, and the buffer stores the `Image` objects for 13:32, 13:33, and 13:34.
+There are four steps involved in this loop, and I will include an example to show what happens at each step. For the example, suppose the current time is 13:31, meaning `self.curr_image` stores the `Image` object for 13:31, and the buffer stores the `Image` objects for 13:32, 13:33, and 13:34.
 
 At 13:31:59, the following occurs:
 
 1. If it is the 59th minute of the hour, perform a full refresh to help prevent ghosting. 
     - 34 ≠ 59, so we skip this step.
 
-2. `self.curr_image` is updated to store the image at that is at the front of the buffer (the image for the upcoming minute), then display that image. Then, the screen is put to sleep to reduce its power consumption (e-paper doesn't require a constant flow of electricity to display things, so the image will be retained on the screen).
-    - `self.curr_image = buffer[0]`. It now stores the `Image` object for 13:32. Display the image stored in `self.curr_buffer`.
+2. `self.curr_image` is updated to store the image at that is at the front of the buffer (the image for the upcoming minute, since this is occuring at the 59th second of the current minute), then display that image. Then, the screen is put to sleep to reduce its power consumption (e-paper doesn't require a constant flow of electricity to display things, so the image will be retained on the screen).
+    - `self.curr_image = buffer[0]`, so it now stores the `Image` object for 13:32. Display the image stored in `self.curr_buffer`.
 
-3. Generate an image for the quote that is 3 minutes ahead of upcoming minute, add it to the end of the buffer, and remove the image at the front of the buffer
+3. Generate an image for the quote that is 3 minutes ahead of upcoming minute, add it to the end of the buffer, and remove the image at the front of the buffer.
     - `buffer[4]` would store the `Image` object for 13:35 and `buffer[0]`, which stores the `Image` object for 13:32, is removed (`buffer[4]` moves to `buffer[3]`).
 
 4. Calculate how many seconds remain until the next minute so that we know when to wake the screen and restart the loop, then have the program sleep for that many seconds minus one (to restart the loop at the 59th second of the minute).
