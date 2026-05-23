@@ -1,16 +1,6 @@
-# Literary Quote Clock
+<h1 align="center">Literary Quote Clock</h1>
 
-## Contents
-1. **[About](#about)**
-2. **[Materials](#materials)**
-3. **[Setting the Pi Up](#setting-the-pi-up)**
-4. **[How the Clock Works](#how-the-clock-works)**
-5. **[Credits](#credits)**
-6. **[Handling _Italic_ Text](#Handling-Italic-Text)**
-7. **[Editing and Adding Quotes](#editing-and-adding-quotes)**
-8. **[Other Notes](#other-notes)**
-
-## About
+<h2 align="center">About</h2>
 
 I made a clock that displays the time using quotes from various books using a [Raspberry Pi Zero 2WH](https://www.raspberryPi.com/products/raspberry-Pi-zero-2-w/) and Waveshare's [7.5 inch E-ink display](https://www.waveshare.com/7.5inch-e-paper-hat.htm). (Almost) every minute of the day has at least one corresponding quote, but many have multiple possible quotes that may be used (one is chosen at random).
 
@@ -18,7 +8,7 @@ I made a clock that displays the time using quotes from various books using a [R
     <img src="misc/demo/demo.jpg" alt="the clock in its frame with a quote that reads There's a train a seventeen minutes to two, said Didier. He blessed himself and got to his feet. He hesitated. 'What's the matter?' 'Shouldn't we say goodbye to Grandpa? He usually has a cheque for me.' —The Public Prosecutor, Jef Geeraerts" width="600"/>
 </p>
 
-## Materials:
+<h2 align="center">Materials</h2>
 
 - [Waveshare 7.5 inch E-ink Display & HAT](https://www.waveshare.com/7.5inch-e-paper-hat.htm)
 
@@ -27,7 +17,7 @@ I made a clock that displays the time using quotes from various books using a [R
 
 - The frame was handmade using walnut wood.
 
-## Setting the Pi Up
+<h2 align="center">Setting the Pi Up</h2>
 
 1. Waveshare has provided a handy guide for configuring a Pi to use their screen. The guide can be accessed [here](https://www.waveshare.com/wiki/7.5inch_e-Paper_HAT_Manual). The [Working With Raspberry Pi](https://www.waveshare.com/wiki/7.5inch_e-Paper_HAT_Manual#Working_With_Raspberry_Pi) section pertains to this specific project.
 
@@ -53,19 +43,19 @@ I made a clock that displays the time using quotes from various books using a [R
    
    - _Note_: This script will attempt to pull changes from the clock's remote repository first, then it will reboot the Pi.
 
-### Other
+### Other Commands
 
 - To view the top (start) of the clock's logs: `journalctl -u clock.service`
 
 - To view the clock's most recent logs: `journalctl -e -u clock.service`
 
-## How the Clock Works
+<h2 align="center">How the Clock Works</h2>
 
-All of the clock's logic lies in [`clock.py`](./clock.py). There are three stages that the clock runs in: the initialization stage, the display & update stage, and the in-between stage. All of the clock's quotes live in [quotes.csv](./quotes.csv).
+All of the clock's logic lies in [clock.py](./clock.py). There are three stages that the clock runs in: the initialization stage, the display & update stage, and the in-between stage. All of the clock's quotes live in [quotes.csv](./quotes.csv).
 
 ### The Initialization Stage
 
-This stage occurs only once when the clock is plugged in. This project was a gift, so I wanted it to be as plug-and-play as possible. To achieve this, I created a simple systemd unit configuration file ([`clock.service`](/clock.service)) that runs once the Pi has an internet connection, and starts the clock by running the [clock.py](/clock.py) file. It still takes about 30 seconds for the Pi's internal clock to be updated from this point, so the clock performs a full initialization on the screen to remove any ghosted Pixels and displays this startup image in the meantime:
+This stage occurs only once when the clock is plugged in. This project was a gift, so I wanted it to be as plug-and-play as possible. To achieve this, I created a simple systemd unit configuration file ([clock.service](/clock.service)) that runs once the Pi has an internet connection, and starts the clock by running the [clock.py](/clock.py) file. It still takes about 30 seconds for the Pi's internal clock to be updated from this point, so the clock performs a full initialization on the screen to remove any ghosted Pixels and displays this startup image in the meantime:
 
 <p align="center">
 <img src="startup.bmp" alt="drawing" width="400"/>
@@ -80,7 +70,7 @@ Example: The clock is started at 12:51:15. The startup image has been displayed 
 
 ### The Display & Update Stage
 
-This stage occurs once every minute, and most of the magic happens here. First, we check if `main()` is being called at the 59th minute of the hour. If it is, perform a full refresh (i.e., at the top of every hour). Then, two things happen. First, we display a new quote, and then we update the quote buffer. At the 59th second of a minute [`display_quote()`](/clock.py#L142) is called, which updates the `curr_image` variable to hold the `Image` obj  stored at `quote_buffer[0]`. Then, [`update_buffer()`](/clock.py#L113) is called, which appends the `Image` obj for the quote that is two minutes ahead of the `Image` obj stored at `quote_buffer[1]` and removes the `Image` obj at `quote_buffer[0]` (the currently displayed quote).
+This stage occurs once every minute, and most of the magic happens here. First, we check if `main()` is being called at the 59th minute of the hour. If it is, perform a full refresh (i.e., at the top of every hour). Then, two things happen. First, we display a new quote, and then we update the quote buffer. At the 59th second of a minute [`display_quote()`](/clock.py#L142) is called, which updates the `curr_image` variable to hold the `Image` object  stored at `quote_buffer[0]`. Then, [`update_buffer()`](/clock.py#L113) is called, which appends the `Image` object for the quote that is two minutes ahead of the `Image` object stored at `quote_buffer[1]` and removes the `Image` object at `quote_buffer[0]` (the currently displayed quote).
 
 - _Note_: `Image` objects are generated on the fly with the [`get_image()`](/clock.py#L33) function.
 
@@ -90,20 +80,21 @@ This may be easier to understand with an example. Suppose the current time is 13
 
 This stage involves everything that happens in the time between a quote being displayed and waiting for the end of the current minute. First, the screen is put to sleep to reduce its power consumption, then we calculate how long until the next minute so that we know when to wake screen and re-enter the Display & Update Stage. The cycle between the Display & Update Stage and the In-Between Stage continues as long as the clock runs.
 
-## Credits
+<h2 align="center">Credits</h2>
 
-Both [`get_image.py`](./get_image.py) and [`make_images.py`](./misc/make_images.py) are modified versions of elegantalchemist's [`quote_to_image.py`](https://github.com/elegantalchemist/literaryclock/blob/main/quote%20to%20image/quote_to_image.py) program.
-- [`get_image.py`](./get_image.py) serves as an auxiliary program to generate images on the fly, which are appended to the clock's quote buffer and discarded after they’re displayed.
-- [`make_images.py`](./misc/make_images.py) can be ran independently to generate and save all of the images to an `/images` folder.
+Both [get_image.py](./get_image.py) and [make_images.py](./misc/make_images.py) are modified versions of elegantalchemist's [quote_to_image.py](https://github.com/elegantalchemist/literaryclock/blob/main/quote%20to%20image/quote_to_image.py) program.
+- [get_image.py](./get_image.py) serves as an auxiliary program to generate images on the fly, which are appended to the clock's quote buffer and discarded after they’re displayed.
+- [make_images.py](./misc/make_images.py) can be ran independently to generate and save all of the images to an `/images` folder.
 
-Images are generated by parsing a CSV file and writing each row to a .bmp file. I am using [JohannesNE's CSV file](https://github.com/JohannesNE/literature-clock/blob/master/litclock_annotated.csv) (renamed to `quotes.csv`) instead of [elegantalchemist's](https://github.com/elegantalchemist/literaryclock/blob/main/quote%20to%20image/litclock_annotated_br2.csv). Both contain many of the same quotes, but JohannesNE's seems more refined and has more quotes overall.
+Images are generated by parsing a CSV file and writing each row to a .bmp file. I am using [JohannesNE's CSV file](https://github.com/JohannesNE/literature-clock/blob/master/litclock_annotated.csv) (renamed to quotes.csv) instead of [elegantalchemist's](https://github.com/elegantalchemist/literaryclock/blob/main/quote%20to%20image/litclock_annotated_br2.csv). Both contain many of the same quotes, but JohannesNE's seems more refined and has more quotes overall.
 
-## Handling _Italic_ Text
-The biggest modification I made to the image generation files is to handle italic characters. JohannesNE's CSV file contains a few quotes that have italic characters (their project is a literary quote clock website that uses HTML, which makes it a lot easier to handle italic text), and elegantalchemist's code doesn't have a way to detect and handle these characters. With CSS, you can easily change the `font-style` between normal and _italic_, and the `font-weight` to **bold** (and even combine them for text that is _**italicized and bolded**_). However, in my case, a different font file is needed for italicized characters because font files can only contain one font style. 
+<h2 align="center">Formatting Text</h2>
 
-My solution is to wrap italicized words in a `◻` character (white medium square, `U+25FB`) since each quote is written to the .bmp file word-by-word. Quotes that have the time part italicized are wrapped with a `◯` character (large circle, `U+25EF`) since they'll need a font file that has bolded and italicized characters.
+The biggest modification I made to the image generation files is to handle italic characters. JohannesNE's CSV file contains a few quotes that have italic characters, but their project is a website, and elegantalchemist's code doesn't have a way to detect and handle these characters. The formatting of text in a quote can easily be changed using the CSS `font-style` property to specify if the text should be normal or _italic_, and the `font-weight` property to specify how thick the text should be to make it **bold** (you can even combine them for text that is _**italicized and bolded**_). However, in my case, a different font file is needed for italicized characters because font files can only contain one font style. 
 
-For example, part of a quote for 02:00 is formatted in the book as: 
+My solution to formatting text is similar to how it is done in markdown, except it uses different characters to indicate when text is italicized or italicized and bolded. Since each quote is parsed and drawn on a .bmp image word-by-word, italicized words are wrapped with a `◻` character (white medium square, `U+25FB`). Words that should be italicized and are also a part of the quote that contains the time are wrapped with a `◯` character (large circle, `U+25EF`) since they'll need a font file that has bolded and italicized characters.
+
+For example, part of a quote for 02:00 is formatted in its book as: 
 
 >There were only four words: *Tomorrow morning*. ***2 o’clock***.
 
@@ -139,9 +130,9 @@ Without this formatting, the quote would have been printed as:
     <img src="misc/demo/without-newline.bmp" width="600"/>
 </p>
 
-This option is rarely useful (because it doesn’t make much of a difference), but I’ve still added it to some quotes.
+This option is rarely useful (because it doesn’t make much of a difference), but I’ve still added it to some quotes to keep them consistent with the book's formatting.
 
-**'⭐' (White Medium Star, `U+2B50`):** Equivalent to `\r\n` x2.
+**'⭐' (White Medium Star, `U+2B50`):** Equivalent to `\r\n` x2 (adds an empty newline between two sentences).
 
 For example, the CSV stores:
 
@@ -159,7 +150,7 @@ Without this formatting, the quote would have been printed as:
     <img src="misc/demo/without-double-newline.bmp" width="600"/>
 </p>
 
-## Editing and Adding Quotes
+<h2 align="center">Editing and Adding Quotes</h2>
 
 I have manually read through all ~3500 quotes in the CSV and am in the process of modifying ~700 of them. I have a somewhat strict list of qualities that the quotes can and cannot have, and specific types of changes that I make depending on what I think is "wrong" about the quote's context, formatting, etc. This section covers some of the things that I look for when evaluating if a quote needs to be modified or removed.
 
@@ -274,7 +265,7 @@ I like to read in my free time, and as I find quotes in the books I read, I add 
 | Dune                           | Frank Herbert        |
 
 
-## Other Notes
+<h2 align="center">Other Notes</h2>
 
 ### Troubleshooting the Pi
 
@@ -289,4 +280,22 @@ I like to read in my free time, and as I find quotes in the books I read, I add 
 
 ### Misc.
 
-- Waveshare has some additional helpful [documentation](https://www.waveshare.com/wiki/E-Paper_APi_Analysis#Python) on other functions and things that can be done on the screen (separate from their config guide above).
+Waveshare has some additional helpful [documentation](https://www.waveshare.com/wiki/E-Paper_APi_Analysis#Python) on other functions and things that can be done on the screen (separate from their config guide).
+
+### Times Without a Quote / In Need of a Better One
+
+There are a few quotes that are still without any quote at all. Instead an error message is displayed for these quotes.
+
+There are also some times who only have one quote option, and that quote is one that I would like to remove/replace, but can't since it's the only option for that minute.
+
+| Missing Times | Looking for Better Option |
+| ------------- | ------------------------- |
+| 09:08         | 00:51                     |
+| 12:31         | 00:57                     |
+|               | 05:26                     |
+|               | 06:02                     |
+|               | 07:36                     |
+|               | 08:01                     |
+|               | 10:16                     |
+|               | 11:47                     |
+|               | 18:04                     |
