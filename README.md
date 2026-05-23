@@ -1,7 +1,5 @@
 <h1 align="center">Literary Quote Clock</h1>
 
-<h2 align="center">About</h2>
-
 I made a clock that displays the time using quotes from various books using a [Raspberry Pi Zero 2WH](https://www.raspberryPi.com/products/raspberry-Pi-zero-2-w/) and Waveshare's [7.5 inch E-ink display](https://www.waveshare.com/7.5inch-e-paper-hat.htm). (Almost) every minute of the day has at least one corresponding quote, but many have multiple possible quotes that may be used (one is chosen at random).
 
 <p align="center">
