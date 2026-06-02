@@ -68,12 +68,12 @@ FONT_PATH_BOLD = 'fonts/Bookerly-Bold.ttf'                 # timestring words
 FONT_PATH_ITALIC_BOLD = 'fonts/Bookerly-Bold-Italic.ttf'   # italicized timestring words
 FONT_PATH_CREDIT = FONT_PATH_BOLD # the font the book's title and Author's name will be written in
 
-def wrap_text(text:str, bbox:BoundingBox, text_type:TextType, fonts:Fonts, timestr: Optional[str] = ''):
+def wrap_text(text:str, bbox:BoundingBox, fonts:Fonts, timestr: Optional[str] = '') -> str | None:
     '''TODO'''
     words = text.split()
     lines: list[str] = [""]
-    curr_line_len = 0
-    total_lines_height = 0
+    x = bbox.top_left_x
+    y = bbox.top_left_y
     timestr_begin, timestr_end = -1, -1
 
     if timestr:
@@ -89,45 +89,51 @@ def wrap_text(text:str, bbox:BoundingBox, text_type:TextType, fonts:Fonts, times
         font = fonts.bold if timestr_begin <= i <= timestr_end else fonts.regular
 
         if i + 1 < len(words):
+            word += ' '
             first_char_next_word = words[i + 1][0]
         else:
-            word += ' '
-            first_char_next_word = ' '
+            first_char_next_word = ''
 
         # get the next word's first char to adjust for kerning.
         # see https://pillow.readthedocs.io/en/stable/reference/ImageFont.html#PIL.ImageFont.FreeTypeFont.getlength
         word_len = int(font.getlength(word + first_char_next_word) - font.getlength(first_char_next_word))
 
         # a single word cannot be longer than one line
-        if word_len > bbox.bottom_right_x:
-            print(f'"{word}" too long for one line')
+        if word_len > bbox.bottom_right_x - bbox.top_left_x:
             return None
 
-        if curr_line_len + word_len > bbox.bottom_right_x:
-            # get the current line's height before moving to the next line
-            curr_line = ImageText.Text(lines[-1], font)
-            line_bbox = curr_line.get_bbox()
-            line_height = int(line_bbox[3] - line_bbox[1])
-            total_lines_height += line_height
-            if total_lines_height > bbox.bottom_right_y:
-                return None
-
-            # add the current word to a new line and reset length
-            lines.append(word)
-            curr_line_len = 0
+        if x == bbox.top_left_x:
+            # this is the first word of a line
+            lines[-1] = word
+            x += int(font.getlength(word))
         else:
-            lines[-1] = f'{lines[-1]} {word}'
+            if x + word_len > bbox.bottom_right_x:
+                # get the current line's height before moving to the next line
+                curr_line = ImageText.Text(lines[-1], font)
+                line_bbox = curr_line.get_bbox()
+                line_height = int(line_bbox[3] - line_bbox[1])
+                #print(f'font size:{font.size} line height in wrap_text:{line_height}')
+                #y += line_height
+                y += font.getbbox("A")[3] + 4
 
-        curr_line_len = int(font.getlength(lines[-1]))
+                # add the current word to a new line and reset length
+                lines.append(word)
+                x = bbox.top_left_x
+            else:
+                lines[-1] = f'{lines[-1]} {word}'
+            x += word_len
+
+        # current wrapping writes text past bbox
+        if y > bbox.bottom_right_y:
+            return None
+
     return '\n'.join(lines)
 
 
-
-
 def find_optimal_font_size(text:str, bbox: BoundingBox, text_type:TextType,
-                           timestr: Optional[str] = '') -> int | None:
-    '''Find maximum possible font size of a given bounding box
-    without having to actually draw the text.
+                           timestr: Optional[str] = ''):
+    '''Find maximum possible font size of a given bounding box without having to actually draw the
+    text.
 
     Args:
         text (str): The text to fit inside the bounding box.
@@ -139,19 +145,14 @@ def find_optimal_font_size(text:str, bbox: BoundingBox, text_type:TextType,
         long and cannot fit on one line.
     '''
     min_size = 12
-    max_size = 150 if text_type == TextType.QUOTE else 45
+    max_size = 150 if text_type == TextType.QUOTE else 100
     optimal_size = None
-    longest_line = -1
+    best_fit_lines: list[str] = [""]
 
     # binary search to find optimal font size
     while min_size <= max_size:
-        curr_x = bbox.top_left_x
-        curr_y = bbox.top_left_y
         mid_size = min_size + (max_size - min_size) // 2
-
-        curr_words = list()
-        lines = list()
-        quote_words = text.split()
+        lines: list[str] = [""]
 
         fonts = Fonts(
             regular=ImageFont.truetype(FONT_PATH_REGULAR, mid_size, ImageFont.Layout.BASIC),
@@ -172,93 +173,28 @@ def find_optimal_font_size(text:str, bbox: BoundingBox, text_type:TextType,
                 print('Error at: ' + text)
                 raise LookupError from exc
 
-        for i, word in enumerate(quote_words):
-            # TODO: replace w/ function to determine font .. also need function to check formatting.
-            if timestr_begin <= i <= timestr_end:
-                font = fonts.bold
-            else:
-                font = fonts.regular
-
-            # get the next word's first char to adjust for kerning.
-            # see https://pillow.readthedocs.io/en/stable/reference/ImageFont.html#PIL.ImageFont.FreeTypeFont.getlength
-            if i + 1 < len(quote_words):
-                next_words_first_char = quote_words[i + 1][0]
-            else:
-                word += ' '
-                next_words_first_char = " "
-            word_len = int(font.getlength(word + next_words_first_char) - font.getlength(next_words_first_char))
-
-            # a single word cannot be longer than one line
-            if word_len > bbox.bottom_right_x:
-                print(f'"{word}" too long for one line')
-                max_size = mid_size - 1
-                break
-
-            # move word to next line so that it's not printed off the screen
-            if curr_x + word_len > bbox.bottom_right_x:
-                curr_x = bbox.top_left_x
-
-                # move to the next line on the y-axis, get the height of the current line's bbox,
-                # and add it to the y axis
-                line_str = ''.join(curr_words)
-                curr_line = ImageText.Text(line_str, font)
-                line_bbox = curr_line.get_bbox()
-                line_height = int(line_bbox[3] - line_bbox[1])
-                curr_y += line_height
-
-                line_width = int(line_bbox[2] - line_bbox[0])
-                if line_width > longest_line:
-                    longest_line = line_width
-
-                #if line_height > tallest_line:
-                #    tallest_line = line_height
-                lines.append(curr_words)
-                curr_words = list()
+        lines = wrap_text(text, bbox, fonts)
+        if lines:
+            optimal_size = mid_size
+            min_size = mid_size + 1
+            best_fit_lines = lines
+        else: # text didn't fit
+            max_size = mid_size - 1
+    return (optimal_size, best_fit_lines)
 
 
-            curr_x += word_len
-            curr_words.append(word)
-            if curr_y > bbox.bottom_right_y:
-                max_size = mid_size - 1
-            else:
-                optimal_size = mid_size
-                min_size = mid_size + 1
-
-        if curr_words not in lines:
-            lines.append(curr_words)
-    #if tallest_line > -1:
-    #    bbox.top_left_y = bbox.bottom_right_y - tallest_line
-
-    total_height = 0
-    for line in lines:
-        line_str = ''.join(line)
-        curr_line = ImageText.Text(line_str, font)
-        line_bbox = curr_line.get_bbox()
-        line_height = int(line_bbox[3] - line_bbox[1])
-        total_height += line_height
-
-        line_width = int(line_bbox[2] - line_bbox[0])
-        if line_width > longest_line:
-            longest_line = line_width
-
-    bbox.top_left_x = bbox.bottom_right_x - longest_line
-    bbox.top_left_y = bbox.bottom_right_y - total_height
-
-    return optimal_size
-
-
-def write_in_bbox(text:str, bbox:BoundingBox, text_type:TextType, img:Image.Image):
+def write_in_bbox(text:str, bbox:BoundingBox, text_type:TextType, img:Image.Image, timestr: Optional[str] = ""):
     '''Write a given string into a bounding box.
 
     Args:
         text (str): The text to write inside of the bounding box.
         bbox (BoundingBox): The bounding box that the string will fill.
-        img (Image.Image): The `Image` to write the text on.
+        img (Image.Image): The Image to write the text on.
+        timestr (Optional[str]): A substring that contains the quote's time.
     '''
     canvas = ImageDraw.Draw(img)
     canvas.rectangle((bbox.top_left_x, bbox.top_left_y, bbox.bottom_right_x, bbox.bottom_right_y))
-    canvas.rectangle((498, 384, 800, 480))
-    fnt_size = find_optimal_font_size(text, bbox, text_type)
+    fnt_size, wrapped_lines = find_optimal_font_size(text, bbox, text_type)
     print(f'optimal fontsize: {fnt_size}')
 
     if fnt_size:
@@ -270,47 +206,32 @@ def write_in_bbox(text:str, bbox:BoundingBox, text_type:TextType, img:Image.Imag
                                            ImageFont.Layout.BASIC),
             credit=ImageFont.truetype(FONT_PATH_CREDIT, fnt_size, ImageFont.Layout.BASIC)
         )
-        #canvas.rectangle((bbox.top_left_x, bbox.top_left_y, bbox.bottom_right_x, bbox.bottom_right_y))
-        #canvas.rectangle((800, 480, 801, 481))
         write = canvas.text
         quote_words = text.split()
-        x = bbox.top_left_x
-        y = bbox.top_left_y
         canvas = ImageDraw.Draw(img)
         font = fonts.regular
         color = QUOTE_COLOR if text_type == TextType.QUOTE else TIME_COLOR
-        curr_words = list() # stores words written to the current line
 
-        for i, word in enumerate(quote_words):
-            word += " "
-            # get the next word's first char to adjust for kerning.
-            # see https://pillow.readthedocs.io/en/stable/reference/ImageFont.html#PIL.ImageFont.FreeTypeFont.getlength
-            if i + 1 < len(quote_words):
-                next_words_first_char = quote_words[i + 1][0]
-            else:
-                next_words_first_char = " "
+        y = bbox.top_left_y
+        for line in wrapped_lines.splitlines():
+            x = bbox.top_left_x
+            for i, word in enumerate(line.split()):
+                # get the next word's first char to adjust for kerning.
+                # see https://pillow.readthedocs.io/en/stable/reference/ImageFont.html#PIL.ImageFont.FreeTypeFont.getlength
+                if i + 1 < len(line):
+                    word += ' '
+                    next_words_first_char = quote_words[i + 1][0]
+                else:
+                    next_words_first_char = ""
+                word_len = int(font.getlength(word + next_words_first_char) - font.getlength(next_words_first_char))
 
-            word_len = int(font.getlength(word + next_words_first_char) - font.getlength(next_words_first_char))
-
-            if x + word_len > bbox.bottom_right_x:
-                x = bbox.top_left_x
-
-                line_str = ''.join(curr_words)
-                curr_line = ImageText.Text(line_str, font)
-                line_bbox = curr_line.get_bbox()
-                line_height = int(line_bbox[3] - line_bbox[1])
-                y += line_height
-                curr_words = list()
-
-            write(xy=(x,y), text=word, fill=color, font=font, anchor='ls')
-            curr_words.append(word)
-            x += word_len
-            #img.show()
+                write((x,y), word, color, font, anchor='lm') # anchored = top left of bbox
+                x += word_len
+            y += font.getbbox("A")[3] + 4
 
 
-
-def TurnQuoteIntoImage(index:int, time:str, quote:str, timestring:str, author:str, title:str, include_metadata: bool):
-    '''Generate an image of a quote.
+def get_quote_img(index:int, time:str, quote:str, timestring:str, author:str, title:str, include_metadata: bool):
+    '''Generate an image of a single quote.
 
     Args:
         index (int): Row number of the quote.
@@ -335,13 +256,9 @@ def TurnQuoteIntoImage(index:int, time:str, quote:str, timestring:str, author:st
     )
 
     if include_metadata:
-        quote_bbox.bottom_right_y = int(QUOTE_HEIGHT * 0.80)
-
         mdata_bbox = BoundingBox(
             top_left_x=int(SCREEN_WIDTH * 0.55),
             top_left_y = int(SCREEN_HEIGHT * 0.80),
-            #bottom_right_x = int(QUOTE_WIDTH),
-            #bottom_right_y = int(QUOTE_HEIGHT)
             bottom_right_x = int(SCREEN_WIDTH),
             bottom_right_y = int(SCREEN_HEIGHT)
             )
@@ -349,12 +266,20 @@ def TurnQuoteIntoImage(index:int, time:str, quote:str, timestring:str, author:st
         metadata = f'—{title.strip()}, {author.strip()}' # e.g. '—Dune, Frank Herbert
         write_in_bbox(metadata, mdata_bbox, TextType.CREDITS, quote_image)
 
-        quote_image.show()
+        quote_bbox.bottom_right_y = int(QUOTE_HEIGHT)
+
+    write_in_bbox(quote, quote_bbox, TextType.QUOTE, quote_image)
+
+    quote_image.show()
+
 
 if __name__ == "__main__":
+    #pass
     time = '12:00'
     quote = 'The man crawled across a dune top. He was a mote caught in the glare of the noon sun.'
     timestr = 'noon'
-    author = 'Frank Herbert'
-    title = 'Dune'
-    TurnQuoteIntoImage(0, time, quote, timestr, author, title, True)
+    #author = 'Frank Herbert'
+    #title = 'Dune'
+    author = 'Hunter S. Thompson'
+    title = "Fear and Loathing: On the Campaign Trail '72"
+    get_quote_img(0, time, quote, timestr, author, title, True)
