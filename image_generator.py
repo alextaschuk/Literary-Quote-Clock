@@ -7,9 +7,8 @@ from dataclasses import dataclass
 from enum import Enum
 import logging
 from typing import Optional
-import unicodedata
 from PIL import Image, ImageDraw, ImageFont
-from pen import Pen
+from pen import Pen, ITALIC, BOLD, TIMESTR, QUOTE_COLOR, TIME_COLOR, reset_delim
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -57,8 +56,7 @@ SCREEN_HEIGHT = 480
 OUTPUT      = ImageOutput.RETURN  # should the main function save an image, or return it?
 QUOTE_PATH  = 'quotes.csv'
 BG_COLOR    = 255   # image's background color is white (#0xFFFFFF)
-QUOTE_COLOR = 128   # non-timestring text is grey (#0x808080)
-TIME_COLOR  = 0     # timestring text is black (#0x000000)
+
 
 # for a list of all image formats that Pillow supports, see
 # https://pillow.readthedocs.io/en/stable/handbook/image-file-formats.html#fully-supported-formats
@@ -75,7 +73,8 @@ MIN_FONT_SIZE = 12
 MAX_FONT_SIZE = 150
 
 
-def get_word_len(words: list[str], curr_word: str, curr_word_pos: int, num_words: int, font: ImageFont.FreeTypeFont):
+def get_word_len(words: list[str], curr_word_len:int, curr_word: str, curr_word_pos: int, num_words: int,
+                 font: ImageFont.FreeTypeFont):
     '''Calculates the length of a word. 
 
     For a more accurate calculation, the Pillow docs suggest getting the next word's first
@@ -100,13 +99,15 @@ def get_word_len(words: list[str], curr_word: str, curr_word_pos: int, num_words
             italic_bold=ImageFont.truetype(FONT_PATH_ITALIC_BOLD, font.size, ImageFont.Layout.BASIC),
             credit=ImageFont.truetype(FONT_PATH_CREDIT, font.size, ImageFont.Layout.BASIC)
         )
-        temp_next = next_word
-        temp_next = check_font(temp_next, fonts, next_word_pen)
+        #temp_next = next_word
+        next_first_char = next_word[0]
+        next_first_char = check_font(next_first_char, fonts, next_word_pen)
 
-        next_word_first_char = temp_next[0]
-        curr_word += ' '
-        curr_word_len = font.getlength(curr_word)
-        next_first_char_len = next_word_pen.font.getlength(next_word_first_char)
+        #next_word_first_char = temp_next[0]
+        #curr_word += ' '
+        #curr_word_len = font.getlength(curr_word)
+        #next_first_char_len = next_word_pen.font.getlength(next_word_first_char)
+        next_first_char_len = next_word_pen.font.getlength(next_first_char)
         return int(curr_word_len + next_first_char_len) - int(next_first_char_len)
 
     # current word is the last word of the text
@@ -115,91 +116,79 @@ def get_word_len(words: list[str], curr_word: str, curr_word_pos: int, num_words
     return int(font.getlength(curr_word + first_char_next_word) - font.getlength(first_char_next_word))
 
 
-def check_font(word: str, fonts: Fonts, pen: Pen):
+def check_font(char: str, fonts: Fonts, pen: Pen):
     '''Determine which font the pen should use to write a word.
     This updates the pen's font and color. If the word has any delimiting
     characters, they are removed and the word is returned.
     '''
-    found_delim = False
-    # make a class for e/a font that stores its delimiter, count and color.
-    # have a list of objects, 1 for e/a font. loop through and check for e/a thing.
-    # may be able to add functionality for other formatters too? like newline
-    #for font in pen.aviable_fonts:
-    #    if font.delimiter in word or pen.font.count == 1:
-    #        pen.font.found()
-    #        pen.found_italic_delim(word.count(pen.formatter.italic))
-    #        pen.font = fonts.italic
-    #        word = unicodedata.normalize('NFKD', word.replace(pen.formatter.italic, ''))
-    #        pen.color = QUOTE_COLOR
-    #        found_delim = True
+    italic_count = 0
+    found_delimiter = False
+    for delimiter in pen.delimiters:
+        if char == delimiter.delim_char:
+            found_delimiter = True
+            delimiter.count += 1
+            char = ''
+        if delimiter.count == 1:
+            found_delimiter = True
+            pen.color = delimiter.text_color
+            if delimiter.delim_char == ITALIC:
+                italic_count = delimiter.count
+                pen.font = fonts.italic
+            if delimiter.delim_char == BOLD or delimiter.delim_char == TIMESTR:
+                pen.font = fonts.italic_bold if italic_count > 0 else fonts.bold
 
-    #delims:list[tuple[str, int, int]] = [
-    #    (pen.formatter.italic, pen.formatter.italic_count, QUOTE_COLOR),
-    #    (pen.formatter.bold, pen.formatter.bold_count, TIME_COLOR),
-    #    (pen.formatter.timestr, pen.formatter.timestr_count, TIME_COLOR)
-    #]
-
-    #for delimiter in delims:
-    #    if delimiter[0] in word or delimiter[1] == 1:
-    #        pen.found_italic_delim(word.count(pen.formatter.italic))
-    #        pen.font = fonts.italic
-    #        word = unicodedata.normalize('NFKD', word.replace(pen.formatter.italic, ''))
-    #        pen.color = delimiter[2]
-    #        found_delim = True
-    if pen.formatter.italic in word or pen.formatter.italic_count == 1:
-        pen.found_italic_delim(word.count(pen.formatter.italic))
-        pen.font = fonts.italic
-        word = unicodedata.normalize('NFKD', word.replace(pen.formatter.italic, ''))
-        pen.color = QUOTE_COLOR
-        found_delim = True
-
-    if pen.formatter.bold in word or pen.formatter.bold_count == 1:
-        pen.found_bold_delim(word.count(pen.formatter.bold))
-        pen.font = fonts.italic_bold if pen.formatter.italic_count > 0 else fonts.bold
-        word = unicodedata.normalize('NFKD', word.replace(pen.formatter.bold, ''))
-        pen.color = TIME_COLOR
-        found_delim = True
-
-    if pen.formatter.timestr in word or pen.formatter.timestr_count == 1:
-        pen.found_timestr_delim(word.count(pen.formatter.timestr))
-        pen.font = fonts.italic_bold if pen.formatter.italic_count > 0 else fonts.bold
-        word = unicodedata.normalize('NFKD', word.replace(pen.formatter.timestr, ''))
-        pen.color = TIME_COLOR
-        found_delim = True
-
-    if not found_delim:
+    if not found_delimiter:
         pen.font = fonts.regular
         pen.color = QUOTE_COLOR
 
-    return word
+    return char
 
 
 def draw_word(img: Image.Image, words: list[str], word: str, word_pos: int, fonts: Fonts, pen: Pen):
     '''function docstring'''
     canvas = ImageDraw.Draw(img)
     write = canvas.text
+    for char in word:
+        char = check_font(char, fonts, pen)
+        if char == '':
+            continue
+        write((pen.x, pen.y), char, pen.color, pen.font)
+        pen.x += int(pen.font.getlength(char))
 
-    for curr_word in word.split():
-        # ... 
+    # add a space after each word
+    write((pen.x, pen.y), ' ', pen.color, pen.font)
+    pen.x += int(pen.font.getlength(' '))
+    #word = check_font(word, fonts, pen)
+    #for delimiter in pen.delimiters:
+    #    if len(delimiter.delim_positions) > 0:
+    #        if delimiter.count == 1:
+    #            delim_idx = delimiter.delim_positions[0]
+    #            curr_word = word[:delim_idx]
+    #            temp_font = pen.font
+    #            pen.font = fonts.regular
+    #            word_len = get_word_len(words, curr_word, word_pos, len(words), pen.font)
+    #            write((pen.x, pen.y), curr_word, pen.color, pen.font)
+    #            pen.x += word_len
+    #            pen.font = temp_font
+    #            curr_word = word[delim_idx:]
+    #            word_len = get_word_len(words, curr_word, word_pos, len(words), pen.font)
+    #            write((pen.x, pen.y), curr_word, pen.color, pen.font)
+    #            pen.x += word_len
+    #        elif delimiter.count == 2:
+    #            pass
 
-    word = check_font(word, fonts, pen)
-    word_len = get_word_len(words, word, word_pos, len(words), pen.font)
-    write((pen.x, pen.y), word, pen.color, pen.font)
-    pen.x += word_len
+    #word_len = get_word_len(words, word, word_pos, len(words), pen.font)
+    #write((pen.x, pen.y), word, pen.color, pen.font)
+    #pen.x += word_len
 
-    reset_font = False
-    if pen.formatter.italic_count >= 2:
-        pen.reset_italic_delim()
-        reset_font = True
-    if pen.formatter.bold_count >= 2:
-        pen.reset_bold_delim()
-        reset_font = True
-    if pen.formatter.timestr_count >= 2:
-        pen.reset_timestr_delim()
-        reset_font = True
-
-    if reset_font:
-        pen.font = fonts.regular
+    #reset_font = False
+    for delimiter in pen.delimiters:
+        if delimiter.count >= 2:
+            reset_delim(delimiter)
+            pen.font = fonts.regular
+            #reset_font = True
+    #if reset_font:
+        #pen.font = fonts.regular
 
 
 def wrap_text(text: str, bbox: BoundingBox, fonts: Fonts, pen: Pen, timestr: Optional[str] = '') -> str:
@@ -214,13 +203,21 @@ def wrap_text(text: str, bbox: BoundingBox, fonts: Fonts, pen: Pen, timestr: Opt
     words = text.split()
     for i, word in enumerate(words):
         temp_word = word
-        temp_word = check_font(temp_word, fonts, pen)
-        word_len = get_word_len(words, temp_word, i, len(words), pen.font)
+        word_len = 0
+        for char_pos, char in enumerate(temp_word):
+            char = check_font(char, fonts, pen)
+            if char == '':
+                continue
+            word_len += pen.font.getlength(char)
+
+        #word_len = get_word_len(words, word_len, temp_word, i, len(words), pen.font)
 
         # a single word cannot be longer than one line
         if word_len > bbox.bottom_right_x - bbox.top_left_x:
             pen.reset(bbox.top_left_x, bbox.top_left_y)
             return ''
+        
+        word_len += int(pen.font.getlength(' '))
 
         if pen.x + word_len > bbox.bottom_right_x:
             # move to the next line, add the current word to the line, and reset x coord
@@ -325,11 +322,11 @@ def write_in_bbox(text: str, bbox: BoundingBox, text_type: TextType, img: Image.
             timestr_begin = text.lower().index(timestr.lower())
             timestr_end = timestr_begin + len(timestr)
             temp_words = text[:timestr_begin]
-            temp_words += f'{pen.formatter.timestr}{text[timestr_begin:timestr_end]}{pen.formatter.timestr}'
+            temp_words += f'{TIMESTR}{text[timestr_begin:timestr_end]}{TIMESTR}'
             temp_words += text[timestr_end:]
             text = temp_words
         except ValueError as exc:
-            print('Error at: ' + text)
+            logging.error('Timestring doesn\'t match or isn\'t found in quote ("%s...")', text[:10])
             raise LookupError from exc
 
     pen.font.size, wrapped_lines = find_optimal_font_size(text, bbox, text_type, timestr)
@@ -384,11 +381,12 @@ def generate_img(index: int, time: str, quote: str, timestring: str, author: str
     quote_image = Image.new(mode='L', size=(
         SCREEN_WIDTH, SCREEN_HEIGHT), color=BG_COLOR)
 
+    scale_multiplier = 0.99 # we don't want to write exactly to the edges
     quote_bbox = BoundingBox(
-        top_left_x=0,
-        top_left_y=0,
-        bottom_right_x=int(SCREEN_WIDTH),
-        bottom_right_y=int(SCREEN_HEIGHT)
+        top_left_x=int(SCREEN_WIDTH - SCREEN_WIDTH * scale_multiplier),
+        top_left_y=int(SCREEN_HEIGHT - SCREEN_HEIGHT * scale_multiplier),
+        bottom_right_x=int(SCREEN_WIDTH * scale_multiplier),
+        bottom_right_y=int(SCREEN_HEIGHT * scale_multiplier)
     )
 
     if include_credits:
@@ -418,8 +416,8 @@ if __name__ == "__main__":
 
     TIME = '06:21'
     #QUOTE = "The whipped mules dragged the wagon on through a flooded branch that submerged thirty yards of the road and stood up around the bushes and tree-trunks on either side so that they had no rootage, and I watched where and how deep the wheels went while I idled the motor and lighter Gudger's and my own cigarette. It was twenty-one past six."
-    QUOTE = "It was twenty-one past six. This ◻is a◻ test, string."
-    TIMESTRING = "twenty-one past six."
+    QUOTE = "It’s twenty-◻one◻ ◻past◻ six. This B◻◯is◻a◯n, test, string."
+    TIMESTRING = "twenty-◻one◻ ◻past◻ six"
     AUTHOR = "James Agee and Walker Evans"
     TITLE = 'Let Us Now Praise Famous Men'
 
