@@ -13,7 +13,7 @@ from enum import Enum
 import logging
 from typing import Optional
 from PIL import Image, ImageDraw, ImageFont
-from writer import Pen, Fonts, BoundingBox, ITALIC, BOLD, TIMESTR
+from writer import Pen, Fonts, BoundingBox, DelimitingCharacters
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -76,21 +76,21 @@ def format_char(char: str, fonts: Fonts, pen: Pen)->str:
     found_delimiter = False
 
     # check each delimiter and update their counters as needed, along with the pen's font and color
-    for delimiter in pen.delimiters:
-        if char == delimiter.delim_char:
-            delimiter.count += 1
+    for delim in pen.delimiters:
+        if char == delim.character:
+            delim.count += 1
             char = ''
-        if delimiter.count == 1:
+        if delim.count == 1:
             found_delimiter = True # not necessarily true, but prevents font from being reset to regular prematurely
-            if delimiter.delim_char == ITALIC:
-                italic_count = delimiter.count
+            if delim.character == DelimitingCharacters.ITALIC:
+                italic_count = delim.count
                 pen.font = fonts.italic
                 pen.color = QUOTE_COLOR
-            if delimiter.delim_char == BOLD or delimiter.delim_char == TIMESTR:
+            if delim.character == DelimitingCharacters.BOLD or delim.character == DelimitingCharacters.TIMESTR:
                 pen.font = fonts.italic_bold if italic_count > 0 else fonts.bold
                 pen.color = TIME_COLOR
-        elif delimiter.count >= 2:
-            delimiter.count = 0
+        elif delim.count >= 2:
+            delim.count = 0
             found_delimiter = True
 
     if not found_delimiter:
@@ -269,7 +269,7 @@ def write_in_bbox(text: str, bbox: BoundingBox, text_type: TextType, img: Image.
             timestr_begin = text.lower().index(timestr.lower())
             timestr_end = timestr_begin + len(timestr)
             temp_words = text[:timestr_begin]
-            temp_words += f'{TIMESTR}{text[timestr_begin:timestr_end]}{TIMESTR}'
+            temp_words += f'{DelimitingCharacters.TIMESTR}{text[timestr_begin:timestr_end]}{DelimitingCharacters.TIMESTR}'
             temp_words += text[timestr_end:]
             text = temp_words
         except ValueError as exc:

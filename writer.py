@@ -11,18 +11,20 @@ when writing and where to write text.
 from dataclasses import dataclass
 from PIL import ImageFont
 
-# delimiter characters
-ITALIC = '◻'
-BOLD = '◯'
-TIMESTR = '|'
+@dataclass
+class DelimitingCharacters:
+    '''Stores all deliminating characters for text formatting.'''
+    ITALIC = '◻'
+    BOLD = '◯'
+    TIMESTR = '|'
 
 
 @dataclass
 class Delimiter:
     '''Defines a formatting delimiter and stores how many of said characters have been seen in a
     text'''
-    def __init__(self, delim_char:str):
-        self.delim_char:str = delim_char
+    def __init__(self, character:str):
+        self.character:str = character
         self.count:int = 0
 
 
@@ -65,7 +67,7 @@ class Pen:
         self.color = color
         self.x = x
         self.y = y
-        self.delimiters:list[Delimiter] = [Delimiter(ITALIC), Delimiter(BOLD), Delimiter(TIMESTR)]
+        self.delimiters:list[Delimiter] = [Delimiter(DelimitingCharacters.ITALIC), Delimiter(DelimitingCharacters.BOLD), Delimiter(DelimitingCharacters.TIMESTR)]
 
     def reset(self, x_pos:int, y_pos:int):
         '''Move the pen and set all delimiter counters to 0.
