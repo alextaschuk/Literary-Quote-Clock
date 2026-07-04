@@ -1,9 +1,13 @@
 '''
-Generate an image of a quote and either save it as a file or return it as an Image.Image object.
+Generate an image of a quote and either save it as a file or return it as an `Image.Image` object.
+
+To save all of the quote images to an /images folder, run this file. To return an `Image.Image`
+object for a single quote, import the `generate_img()` function into your file and call it as
+needed.
 
 TODO:
-    - add logic for parsing CSV
-    - add logic for saving each image / returning one image
+        - add logic for parsing CSV
+        - add logic for saving each image / returning one image
         - add functionality for newline and double newline
     - see if it's worth it/possible to make global Fonts object
     - add logic to choose screen orientation (horizontal vs vertical)
@@ -16,10 +20,16 @@ TODO:
     actually used)
     - add check if quote has any formatting at all. if not, write entire quote word-by-word instead.
 '''
+import csv
 from enum import Enum
 import logging
+import os
+from os import path
+from sys import argv
 from typing import Optional
+
 from PIL import Image, ImageDraw, ImageFont
+
 from writer import BoundingBox, CharacterDelimiters, WordDelimiters, Fonts, Pen, TextType
 
 logging.basicConfig(level=logging.DEBUG)
@@ -44,8 +54,9 @@ QUOTE_COLOR  = 128 # non-timestring text is grey
 TIME_COLOR   = 0   # timestring text is black
 CREDIT_COLOR = 0   # credit text is black
 
-OUTPUT      = ImageOutput.RETURN  # should the main function save an image, or return it?
-QUOTE_PATH  = 'quotes.csv'
+OUTPUT      = ImageOutput.SAVE  # should the main function save an image, or return it?
+QUOTES_PATH  = 'quotes.csv'
+IMAGE_PATH = 'images/'
 
 # for a list of all image formats that Pillow supports, see
 # https://pillow.readthedocs.io/en/stable/handbook/image-file-formats.html#fully-supported-formats
@@ -196,8 +207,8 @@ def wrap_text(text: str, fonts: Fonts, pen: Pen) -> str:
 
         # a single word cannot be longer than one line
         if word_len > pen.bbox.bottom_right_x - pen.bbox.top_left_x:
-            logging.warning('Word "%s" is too long and cannot fit on one line with fontsize=%i',
-                            word, pen.font.size)
+            #logging.warning('Word "%s" is too long and cannot fit on one line with fontsize=%i',
+            #                word, pen.font.size)
             pen.reset(pen.bbox.top_left_x, pen.bbox.top_left_y)
             return ''
 
@@ -314,11 +325,10 @@ def write_in_bbox(img: Image.Image, pen: Pen, timestr: Optional[str] = ""):
             raise LookupError from exc
 
     pen.font.size, wrapped_lines = find_optimal_font_size(pen.text, pen.bbox, pen.text_type, timestr)
-    print(f'optimal fontsize: {pen.font.size}')
 
     if pen.font.size <= MIN_FONT_SIZE:
         bbox_repr = repr(pen.bbox)
-        logging.error('Text starting with "%s..." is too long and doesn\'t fit in bbox=%s with minimum font=%i',pen.text[:30], bbox_repr, MIN_FONT_SIZE)
+        #logging.error('Text starting with "%s..." is too long and doesn\'t fit in bbox=%s with minimum font=%i',pen.text[:30], bbox_repr, MIN_FONT_SIZE)
 
     fonts = Fonts(
         regular=ImageFont.truetype(FONT_PATH_REGULAR, pen.font.size, ImageFont.Layout.BASIC),
@@ -391,10 +401,55 @@ def generate_img(index: int, time: str, quote: str, timestring: str, author: str
     pen.text = quote
     pen.text_type = TextType.QUOTE
     write_in_bbox(quote_image, pen, timestring)
-    quote_image.show()
+
+    #quote_image.show()
+    return quote_image
 
 
 if __name__ == "__main__":
+    default_font = ImageFont.truetype(FONT_PATH_REGULAR, 1, ImageFont.Layout.BASIC)
+    my_pen = Pen(default_font, QUOTE_COLOR)
+
+    if OUTPUT == ImageOutput.SAVE:
+        try:
+            if not path.exists(IMAGE_PATH):
+                print('/images folder not found. Creating new folder…')
+                os.mkdir(IMAGE_PATH)
+        except OSError:
+            print('error while trying to create /images folder')
+
+        with open(QUOTES_PATH, newline='\n', encoding='UTF-8') as csvfile:
+            num_quotes = len(csvfile.readlines()) - 1
+            csvfile.seek(0) # move file cursor to start of file
+
+            if len(argv) > 1:
+                if argv[1].isdigit() and int(argv[1]) < num_quotes:
+                    num_quotes = int(argv[1])
+
+            quotereader = csv.DictReader(csvfile, delimiter='|')
+            img_num = 0
+            previous_time = ''
+            quote_img:Image.Image
+            for i, row in enumerate(quotereader):
+                if i >= num_quotes:
+                    break
+
+                if row['time'] == previous_time:
+                    img_num += 1
+                else:
+                    img_num = 0
+                    previous_time = row['time']
+
+                time = row['time'].replace(':', '')
+                filepath = f'{IMAGE_PATH}quote_{time}_{img_num}.{IMAGE_FORMAT}' # e.g., images/quote_1235_2.bmp
+                filepath = path.normpath(filepath)
+
+                quote_img = generate_img(i, row['time'], row['quote'], row['timestring'],
+                                         row['author'], row['title'], True, my_pen)
+                quote_img.save(filepath)
+                progressbar = f'Creating images... {i+1}/{num_quotes}'
+                print(progressbar, end='\r', flush=True)
+
     TIME = '12:00'
     QUOTE = 'The man crawled across a dune top. ⇇He was a mote caught in the glare of the noon ⏎sun. Hi'
     TIMESTRING = 'noon'
@@ -421,6 +476,4 @@ if __name__ == "__main__":
     #AUTHOR = 'Frank Herbert'
     #TITLE = 'Dune'
 
-    default_font = ImageFont.truetype(FONT_PATH_REGULAR, 1, ImageFont.Layout.BASIC)
-    my_pen = Pen(default_font, QUOTE_COLOR)
-    generate_img(0, TIME, QUOTE, TIMESTRING, AUTHOR, TITLE, include_credits=True, pen=my_pen)
+    #generate_img(0, TIME, QUOTE, TIMESTRING, AUTHOR, TITLE, include_credits=True, pen=my_pen)
