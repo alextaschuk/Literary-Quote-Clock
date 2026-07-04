@@ -1,22 +1,28 @@
 '''
-Generate an image of a quote and either:
-(a) Save it as a file
-(b) Return it as an Image.Image object
+Generate an image of a quote and either save it as a file or return it as an Image.Image object.
 
 TODO:
     - add logic for parsing CSV
     - add logic for saving each image / returning one image
-    - add functionality for newline and double newline
+        - add functionality for newline and double newline
     - see if it's worth it/possible to make global Fonts object
+    - add logic to choose screen orientation (horizontal vs vertical)
+    - update README
+        - fix logic so that the color of credit text is correct
+    - add logic to split credits into two lines
+    - write tests
+    - fix formatting in quotes.csv and my-quotes.csv
+    - (for future) match delimiters to markdown (will need to handle instances where, e.g., * is
+    actually used)
+    - add check if quote has any formatting at all. if not, write entire quote word-by-word instead.
 '''
 from enum import Enum
 import logging
 from typing import Optional
 from PIL import Image, ImageDraw, ImageFont
-from writer import Pen, Fonts, BoundingBox, DelimitingCharacters
+from writer import BoundingBox, CharacterDelimiters, WordDelimiters, Fonts, Pen, TextType
 
 logging.basicConfig(level=logging.DEBUG)
-
 
 class ImageOutput(Enum):
     '''Determine what `generate_img()` should do with each generated image: save it to an /images
@@ -26,20 +32,18 @@ class ImageOutput(Enum):
     RETURN = 2  # return an Image object from TurnQuoteIntoImage()
 
 
-class TextType(Enum):
-    '''Describes which part of a quote is being passed into a function.'''
-    QUOTE   = 1
-    CREDITS = 2  # author and book title of the quote
-
-
-# screen config
+'''Screen Config'''
 SCREEN_WIDTH  = 800
 SCREEN_HEIGHT = 480
 
-# image config
-BG_COLOR    = 255   # image's background color is white (#0xFFFFFF)
-QUOTE_COLOR = 128   # non-timestring text is grey (#0x808080)
-TIME_COLOR  = 0     # timestring text is black (#0x000000)
+
+'''Image Config'''
+# color is in RGB
+BG_COLOR     = 255 # image's background color is white
+QUOTE_COLOR  = 128 # non-timestring text is grey
+TIME_COLOR   = 0   # timestring text is black
+CREDIT_COLOR = 0   # credit text is black
+
 OUTPUT      = ImageOutput.RETURN  # should the main function save an image, or return it?
 QUOTE_PATH  = 'quotes.csv'
 
@@ -47,7 +51,7 @@ QUOTE_PATH  = 'quotes.csv'
 # https://pillow.readthedocs.io/en/stable/handbook/image-file-formats.html#fully-supported-formats
 IMAGE_FORMAT = 'bmp'
 
-# paths to font files
+'''Text Config'''
 FONT_PATH_REGULAR     = 'fonts/Bookerly.ttf'                # non-timestring words
 FONT_PATH_BOLD        = 'fonts/Bookerly-Bold.ttf'           # timestring words
 FONT_PATH_ITALIC      = 'fonts/Bookerly-Italic.ttf'         # italicized words
@@ -58,7 +62,7 @@ MIN_FONT_SIZE = 12
 MAX_FONT_SIZE = 150
 
 
-def format_char(char: str, fonts: Fonts, pen: Pen)->str:
+def format_char(char:str, fonts:Fonts, pen:Pen) -> str:
     '''Determine the font and color to write a character with.
 
     If the character is a delimiter, an empty string is returned.
@@ -76,17 +80,19 @@ def format_char(char: str, fonts: Fonts, pen: Pen)->str:
     found_delimiter = False
 
     # check each delimiter and update their counters as needed, along with the pen's font and color
-    for delim in pen.delimiters:
+    for delim in pen.char_delimiters:
+        if char in (WordDelimiters.NEWLINE, WordDelimiters.DOUBLE_NEWLINE):
+            return '' # TODO: replace to check all attributes in WordDelimiters
         if char == delim.character:
             delim.count += 1
             char = ''
         if delim.count == 1:
             found_delimiter = True # not necessarily true, but prevents font from being reset to regular prematurely
-            if delim.character == DelimitingCharacters.ITALIC:
+            if delim.character == CharacterDelimiters.ITALIC:
                 italic_count = delim.count
                 pen.font = fonts.italic
                 pen.color = QUOTE_COLOR
-            if delim.character == DelimitingCharacters.BOLD or delim.character == DelimitingCharacters.TIMESTR:
+            elif delim.character in (CharacterDelimiters.BOLD, CharacterDelimiters.TIMESTR):
                 pen.font = fonts.italic_bold if italic_count > 0 else fonts.bold
                 pen.color = TIME_COLOR
         elif delim.count >= 2:
@@ -95,9 +101,41 @@ def format_char(char: str, fonts: Fonts, pen: Pen)->str:
 
     if not found_delimiter:
         pen.font = fonts.regular
-        pen.color = QUOTE_COLOR
+        pen.color = QUOTE_COLOR if pen.text_type == TextType.QUOTE else TIME_COLOR
 
     return char
+
+def format_word(word:str, lines:list[str], word_len:int, pen:Pen):
+    '''Check if a word needs to be moved onto a new line, separately from text wrapping.
+    
+    Args:
+        word (str): The word to be formatted.
+        lines (list[str]): Each element represents a line of text.
+        word_len (int): The length (in pixels) of the text
+         - NOT `len(word)`
+        pen (Pen): The pen used to write the word.
+    '''
+    add_line = False
+    if WordDelimiters.NEWLINE in word:
+        pen.coords['x'] = pen.bbox.top_left_x
+        pen.coords['y'] += int(pen.font.getbbox("A")[3] + 4)
+        add_line = True
+    elif WordDelimiters.DOUBLE_NEWLINE in word:
+        pen.coords['x'] = pen.bbox.top_left_x
+        pen.coords['y'] += 2 * int(pen.font.getbbox("A")[3] + 4)
+        add_line = True
+        lines.append(' ')
+        # need to fix.
+
+    if pen.coords['x'] + word_len > pen.bbox.bottom_right_x or add_line:
+        # move to the next line, add the current word to the line, and reset x coord
+        # TODO: Replace with get_lineheight()
+        pen.coords['y'] += int(pen.font.getbbox("A")[3] + 4)
+        lines.append(word)
+        pen.coords['x'] = pen.bbox.top_left_x
+    else:
+        # add the current word to the current line
+        lines[-1] = f'{lines[-1]} {word}'
 
 
 def draw_word(img: Image.Image, word: str, fonts: Fonts, pen: Pen):
@@ -108,6 +146,7 @@ def draw_word(img: Image.Image, word: str, fonts: Fonts, pen: Pen):
         word (str): The word to be drawn.
         fonts (Fonts): Contains the possible fonts that may be used to write the word.
         pen (Pen): The pen used to write the word.
+        text_type (TextType): 
     '''
     canvas = ImageDraw.Draw(img)
     write = canvas.text
@@ -115,27 +154,25 @@ def draw_word(img: Image.Image, word: str, fonts: Fonts, pen: Pen):
         char = format_char(char, fonts, pen)
         if char == '':
             continue
-        write((pen.x, pen.y), char, pen.color, pen.font)
-        pen.x += int(pen.font.getlength(char))
+        write((pen.coords['x'], pen.coords['y']), char, pen.color, pen.font)
+        pen.coords['x'] += int(pen.font.getlength(char))
 
     # add a space after each word
-    write((pen.x, pen.y), ' ', pen.color, pen.font)
-    pen.x += int(pen.font.getlength(' '))
+    write((pen.coords['x'], pen.coords['y']), ' ', pen.color, pen.font)
+    pen.coords['x'] += int(pen.font.getlength(' '))
 
-    for delimiter in pen.delimiters:
+    for delimiter in pen.char_delimiters:
         if delimiter.count >= 2:
             delimiter.count = 0
             pen.font = fonts.regular
 
 
-def wrap_text(text: str, bbox: BoundingBox, fonts: Fonts, pen: Pen) -> str:
+def wrap_text(text: str, fonts: Fonts, pen: Pen) -> str:
     '''Helper to `find_optimal_font_size()`. Wraps text so that it doesn't overflow past the
     rightmost x coordinate of the bbox.
 
     Args:
         text (str): The text to be wrapped.
-        bbox (BoundingBox): A bounding box to constrain the text within. The text cannot be written
-        past the bbox's rightmost X coordinate.
         fonts (Fonts): Contains the possible fonts that may be used to write the word.
         pen (Pen): The pen used to write the word.
 
@@ -143,13 +180,13 @@ def wrap_text(text: str, bbox: BoundingBox, fonts: Fonts, pen: Pen) -> str:
         wrapped (str):
     '''
     lines: list[str] = [""]
-    pen.x = bbox.top_left_x
-    pen.y = bbox.top_left_y
+    pen.coords['x'] = pen.bbox.top_left_x
+    pen.coords['y'] = pen.bbox.top_left_y
     # iterate over the text character-by-character and try to place each word on the current line.
     # If the word cannot fit, move down one line and place it there instead.
     words = text.split()
     for word in words:
-        temp_word = word
+        temp_word = word # necessary, or can we just use word?
         word_len = 0
         for char in temp_word:
             char = format_char(char, fonts, pen)
@@ -158,28 +195,29 @@ def wrap_text(text: str, bbox: BoundingBox, fonts: Fonts, pen: Pen) -> str:
             word_len += int(pen.font.getlength(char))
 
         # a single word cannot be longer than one line
-        if word_len > bbox.bottom_right_x - bbox.top_left_x:
+        if word_len > pen.bbox.bottom_right_x - pen.bbox.top_left_x:
             logging.warning('Word "%s" is too long and cannot fit on one line with fontsize=%i',
                             word, pen.font.size)
-            pen.reset(bbox.top_left_x, bbox.top_left_y)
+            pen.reset(pen.bbox.top_left_x, pen.bbox.top_left_y)
             return ''
 
         word_len += int(pen.font.getlength(' ')) # simulate space after word
+        format_word(word, lines, word_len, pen)
 
-        if pen.x + word_len > bbox.bottom_right_x:
-            # move to the next line, add the current word to the line, and reset x coord
-            # TODO: Replace with get_lineheight()
-            pen.y += int(pen.font.getbbox("A")[3] + 4)
-            lines.append(word)
-            pen.x = bbox.top_left_x
-        else:
-            # add the current word to the current line
-            lines[-1] = f'{lines[-1]} {word}'
-        pen.x += word_len
+        #if pen.coords['x'] + word_len > pen.bbox.bottom_right_x:
+        #    # move to the next line, add the current word to the line, and reset x coord
+        #    # TODO: Replace with get_lineheight()
+        #    pen.coords['y'] += int(pen.font.getbbox("A")[3] + 4)
+        #    lines.append(word)
+        #    pen.coords['x'] = pen.bbox.top_left_x
+        #else:
+        #    # add the current word to the current line
+        #    lines[-1] = f'{lines[-1]} {word}'
+        pen.coords['x'] += word_len
 
         # current wrapping writes text past bbox (need to reduce font size)
-        if pen.y > bbox.bottom_right_y:
-            pen.reset(bbox.top_left_x, bbox.top_left_y)
+        if pen.coords['y'] > pen.bbox.bottom_right_y:
+            pen.reset(pen.bbox.top_left_x, pen.bbox.top_left_y)
             return ''
 
     wrapped = '\n'.join(lines)
@@ -188,10 +226,10 @@ def wrap_text(text: str, bbox: BoundingBox, fonts: Fonts, pen: Pen) -> str:
     # TODO figure out how pillow calculates bbox and manually implement height calculation so that i dont have to make all of these objects each time
     temp_img = Image.new(mode='L', size=(SCREEN_WIDTH, SCREEN_HEIGHT), color=BG_COLOR)
     canvas = ImageDraw.Draw(temp_img)
-    pil_bbox = canvas.multiline_textbbox((bbox.top_left_x, bbox.top_left_y), wrapped, fonts.regular)
+    pil_bbox = canvas.multiline_textbbox((pen.bbox.top_left_x, pen.bbox.top_left_y), wrapped, fonts.regular)
 
-    if pil_bbox[3] > bbox.bottom_right_y:
-        pen.reset(bbox.top_left_x, bbox.top_left_y)
+    if pil_bbox[3] > pen.bbox.bottom_right_y:
+        pen.reset(pen.bbox.top_left_x, pen.bbox.top_left_y)
         return ''
     return wrapped
 
@@ -218,6 +256,8 @@ def find_optimal_font_size(text: str, bbox: BoundingBox, text_type: TextType,
 
     inital_font = ImageFont.truetype(FONT_PATH_REGULAR, min_size, ImageFont.Layout.BASIC)
     temp_pen = Pen(inital_font, QUOTE_COLOR)
+    temp_pen.bbox = bbox
+    temp_pen.text = text
 
     # use binary search to find optimal font size
     while min_size <= max_size:
@@ -232,7 +272,7 @@ def find_optimal_font_size(text: str, bbox: BoundingBox, text_type: TextType,
             credit=ImageFont.truetype(FONT_PATH_CREDIT, mid_size, ImageFont.Layout.BASIC)
         )
         temp_pen.font = fonts.regular
-        lines = wrap_text(text, bbox, fonts, temp_pen)
+        lines = wrap_text(text, fonts, temp_pen)
         if lines:
             optimal_size = mid_size
             min_size = mid_size + 1
@@ -252,36 +292,33 @@ def find_optimal_font_size(text: str, bbox: BoundingBox, text_type: TextType,
     return (optimal_size, best_fit_lines)
 
 
-def write_in_bbox(text: str, bbox: BoundingBox, text_type: TextType, img: Image.Image, pen: Pen,
-                  timestr: Optional[str] = ""):
+def write_in_bbox(img: Image.Image, pen: Pen, timestr: Optional[str] = ""):
     '''Write a given string into a bounding box.
 
     Args:
-        text (str): The text to write inside of the bounding box.
-        bbox (BoundingBox): The bounding box that the string will fill.
         img (Image.Image): The Image to write the text on.
         timestr (Optional[str]): A substring that contains the quote's time.
     '''
     # wrap the timestr with '|' so that we can find it again when drawing each word.
     timestr_begin, timestr_end = -1, -1
-    if timestr:
+    if pen.text_type == TextType.QUOTE and timestr:
         try:
-            timestr_begin = text.lower().index(timestr.lower())
+            timestr_begin = pen.text.lower().index(timestr.lower())
             timestr_end = timestr_begin + len(timestr)
-            temp_words = text[:timestr_begin]
-            temp_words += f'{DelimitingCharacters.TIMESTR}{text[timestr_begin:timestr_end]}{DelimitingCharacters.TIMESTR}'
-            temp_words += text[timestr_end:]
-            text = temp_words
+            temp_words = pen.text[:timestr_begin]
+            temp_words += f'{CharacterDelimiters.TIMESTR}{pen.text[timestr_begin:timestr_end]}{CharacterDelimiters.TIMESTR}'
+            temp_words += pen.text[timestr_end:]
+            pen.text = temp_words
         except ValueError as exc:
-            logging.error('Timestring doesn\'t match or isn\'t found in quote starting with "%s..."', text[:30])
+            logging.error('Timestring doesn\'t match or isn\'t found in quote starting with "%s..."', pen.text[:30])
             raise LookupError from exc
 
-    pen.font.size, wrapped_lines = find_optimal_font_size(text, bbox, text_type, timestr)
+    pen.font.size, wrapped_lines = find_optimal_font_size(pen.text, pen.bbox, pen.text_type, timestr)
     print(f'optimal fontsize: {pen.font.size}')
 
     if pen.font.size <= MIN_FONT_SIZE:
-        bbox_repr = repr(bbox)
-        logging.error('Text starting with "%s..." is too long and doesn\'t fit in bbox=%s with minimum font=%i',text[:30], bbox_repr, MIN_FONT_SIZE)
+        bbox_repr = repr(pen.bbox)
+        logging.error('Text starting with "%s..." is too long and doesn\'t fit in bbox=%s with minimum font=%i',pen.text[:30], bbox_repr, MIN_FONT_SIZE)
 
     fonts = Fonts(
         regular=ImageFont.truetype(FONT_PATH_REGULAR, pen.font.size, ImageFont.Layout.BASIC),
@@ -291,15 +328,15 @@ def write_in_bbox(text: str, bbox: BoundingBox, text_type: TextType, img: Image.
         credit=ImageFont.truetype(FONT_PATH_CREDIT, pen.font.size, ImageFont.Layout.BASIC)
     )
 
-    pen.color = QUOTE_COLOR if text_type == TextType.QUOTE else TIME_COLOR
-    pen.y = bbox.top_left_y
+    pen.coords['y'] = pen.bbox.top_left_y
+    #for line in wrapped_lines.splitlines():
     for line in wrapped_lines.splitlines():
-        pen.x = bbox.top_left_x
+        pen.coords['x'] = pen.bbox.top_left_x
         words = line.split()
         for word in words:
             draw_word(img, word, fonts, pen)
         # TODO: Replace with get_lineheight()
-        pen.y += int(pen.font.getbbox("A")[3] + 4)
+        pen.coords['y'] += int(pen.font.getbbox("A")[3] + 4)
 
 
 def generate_img(index: int, time: str, quote: str, timestring: str, author: str, title: str,
@@ -335,8 +372,9 @@ def generate_img(index: int, time: str, quote: str, timestring: str, author: str
     )
 
     if include_credits:
-        cred_bbox = BoundingBox(
-            top_left_x=int(SCREEN_WIDTH * 0.45),
+        pen.text_type = TextType.CREDITS
+        pen.bbox = BoundingBox(
+            top_left_x=int(SCREEN_WIDTH * 0.45), # adjust the magic numbers as needed.
             top_left_y=int(SCREEN_HEIGHT * 0.85),
             bottom_right_x=int(SCREEN_WIDTH),
             bottom_right_y=int(SCREEN_HEIGHT * 0.99)
@@ -345,32 +383,43 @@ def generate_img(index: int, time: str, quote: str, timestring: str, author: str
         # Write the credits onto the image, then resize the quote's bbox to end just above the top
         # of the credit's bbox
         quote_credit = f'—{title.strip()}, {author.strip()}'
-        write_in_bbox(quote_credit, cred_bbox, TextType.CREDITS, quote_image, pen)
-        quote_bbox.bottom_right_y = int(cred_bbox.top_left_y * 0.99)
+        pen.text = quote_credit
+        write_in_bbox(quote_image, pen)
+        quote_bbox.bottom_right_y = int(pen.bbox.top_left_y * 0.99) # resize to above credit bbox
 
-    write_in_bbox(quote, quote_bbox, TextType.QUOTE, quote_image, pen, timestring)
+    pen.bbox = quote_bbox
+    pen.text = quote
+    pen.text_type = TextType.QUOTE
+    write_in_bbox(quote_image, pen, timestring)
     quote_image.show()
 
 
 if __name__ == "__main__":
-    #TIME = '12:00'
-    #QUOTE = 'The man crawled across a dune top. He was a mote caught in the glare of the noon sun.'
-    #TIMESTRING = 'noon'
-    #AUTHOR = 'Frank Herbert'
-    #TITLE = 'Dune'
+    TIME = '12:00'
+    QUOTE = 'The man crawled across a dune top. ⇇He was a mote caught in the glare of the noon ⏎sun. Hi'
+    TIMESTRING = 'noon'
+    AUTHOR = 'Frank Herbert'
+    TITLE = 'Dune'
 
     #TIME = '06:21'
-    #QUOTE = "The whipped mules dragged the wagon on through a flooded branch that submerged thirty yards of the road and stood up around the bushes and tree-trunks on either side so that they had no rootage, and I watched where and how deep the wheels went while I idled the motor and lighter Gudger's and my own cigarette. It was twenty-one past six."
+    ##QUOTE = "The whipped mules dragged the wagon on through a flooded branch that submerged thirty yards of the road and stood up around the bushes and tree-trunks on either side so that they had no rootage, and I watched where and how deep the wheels went while I idled the motor and lighter Gudger's and my own cigarette. It was twenty-one past six."
     #QUOTE = "It’s twenty-◻one◻ ◻past◻ six. This B◻◯is◻a◯n, ◯te◯◻st◯i◯◻ng, string."
     #TIMESTRING = "twenty-one past six"
     #AUTHOR = "James Agee and Walker Evans"
     #TITLE = 'Let Us Now Praise Famous Men'
 
-    TIME='02:00'
-    QUOTE='Henry held out his hand for the note, which Victoria gave over in exchange for a Sweet Caporal. There were only four words: ◻Tomorrow morning. 2 o’clock◻.'
-    TIMESTRING='2 o’clock'
-    TITLE='Full Dark, No Stars'
-    AUTHOR='Stephen King'
+    #TIME='02:00'
+    #QUOTE='Henry held out his hand for the note, which Victoria gave over in exchange for a Sweet Caporal. ⇇There were only four words: ◻Tomorrow morning. 2 o’clock◻.'
+    #TIMESTRING='2 o’clock'
+    #TITLE='Full Dark, No Stars'
+    #AUTHOR='Stephen King'
+    #⏎
+    #⇇
+    #TIME = '12:00'
+    #QUOTE = 'Test. ⇇N ◻Test◻.'
+    #TIMESTRING = 'Test'
+    #AUTHOR = 'Frank Herbert'
+    #TITLE = 'Dune'
 
     default_font = ImageFont.truetype(FONT_PATH_REGULAR, 1, ImageFont.Layout.BASIC)
     my_pen = Pen(default_font, QUOTE_COLOR)
