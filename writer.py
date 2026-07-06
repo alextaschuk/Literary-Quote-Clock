@@ -1,4 +1,4 @@
-'''Classes and variables to handle how text is written and track where it is written.
+'''Classes and variables to handle how text is written and to track where it is written.
 
 To enable text formatting when text is written onto an image, there is a need to track the location
 of the text as it is written (to ensure it is written in the correct place and does not overlap with
@@ -18,16 +18,43 @@ class TextType(Enum):
 
 @dataclass
 class CharacterDelimiters:
-    '''Stores all deliminating characters for text formatting.'''
-    ITALIC  = '◻'        # U+25FB (White Medium Square)
-    BOLD    = '◯'        # U+25EF (Large Circle)
-    TIMESTR = '|'        # U+007C (Vertical Line)
+    '''Stores all deliminating characters for text formatting.
+    
+        Attributes:
+            ITALIC (str): Text wrapped with this delimiter is written using an *italicized* version
+             of the font.
+            BOLD (str): Text wrapped with this delimiter is written using a **bolded** version of
+             the font.
+             - Note: This can be combined with the `ITALIC` delimiter to write text that is ***bold
+              and italic***.
+            TIMESTR (str): The timestring part of the quote is automatically wrapped with this
+             delimiter.
+    '''
+    ITALIC  = '◻' # U+25FB (White Medium Square)
+    BOLD    = '◯' # U+25EF (Large Circle)
+    TIMESTR = '|' # U+007C (Vertical Line)
+
+    def __dir__(self)->list[str]:
+        '''Return a list of delimiting characters for character formatting.'''
+        return [self.ITALIC, self.BOLD, self.TIMESTR]
 
 @dataclass
 class WordDelimiters:
-    '''Stores delimiting characters for word formatting.'''
-    NEWLINE = '⏎'        # U+23CE (Return Symbol)
+    '''Stores delimiting characters for word formatting.
+    
+        Attributes:
+            NEWLINE (str): Insert a newline between the current and succeeding text. (Equivalent to
+             pressing enter/return)
+            DOUBLE_NEWLINE (str): Insert two newlines between the current and succeeding text.
+             (Equivalent to pressing enter/return twice)
+            
+    '''
+    NEWLINE        = '␤' # U+2424 (Symbol For Newline)
     DOUBLE_NEWLINE = '⇇' # U+21C7 (Leftwards Paired Arrows)
+
+    def __dir__(self)->list[str]:
+        '''Return a list of delimiting characters for word formatting.'''
+        return [self.NEWLINE, self.DOUBLE_NEWLINE]
 
 @dataclass
 class Delimiter:
@@ -87,7 +114,6 @@ class Pen:
             Delimiter(CharacterDelimiters.BOLD),
             Delimiter(CharacterDelimiters.TIMESTR)
             ]
-        self.t: int
 
 
     def reset(self, x_pos:int, y_pos:int):
