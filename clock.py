@@ -190,12 +190,11 @@ if __name__ == '__main__':
         clock.epd.Clear()
 
         logging.info('Displaying startup screen')
-        try:
-            with Image.open('startup.bmp') as startup_img:
-                clock.epd.display(clock.epd.getbuffer(startup_img)) # display a startup screen
-            clock.epd.sleep() # put the screen to sleep
-        except FileNotFoundError:
-            logging.error('Error! startup.bmp image not found')
+        STARTUP_MSG = 'Literary Quote Clock is Starting…'
+        startup_row = {'quote':STARTUP_MSG, 'timestring':STARTUP_MSG, 'title':'', 'author':''}
+        startup_img = generate_img(startup_row, False, clock.pen)
+        clock.epd.display(clock.epd.getbuffer(startup_img)) # display the startup screen
+        clock.epd.sleep() # put the screen to sleep
 
         time.sleep(30) # wait for the PI's system clock to update (it has no RTC)
         clock.curr_image = clock.get_image(quote_time=datetime.now()) # get the first image
