@@ -68,10 +68,11 @@ class Clock:
             logging.error('Missing quote for %s', formatted_time)
 
         row = usable_rows[random.randrange(0, len(usable_rows))] # the selected quote to display
-        logging.info(f'selected quote for {formatted_time}: {row}')
+        logging.info('selected quote for %s: %s', formatted_time, row['quote'])
 
         quote_image = generate_img(row, include_metadata, self.pen)
         logging.info('get_image() finished at %s.', str(datetime.now()))
+        self.pen.reset(self.pen.bbox.top_left_x, self.pen.bbox.top_left_y) # reset for the next img
         return quote_image
 
 
@@ -89,10 +90,9 @@ class Clock:
             # get the quotes that will be displayed one, two, and three minutes after current quote
             if quote_time.minute == 59: # if it's the 59th minute of the hour (e.g. 11:59)
                 quote_time = quote_time.replace(minute=0,second=0, microsecond=0) + timedelta(hours=1) # set the time to the next hour (e.g. 12:00)
-            else: # it is not the 59 minute (e.g. 13:21), so we only need the next minute
+            else: # it is not the 59 minute, so we only need the next minute (e.g. 13:21)
                 quote_time = quote_time.replace(second=0) + timedelta(minutes=1) # set time to one minute from now (13:22)
-            self.quote_buffer.append(self.get_image(quote_time=quote_time)) # add new quote
-            self.pen.reset(self.pen.bbox.top_left_x, self.pen.bbox.top_left_y)
+            self.quote_buffer.append(self.get_image(quote_time=quote_time))
         logging.info('init_buffer() finished at %s.', str(datetime.now()))
 
 
@@ -118,7 +118,6 @@ class Clock:
 
         self.quote_buffer.append(self.get_image(quote_time=quote_time)) # generate image and add to buffer
         self.quote_buffer.pop(0) # remove the current quote from buffer
-        self.pen.reset(self.pen.bbox.top_left_x, self.pen.bbox.top_left_y)
         logging.info('update_buffer() finished at %s. Image for %s:%s added.', str(datetime.now()), str(quote_time.hour), str(quote_time.minute))
 
 
@@ -198,7 +197,6 @@ if __name__ == '__main__':
 
         time.sleep(30) # wait for the PI's system clock to update (it has no RTC)
         clock.curr_image = clock.get_image(quote_time=datetime.now()) # get the first image
-        clock.pen.reset(clock.pen.bbox.top_left_x, clock.pen.bbox.top_left_y)
         try:
             while True:
                 signal.signal(signal.SIGINT, signal_handler)
@@ -211,7 +209,7 @@ if __name__ == '__main__':
             clock.epd.init()
             clock.epd.Clear()
             clock.epdconfig.module_exit(cleanup=True)
-            exit()
+            sys.exit(0)
 
     except KeyboardInterrupt as e:
         logging.info(f'program interrupted: {e}')
@@ -219,4 +217,4 @@ if __name__ == '__main__':
         clock.epd.init() # wake the screen so that it can be cleared
         clock.epd.Clear()
         clock.epdconfig.module_exit(cleanup=True)
-        exit()
+        sys.exit(0)
