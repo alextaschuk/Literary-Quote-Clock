@@ -7,7 +7,6 @@ needed.
 
 TODO:
 - see if it's worth it/possible to make global Fonts object
-- add logic to choose screen orientation (horizontal vs vertical)
 - update README
 - add logic to split credits into two lines
 - write tests
@@ -35,15 +34,21 @@ from typing import Optional
 
 from PIL import Image, ImageDraw, ImageFont
 
-from writer import BoundingBox, CharacterDelimiters, WordDelimiters, Fonts, Pen, TextType
+from writer import BoundingBox
+from writer import CharacterDelimiters
+from writer import Fonts
+from writer import FontPath
+from writer import Pen
+from writer import TextType
+from writer import WordDelimiters
+from writer import MIN_FONT_SIZE
+from writer import MAX_FONT_SIZE
 
 logging.basicConfig(level=logging.DEBUG)
-
 
 '''Screen Config'''
 SCREEN_WIDTH  = 800
 SCREEN_HEIGHT = 480
-
 
 '''Image Config'''
 # color is in RGB
@@ -52,22 +57,12 @@ QUOTE_COLOR  = 128 # non-timestring text is grey
 TIME_COLOR   = 0   # timestring text is black
 CREDIT_COLOR = 0   # credit text is black
 
-QUOTES_PATH  = 'quotes.csv'
+QUOTES_PATH  = 'misc/test.csv'
 IMAGE_PATH = 'images/'
 
 # for a list of all image formats that Pillow supports, see
 # https://pillow.readthedocs.io/en/stable/handbook/image-file-formats.html#fully-supported-formats
 IMAGE_FORMAT = 'bmp'
-
-'''Text Config'''
-FONT_PATH_REGULAR     = 'fonts/Bookerly.ttf'                # non-timestring words
-FONT_PATH_BOLD        = 'fonts/Bookerly-Bold.ttf'           # timestring words
-FONT_PATH_ITALIC      = 'fonts/Bookerly-Italic.ttf'         # italicized words
-FONT_PATH_ITALIC_BOLD = 'fonts/Bookerly-Bold-Italic.ttf'    # italicized timestring words
-FONT_PATH_CREDIT      = FONT_PATH_BOLD # for the quote's book title and author
-
-MIN_FONT_SIZE = 12
-MAX_FONT_SIZE = 150
 
 def format_char(char:str, fonts:Fonts, pen:Pen) -> str:
     '''Determine the font and color to write a character with.
@@ -118,8 +113,7 @@ def format_word(word:str, lines:list[str], word_len:int, pen:Pen):
     Args:
         word (str): The word to be formatted.
         lines (list[str]): Each element represents a line of text.
-        word_len (int): The length (in pixels) of the text
-         - NOT `len(word)`
+        word_len (int): The length (in pixels) of the text (**NOT** `len(word)`!!)
         pen (Pen): The pen used to write the word.
     '''
     add_line = False
@@ -132,7 +126,6 @@ def format_word(word:str, lines:list[str], word_len:int, pen:Pen):
         pen.coords['y'] += 2 * int(pen.font.getbbox("A")[3] + 4)
         add_line = True
         lines.append(' ')
-        # need to fix.
 
     if pen.coords['x'] + word_len > pen.bbox.bottom_right_x or add_line:
         # move to the next line, add the current word to the line, and reset x coord
@@ -188,7 +181,8 @@ def wrap_text(text: str, fonts: Fonts, pen: Pen) -> str:
     lines: list[str] = [""]
     pen.coords['x'] = pen.bbox.top_left_x
     pen.coords['y'] = pen.bbox.top_left_y
-    # iterate over the text character-by-character and try to place each word on the current line.
+
+    # Iterate over the text character-by-character and try to place each word on the current line.
     # If the word cannot fit, move down one line and place it there instead. Then, move the pen
     # right to write the next word.
     words = text.split()
@@ -217,7 +211,8 @@ def wrap_text(text: str, fonts: Fonts, pen: Pen) -> str:
     wrapped = '\n'.join(lines)
 
     # verify that the wrapping fits
-    # TODO figure out how pillow calculates bbox and manually implement height calculation so that i dont have to make all of these objects each time
+    # TODO: figure out how pillow calculates bbox and manually implement height calculation so that
+    # I dont have to make all of these objects each time
     temp_img = Image.new(mode='L', size=(SCREEN_WIDTH, SCREEN_HEIGHT), color=BG_COLOR)
     canvas = ImageDraw.Draw(temp_img)
     pil_bbox = canvas.multiline_textbbox((pen.bbox.top_left_x, pen.bbox.top_left_y), wrapped, fonts.regular)
@@ -228,7 +223,7 @@ def wrap_text(text: str, fonts: Fonts, pen: Pen) -> str:
     return wrapped
 
 
-def find_optimal_font_size(text: str, bbox: BoundingBox, text_type: TextType):
+def find_optimal_font_size(text: str, bbox: BoundingBox, text_type: TextType) -> tuple[int, str]:
     '''Find the maximum possible font size that the text can be written in for a given bounding box.
 
     Args:
@@ -237,18 +232,17 @@ def find_optimal_font_size(text: str, bbox: BoundingBox, text_type: TextType):
         text_type (TextType): Tells the function if the text is a quote or credits.
 
     Returns:
-        Tuple (int, str): If a valid font size is found, the tuple contains the optimal font size
+        tuple ([int, str]): If a valid font size is found, the tuple contains the optimal font size
         and a string containing the text broken up with newline delimiters to fit in the bbox
         horizontally. If the text cannot fit in the bbox with a font size >= `MIN_FONT_SIZE`, the
-        tuple contains `(0, '')`.
+        tuple contains `[0, '']`.
     '''
     min_size = MIN_FONT_SIZE
     max_size = MAX_FONT_SIZE
     optimal_size = 0
     best_fit_lines = ""
 
-    inital_font = ImageFont.truetype(FONT_PATH_REGULAR, min_size, ImageFont.Layout.BASIC)
-    temp_pen = Pen(inital_font, QUOTE_COLOR)
+    temp_pen = Pen()
     temp_pen.bbox = bbox
     temp_pen.text = text
 
@@ -258,11 +252,11 @@ def find_optimal_font_size(text: str, bbox: BoundingBox, text_type: TextType):
         lines = ""
 
         fonts = Fonts(
-            regular=ImageFont.truetype(FONT_PATH_REGULAR, mid_size, ImageFont.Layout.BASIC),
-            bold=ImageFont.truetype(FONT_PATH_BOLD, mid_size, ImageFont.Layout.BASIC),
-            italic=ImageFont.truetype(FONT_PATH_ITALIC, mid_size, ImageFont.Layout.BASIC),
-            italic_bold=ImageFont.truetype(FONT_PATH_ITALIC_BOLD, mid_size, ImageFont.Layout.BASIC),
-            credit=ImageFont.truetype(FONT_PATH_CREDIT, mid_size, ImageFont.Layout.BASIC)
+            regular=ImageFont.truetype(FontPath.REGULAR, mid_size, ImageFont.Layout.BASIC),
+            bold=ImageFont.truetype(FontPath.BOLD, mid_size, ImageFont.Layout.BASIC),
+            italic=ImageFont.truetype(FontPath.ITALIC, mid_size, ImageFont.Layout.BASIC),
+            italic_bold=ImageFont.truetype(FontPath.ITALIC_BOLD, mid_size, ImageFont.Layout.BASIC),
+            credit=ImageFont.truetype(FontPath.CREDIT, mid_size, ImageFont.Layout.BASIC)
         )
         temp_pen.font = fonts.regular
         lines = wrap_text(text, fonts, temp_pen)
@@ -285,14 +279,14 @@ def find_optimal_font_size(text: str, bbox: BoundingBox, text_type: TextType):
     return (optimal_size, best_fit_lines)
 
 def find_timestr_indices(pen:Pen, timestr: str):
-    '''Find the index that the timestring begins and ends in the quote.'''
+    '''Find the indices where the timestring begins and ends in the quote.'''
     timestr_begin = pen.text.lower().index(timestr.lower())
     timestr_end = timestr_begin + len(timestr)
     return (timestr_begin, timestr_end)
 
 
 def write_in_bbox(img: Image.Image, pen: Pen, timestr: Optional[str] = ""):
-    '''Write a given string into a bounding box.
+    '''Write text inside of a bounding box.
 
     Args:
         img (Image.Image): The Image to write the text on.
@@ -302,10 +296,10 @@ def write_in_bbox(img: Image.Image, pen: Pen, timestr: Optional[str] = ""):
     Raises:
         ValueError: `timestr` is passed in by the caller, but is not present in the quote.
     '''
-    # wrap the timestr with '|' so that we can find it again when drawing each word.
-    # write an error message instead if the timestring isn't found.
-    timestr_begin, timestr_end = -1, -1
+    # Wrap the timestr with '|' so that we can find it again when drawing each word.
+    # Write an error message instead if the timestring isn't found.
     if pen.text_type == TextType.QUOTE and timestr:
+        timestr_begin, timestr_end = -1, -1
         try:
             timestr_begin, timestr_end = find_timestr_indices(pen, timestr)
         except ValueError:
@@ -321,18 +315,19 @@ def write_in_bbox(img: Image.Image, pen: Pen, timestr: Optional[str] = ""):
         quote += pen.text[timestr_end:]
         pen.text = quote
 
-    pen.font.size, wrapped_lines = find_optimal_font_size(pen.text, pen.bbox, pen.text_type)
 
-    if pen.font.size <= MIN_FONT_SIZE:
+    optimal_fontsize, wrapped_lines = find_optimal_font_size(pen.text, pen.bbox, pen.text_type)
+
+    if optimal_fontsize <= MIN_FONT_SIZE:
         bbox_repr = repr(pen.bbox)
         logging.error('Text starting with "%s..." is too long and doesn\'t fit in bbox=%s with minimum font=%i',pen.text[:30], bbox_repr, MIN_FONT_SIZE)
 
     fonts = Fonts(
-        regular=ImageFont.truetype(FONT_PATH_REGULAR, pen.font.size, ImageFont.Layout.BASIC),
-        bold=ImageFont.truetype(FONT_PATH_BOLD, pen.font.size, ImageFont.Layout.BASIC),
-        italic=ImageFont.truetype(FONT_PATH_ITALIC, pen.font.size, ImageFont.Layout.BASIC),
-        italic_bold=ImageFont.truetype(FONT_PATH_ITALIC_BOLD, pen.font.size, ImageFont.Layout.BASIC),
-        credit=ImageFont.truetype(FONT_PATH_CREDIT, pen.font.size, ImageFont.Layout.BASIC)
+        regular=ImageFont.truetype(FontPath.REGULAR, optimal_fontsize, ImageFont.Layout.BASIC),
+        bold=ImageFont.truetype(FontPath.BOLD, optimal_fontsize, ImageFont.Layout.BASIC),
+        italic=ImageFont.truetype(FontPath.ITALIC, optimal_fontsize, ImageFont.Layout.BASIC),
+        italic_bold=ImageFont.truetype(FontPath.ITALIC_BOLD, optimal_fontsize, ImageFont.Layout.BASIC),
+        credit=ImageFont.truetype(FontPath.CREDIT, optimal_fontsize, ImageFont.Layout.BASIC)
     )
 
     pen.coords['y'] = pen.bbox.top_left_y
@@ -378,16 +373,16 @@ def generate_img(row:dict, include_credits:bool, pen:Pen) -> Image.Image:
     )
 
     if include_credits:
+        # Write the credits onto the image, then resize the quote's bbox to end just above the top
+        # of the credit's bbox
         pen.text_type = TextType.CREDITS
         pen.bbox = BoundingBox(
-            top_left_x=int(SCREEN_WIDTH * 0.45), # adjust the magic numbers as needed.
+            top_left_x=int(SCREEN_WIDTH * 0.45), # adjust these magic numbers as needed.
             top_left_y=int(SCREEN_HEIGHT * 0.85),
             bottom_right_x=int(SCREEN_WIDTH),
             bottom_right_y=int(SCREEN_HEIGHT * 0.99)
         )
 
-        # Write the credits onto the image, then resize the quote's bbox to end just above the top
-        # of the credit's bbox
         quote_credit = f'—{title.strip()}, {author.strip()}'
         pen.text = quote_credit
         write_in_bbox(quote_image, pen)
@@ -397,12 +392,12 @@ def generate_img(row:dict, include_credits:bool, pen:Pen) -> Image.Image:
     pen.text = quote
     pen.text_type = TextType.QUOTE
     write_in_bbox(quote_image, pen, timestring)
+    pen.reset(pen.bbox.top_left_x, pen.bbox.top_left_y) # reset for the next img
     return quote_image
 
 
 if __name__ == "__main__":
-    default_font = ImageFont.truetype(FONT_PATH_REGULAR, 1, ImageFont.Layout.BASIC)
-    my_pen = Pen(default_font, QUOTE_COLOR)
+    my_pen = Pen()
 
     try:
         if not path.exists(IMAGE_PATH):
