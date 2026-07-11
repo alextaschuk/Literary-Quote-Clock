@@ -127,7 +127,7 @@ In my case, each style of a font needs its own font file. Since each quote is pa
 
 #### Italic '`◻`' (White Medium Square, `U+25FB`) 
 
-Wrap a substring with this character to *italicize it*.
+Wrap a substring with this character to *italicize* it.
 
 For example, the CSV stores:
 
