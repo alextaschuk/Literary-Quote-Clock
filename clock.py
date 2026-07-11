@@ -7,11 +7,10 @@ import signal
 import sys
 import time
 
-from PIL import Image, ImageFont
+from PIL import Image
 
-# Waveshare's library for their 7.5 inch screen
-from waveshare_libraries import epd7in5_V2
-from image_generator import generate_img, QUOTE_COLOR, QUOTES_PATH, FONT_PATH_REGULAR
+from waveshare_libraries import epd7in5_V2 # Waveshare's library for their 7.5 inch screen
+from image_generator import generate_img, QUOTES_PATH
 from writer import Pen
 
 logging.basicConfig(level=logging.DEBUG)
@@ -38,9 +37,7 @@ class Clock:
     def __init__(self):
         self.quote_buffer: list[Image.Image] = []
         self.epd = epd7in5_V2.EPD()
-
-        default_font = ImageFont.truetype(FONT_PATH_REGULAR, 1, ImageFont.Layout.BASIC)
-        self.pen = Pen(default_font, QUOTE_COLOR)
+        self.pen = Pen()
         logging.info('created clock obj.')
 
     def get_image(self, quote_time: datetime) -> Image.Image:
@@ -55,7 +52,6 @@ class Clock:
         Raises:
             FileNotFoundError: The path to the CSV of quotes is invalid.
         '''
-        #logging.info('get_image() called at %s.', str(datetime.now()))
         minute = '0' + str(quote_time.minute) if quote_time.minute < 10 else str(quote_time.minute)
         hour = '0' + str(quote_time.hour) if quote_time.hour < 10 else str(quote_time.hour)
         formatted_time = f'{hour}:{minute}'  # e.g. '13:45'
@@ -72,6 +68,7 @@ class Clock:
                         usable_rows.append(row)
         except FileNotFoundError:
             logging.error('File %s not found', QUOTES_PATH)
+            sys.exit(0)
 
         # display an error message to the clock if quote is missing
         if not usable_rows:
@@ -81,18 +78,16 @@ class Clock:
             logging.error('Missing quote for %s', formatted_time)
 
         row = usable_rows[random.randrange(0, len(usable_rows))]
-        logging.info('selected quote for %s: %s', formatted_time, row['quote'])
+        logging.info('Selected a quote for %s: "%s..."', formatted_time, row['quote'][:50])
 
         quote_image = generate_img(row, include_metadata, self.pen)
-        self.pen.reset(self.pen.bbox.top_left_x, self.pen.bbox.top_left_y) # reset for the next img
-        #logging.info('get_image() finished at %s.', str(datetime.now()))
         return quote_image
 
     def refresh_buffer(self):
-        '''Append the clock's buffer with one or more new images of quotes.
+        '''Update the clock's buffer with one or more new images of quotes.
         
-        If the buffer is full, the image at index 0 (the image that is currently displayed) is
-        removed before adding new quote(s).
+        First, the image at the front of the buffer is removed (it is for the previous minute). Then,
+        new quote(s) are added until the number of quotes in the buffer matches `BUFFER_SIZE`.
         '''
         del self.quote_buffer[0]
         curr_time = datetime.now()
@@ -105,7 +100,6 @@ class Clock:
             if difference <= 0:
                 quote_time = quote_time.replace(minute=abs(difference)) + timedelta(hours=1)
             else:
-                print(f'adding quote for time {quote_time.minute + len(self.quote_buffer)}')
                 quote_time = quote_time.replace(minute=quote_time.minute + len(self.quote_buffer))
             self.quote_buffer.append(self.get_image(quote_time))
 
@@ -126,7 +120,7 @@ class Clock:
 
 
     def wipe_screen(self):
-        '''wipe the screen when something breaks'''
+        '''Wipe the screen when something breaks to prevent ghosting.'''
         logging.info("clearing the screen…\n")
         self.epd.init()  # wake the screen so that it can be cleared
         self.epd.Clear()
@@ -140,11 +134,10 @@ class Clock:
 
         1. If it is the 59th minute of the hour, perform a full refresh. This helps prevent ghosting
         and increases the screen's lifespan.
-        2. The image at the front of the clock's buffer is displayed on the screen.
-        3. The clock's buffer is updated, removing the currently displayed image and appending a new
-         image to the back of the buffer.
-        4. The clock sleeps until the next minute. This is called one second early because of
-        processing time to update the screen with the next image.
+        2. Display the image at the front of the clock's buffer on the screen.
+        3. Update the clock's buffer.
+        4. Sleep until the next minute. This is called one second early because of processing time
+        to update the screen with the next image.
         '''
         if datetime.now().minute == 59:
             logging.info('An hour has passed. Performing full refresh on screen.')
@@ -159,12 +152,13 @@ class Clock:
 
 def signal_handler(sig, frame):
     '''
-    This function listens for `SIGINT` signals from the user. We use this because
-    sending a `sudo shutdown -h now` command over SSH to the PI doesn't sent a
-    `SIGINT` signal to the program, telling it to shutdown (i.e., clear the screen).
-    I'm not totally sure why `sudo shutdown -h now` only triggers the program's
-    shutdown process when sent directly from the PI and not over SSH, but this is my
-    workaround to the issue.
+    Listen for `SIGINT` signals from the user.
+    
+    For some reason, sending a `sudo shutdown -h now` command over SSH to the Pi doesn't sent a
+    `SIGINT` signal to the program, telling it to shutdown (i.e., clear the screen). I'm not totally
+    sure why `sudo shutdown -h now` only triggers the program's shutdown process when sent directly
+    from the Pi and not over SSH, but this is my workaround to the issue.
+    - Code adapted from https://stackoverflow.com/a/1112350
     '''
     logging.info('sigint() called. Shutting clock down…\n')
     signal.signal(sig, signal.SIG_IGN)  # ignore additional signals
@@ -187,15 +181,17 @@ if __name__ == '__main__':
         clock.epd.display(clock.epd.getbuffer(startup_img))
         clock.epd.sleep()
 
-        time.sleep(30) # wait for the PI's system clock to update after powering on (it has no RTC)
+        time.sleep(3) # wait for the Pi's system clock to update after powering on (it has no RTC)
         first_img = clock.get_image(datetime.now())
         clock.quote_buffer.append(first_img)
 
-        try: # catch anything missed so that the screen can be cleared before the program exits
+        # This is bad practice, but it ensures that anything I might've missed is caught
+        # so that the screen can be cleared before the program exits.
+        try:
             while True:
                 signal.signal(signal.SIGINT, signal_handler)
                 clock.main()
-        except BaseException as e:
+        except Exception as e:
             logging.info('An error occured: %s', str(e))
             clock.wipe_screen()
             sys.exit(0)
