@@ -6,24 +6,27 @@ object for a single quote, import the `generate_img()` function into your file a
 needed.
 
 TODO:
-        - add logic for parsing CSV
-        - add logic for saving each image / returning one image
-        - add functionality for newline and double newline
-    - see if it's worth it/possible to make global Fonts object
-    - add logic to choose screen orientation (horizontal vs vertical)
-    - update README
-        - fix logic so that the color of credit text is correct
-    - add logic to split credits into two lines
-    - write tests
-        - fix formatting in quotes.csv and my-quotes.csv
-    - (for future) match delimiters to markdown (will need to handle instances where, e.g., * is
-    actually used)
-    - add check if quote has any formatting at all. if not, write entire quote word-by-word instead.
-        - change timestr check to return error message if it's missing
-    - find better delim chars for newline and double newline
+- see if it's worth it/possible to make global Fonts object
+- add logic to choose screen orientation (horizontal vs vertical)
+- update README
+- add logic to split credits into two lines
+- write tests
+- (for future) match delimiters to markdown (will need to handle instances where, e.g., * is
+actually used) -- can use one delim for bold and italic. just track total number seen. if
+num % 2 == 0 then bold otherwise italic if num > 0
+- add check if quote has any formatting at all. if not, write entire quote word-by-word instead.
+- find better delim chars for ~~newline~~ and double newline
+- the quote and the credits because the text wrapper only really checks for horizontal wrapping,
+so sometimes a quote fits better horizontally, but a bigger font may be usable if wrapping is
+used earlier. Figure out a way to wrap text that takes horizontal and vertical wrapping into
+consideration. Another (worse) option is to resize the credit bbox to just above the bottom of
+the quote's text, after drawing the quote, giving it more space. Maybe check if there is 1 line
+of space between the quote and credit bboxes. If there is, wrap the last word of the first line
+onto the second line, pushing everything down by one... but this would force you to reduce
+fontsize by at least 1... so idk. or increase fontsize by 1 and reduce the bbox size?
+    - See "And you keep quiet, Betty..." (02:48). The credit bbox is also weird for this quote.
 '''
 import csv
-from enum import Enum
 import logging
 import os
 from os import path
@@ -35,13 +38,6 @@ from PIL import Image, ImageDraw, ImageFont
 from writer import BoundingBox, CharacterDelimiters, WordDelimiters, Fonts, Pen, TextType
 
 logging.basicConfig(level=logging.DEBUG)
-
-class ImageOutput(Enum):
-    '''Determine what `generate_img()` should do with each generated image: save it to an /images
-    folder, or return an `Image` object.
-    '''
-    SAVE   = 1  # save images to an /images folder
-    RETURN = 2  # return an Image object from TurnQuoteIntoImage()
 
 
 '''Screen Config'''
@@ -56,7 +52,6 @@ QUOTE_COLOR  = 128 # non-timestring text is grey
 TIME_COLOR   = 0   # timestring text is black
 CREDIT_COLOR = 0   # credit text is black
 
-OUTPUT      = ImageOutput.SAVE  # should the main function save an image, or return it?
 QUOTES_PATH  = 'quotes.csv'
 IMAGE_PATH = 'images/'
 
@@ -94,7 +89,7 @@ def format_char(char:str, fonts:Fonts, pen:Pen) -> str:
     # check each delimiter and update their counters as needed, along with the pen's font and color
     for delim in pen.char_delimiters:
         if char in (dir(WordDelimiters())):
-            return '' # TODO: replace to check all attributes in WordDelimiters
+            return ''
         if char == delim.character:
             delim.count += 1
             char = ''
@@ -303,6 +298,9 @@ def write_in_bbox(img: Image.Image, pen: Pen, timestr: Optional[str] = ""):
         img (Image.Image): The Image to write the text on.
         pen (Pen): The pen used to write the quote.
         timestr (Optional[str]): A substring that contains the quote's time.
+
+    Raises:
+        ValueError: `timestr` is passed in by the caller, but is not present in the quote.
     '''
     # wrap the timestr with '|' so that we can find it again when drawing each word.
     # write an error message instead if the timestring isn't found.
@@ -347,7 +345,7 @@ def write_in_bbox(img: Image.Image, pen: Pen, timestr: Optional[str] = ""):
         pen.coords['y'] += int(pen.font.getbbox("A")[3] + 4)
 
 
-def generate_img(row:dict, include_credits:bool, pen:Pen):
+def generate_img(row:dict, include_credits:bool, pen:Pen) -> Image.Image:
     '''Generate an image of a single quote.
 
     The quote's credits are first drawn onto the image (optional), constrained by the
@@ -361,12 +359,12 @@ def generate_img(row:dict, include_credits:bool, pen:Pen):
         pen (Pen): The pen used to write the quote.
 
     Returns:
-        Image: An image with the quote and credits drawn on it.
+        quote_image (Image.Image): An image with the quote and credits drawn on it.
     '''
     quote = row['quote']
     timestring = row['timestring']
-    author = row['author']
     title = row['title']
+    author = row['author']
 
     # mode='L' constrains the image to 8-bit grayscale
     quote_image = Image.new(mode='L', size=(SCREEN_WIDTH, SCREEN_HEIGHT), color=BG_COLOR)
@@ -406,41 +404,40 @@ if __name__ == "__main__":
     default_font = ImageFont.truetype(FONT_PATH_REGULAR, 1, ImageFont.Layout.BASIC)
     my_pen = Pen(default_font, QUOTE_COLOR)
 
-    if OUTPUT == ImageOutput.SAVE:
-        try:
-            if not path.exists(IMAGE_PATH):
-                print('/images folder not found. Creating new folder…')
-                os.mkdir(IMAGE_PATH)
-        except OSError:
-            print('error while trying to create /images folder')
+    try:
+        if not path.exists(IMAGE_PATH):
+            print('/images folder not found. Creating new folder…')
+            os.mkdir(IMAGE_PATH)
+    except OSError:
+        print('error while trying to create /images folder')
 
-        with open(QUOTES_PATH, newline='\n', encoding='UTF-8') as csvfile:
-            num_quotes = len(csvfile.readlines()) - 1
-            csvfile.seek(0) # move file cursor to start of file
+    with open(QUOTES_PATH, newline='\n', encoding='UTF-8') as csvfile:
+        num_quotes = len(csvfile.readlines()) - 1
+        csvfile.seek(0) # move file cursor to start of file
 
-            if len(argv) > 1:
-                if argv[1].isdigit() and int(argv[1]) < num_quotes:
-                    num_quotes = int(argv[1])
+        if len(argv) > 1:
+            if argv[1].isdigit() and int(argv[1]) < num_quotes:
+                num_quotes = int(argv[1])
 
-            quotereader = csv.DictReader(csvfile, delimiter='|')
-            img_num = 0
-            previous_time = ''
-            quote_img:Image.Image
-            for i, curr_row in enumerate(quotereader):
-                if i >= num_quotes:
-                    break
+        quotereader = csv.DictReader(csvfile, delimiter='|')
+        img_num = 0
+        previous_time = ''
+        quote_img:Image.Image
+        for i, curr_row in enumerate(quotereader):
+            if i >= num_quotes:
+                break
 
-                if curr_row['time'] == previous_time:
-                    img_num += 1
-                else:
-                    img_num = 0
-                    previous_time = curr_row['time']
+            if curr_row['time'] == previous_time:
+                img_num += 1
+            else:
+                img_num = 0
+                previous_time = curr_row['time']
 
-                time = curr_row['time'].replace(':', '')
-                filepath = f'{IMAGE_PATH}quote_{time}_{img_num}.{IMAGE_FORMAT}' # e.g., images/quote_1235_2.bmp
-                filepath = path.normpath(filepath)
+            time = curr_row['time'].replace(':', '')
+            filepath = f'{IMAGE_PATH}quote_{time}_{img_num}.{IMAGE_FORMAT}' # e.g., images/quote_1235_2.bmp
+            filepath = path.normpath(filepath)
 
-                quote_img = generate_img(curr_row, True, my_pen)
-                quote_img.save(filepath)
-                progressbar = f'Creating images... {i+1}/{num_quotes}'
-                print(progressbar, end='\r', flush=True)
+            quote_img = generate_img(curr_row, True, my_pen)
+            quote_img.save(filepath)
+            progressbar = f'Creating images... {i+1}/{num_quotes}'
+            print(progressbar, end='\r', flush=True)
