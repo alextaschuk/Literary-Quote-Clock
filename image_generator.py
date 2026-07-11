@@ -57,7 +57,7 @@ QUOTE_COLOR  = 128 # non-timestring text is grey
 TIME_COLOR   = 0   # timestring text is black
 CREDIT_COLOR = 0   # credit text is black
 
-QUOTES_PATH  = 'misc/test.csv'
+QUOTES_PATH  = 'quotes.csv'
 IMAGE_PATH = 'images/'
 
 # for a list of all image formats that Pillow supports, see
