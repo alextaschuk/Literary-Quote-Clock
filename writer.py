@@ -7,9 +7,21 @@ itself or go beyond the screen).
 This module contains dataclasses that define and track delimiting characters for text formatting,
 and a `Pen` class to track which font and what color to use, when writing and where to write text.
 '''
-from enum import Enum
 from dataclasses import dataclass
+from enum import Enum
 from PIL import ImageFont
+
+'''Text Config'''
+@dataclass
+class FontPath:
+    REGULAR     = 'fonts/Bookerly.ttf'                # non-timestring words
+    BOLD        = 'fonts/Bookerly-Bold.ttf'           # timestring words
+    ITALIC      = 'fonts/Bookerly-Italic.ttf'         # italicized words
+    ITALIC_BOLD = 'fonts/Bookerly-Bold-Italic.ttf'    # italicized timestring words
+    CREDIT      = BOLD # for the quote's book title and author
+
+MIN_FONT_SIZE = 12
+MAX_FONT_SIZE = 150
 
 class TextType(Enum):
     '''Describes which part of the text is being written.'''
@@ -20,15 +32,15 @@ class TextType(Enum):
 class CharacterDelimiters:
     '''Stores all deliminating characters for text formatting.
     
-        Attributes:
-            ITALIC (str): Text wrapped with this delimiter is written using an *italicized* version
-             of the font.
-            BOLD (str): Text wrapped with this delimiter is written using a **bolded** version of
-             the font.
-             - Note: This can be combined with the `ITALIC` delimiter to write text that is ***bold
-              and italic***.
-            TIMESTR (str): The timestring part of the quote is automatically wrapped with this
-             delimiter.
+    Attributes:
+        ITALIC (str): Text wrapped with this delimiter is written using an *italicized* version
+         of the font.
+        BOLD (str): Text wrapped with this delimiter is written using a **bolded** version of
+         the font.
+         - Note: This can be combined with the `ITALIC` delimiter to write text that is ***bold
+          and italic***.
+        TIMESTR (str): The timestring part of the quote is automatically wrapped with this
+         delimiter.
     '''
     ITALIC  = '◻' # U+25FB (White Medium Square)
     BOLD    = '◯' # U+25EF (Large Circle)
@@ -42,12 +54,11 @@ class CharacterDelimiters:
 class WordDelimiters:
     '''Stores delimiting characters for word formatting.
     
-        Attributes:
-            NEWLINE (str): Insert a newline between the current and succeeding text. (Equivalent to
-             pressing enter/return)
-            DOUBLE_NEWLINE (str): Insert two newlines between the current and succeeding text.
-             (Equivalent to pressing enter/return twice)
-            
+    Attributes:
+        NEWLINE (str): Insert a newline between the current and succeeding text. (Equivalent to
+         pressing the enter/return key)
+        DOUBLE_NEWLINE (str): Insert two newlines between the current and succeeding text.
+         (Equivalent to pressing the enter/return twice)
     '''
     NEWLINE        = '␤' # U+2424 (Symbol For Newline)
     DOUBLE_NEWLINE = '⇇' # U+21C7 (Leftwards Paired Arrows)
@@ -73,9 +84,10 @@ class Fonts:
     italic_bold: ImageFont.FreeTypeFont
     credit:      ImageFont.FreeTypeFont
 
+
 @dataclass
 class BoundingBox:
-    '''Defines the top left and bottom right (x,y) coordinates of a bounding box to determine
+    '''Defines the top left and bottom right (x,y) coordinates to constrain text when determining
     optimal font size.
     '''
     top_left_x: int
@@ -88,7 +100,7 @@ class BoundingBox:
 
 
 class Pen:
-    '''Stores info to write on an image 
+    '''Stores info to write on an image.
     
     Attributes:
         font (ImageFont.FreeTypeFont): The font that text will be written in.
@@ -102,9 +114,9 @@ class Pen:
         char_delimiters (list[Delimiter]): A list of all delimiters that are used to format
          characters.
     '''
-    def __init__(self, font:ImageFont.FreeTypeFont, color:int):
-        self.font = font
-        self.color = color
+    def __init__(self):
+        self.font = ImageFont.truetype(FontPath.REGULAR, MIN_FONT_SIZE, ImageFont.Layout.BASIC)
+        self.color = 128
         self.text_type = TextType.QUOTE
         self.text: str = ''
         self.bbox = BoundingBox(0,0,0,0)
