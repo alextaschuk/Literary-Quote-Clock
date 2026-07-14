@@ -95,7 +95,7 @@ Prior to following the instructions below, make sure you have completed a basic 
 <h2 align="center">How the Clock Works</h2>
 
 <p align="center">
-<img src="startup.bmp" alt="drawing" width="400"/>
+<img src="misc/startup-img.bmp" alt="The clock's startup image" width="400"/>
 </p>
 
 This project was a gift, so I wanted it to be as plug-and-play as possible. To achieve this, I created a simple systemd unit configuration file ([clock.service](/clock.service)) that starts the clock by running the [clock.py](/clock.py) file after the Pi connects to a WiFi network. It still takes about half a minute for the Pi's internal clock to be updated from this point, so the clock performs a full initialization on the screen to remove any ghosted Pixels and displays a startup image in the meantime, then goes to sleep for 30 seconds.
