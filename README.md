@@ -296,26 +296,24 @@ As I find quotes in the books I read in my free time, I add them to the CSV file
 
 ---
 
-<h3>Times Without a Quote / In Need of a Better One</h3>
+<h3>Times In Need of a Better Quote</h3>
 
-There are a few times that are still without any quote at all (an error message is currently displayed in lieu of the missing images).
+There are some minutes of the day that only have one quote as an option that I'd like to remove, but can't since it's the only quote for that time. 
 
-There are also some times that I am looking for better quotes for. This is because they have only one quote option, and that quote is one that I would like to remove/replace, but can't since it's the only option for that minute.
-
-Looking for Better Option |
-------------------------- |
-00:51                     |
-00:57                     |
-05:26                     |
-06:02                     |
-07:36                     |
-08:01                     |
-08:02                     |
-09:08                     |
-10:16                     |
-11:47                     |
-12:31                     |
-18:04                     |
+Quotes Needing Replacement |
+-------------------------  |
+00:51                      |
+00:57                      |
+05:26                      |
+06:02                      |
+07:36                      |
+08:01                      |
+08:02                      |
+09:08                      |
+10:16                      |
+11:47                      |
+12:31                      |
+18:04                      |
 
 
 <h2 align="center">Other Notes</h2>
