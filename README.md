@@ -1,6 +1,6 @@
 <h1 align="center">Literary Quote Clock</h1>
 
-I made a clock that displays the time using quotes from various books using a [Raspberry Pi Zero 2WH](https://www.raspberryPi.com/products/raspberry-Pi-zero-2-w/) and Waveshare's [7.5 inch E-ink display](https://www.waveshare.com/7.5inch-e-paper-hat.htm). (Almost) every minute of the day has at least one corresponding quote, but many have multiple possible quotes that may be used (one is chosen at random).
+I made a clock that displays the time using quotes from various books using a [Raspberry Pi Zero 2WH](https://www.raspberryPi.com/products/raspberry-Pi-zero-2-w/) and Waveshare's [7.5 inch E-ink display](https://www.waveshare.com/7.5inch-e-paper-hat.htm). All 1,440 minutes of the day have at least one corresponding quote, but many have multiple possible quotes that may be used (one is chosen at random).
 
 <p align="center">
     <img src="misc/demo/demo.jpg" alt="the clock in its frame with a quote that reads There's a train a seventeen minutes to two, said Didier. He blessed himself and got to his feet. He hesitated. 'What's the matter?' 'Shouldn't we say goodbye to Grandpa? He usually has a cheque for me.' —The Public Prosecutor, Jef Geeraerts" width="600"/>
@@ -107,8 +107,6 @@ Here's an example: Suppose that the clock's program is started at 13:31:15. Afte
 - If you're wondering why it slept for 13 seconds instead of 14 (since 60-46 = 14), this is because it takes ~1 second for the image shown on the screen to change, so the program wakes up at the 59th second of the minute instead of the 0th second of the next minute. This makes it look like the change is actually occuring at the 0th second of the next minute instead of the 1st second.
 
 The program wakes up at 13:31:59, and calls `display_quote()` to show the quote for 13:32 on the screen. Then, `refresh_buffer()` is called, which removes the image for 13:32 from the buffer and appends an image for 13:35. The program then sleeps until 13:32:59.
-
-After 30 seconds, the `get_image()` function is called to display a quote for the current time. Since the manner of reading, processing, and displaying an image isn't instantaneous, a buffer that contains images for the next three minutes is maintained.
 
 <h2 align="center">Credits</h2>
 
@@ -304,18 +302,20 @@ There are a few times that are still without any quote at all (an error message 
 
 There are also some times that I am looking for better quotes for. This is because they have only one quote option, and that quote is one that I would like to remove/replace, but can't since it's the only option for that minute.
 
-| Missing Times | Looking for Better Option |
-| ------------- | ------------------------- |
-| 09:08         | 00:51                     |
-| 12:31         | 00:57                     |
-|               | 05:26                     |
-|               | 06:02                     |
-|               | 07:36                     |
-|               | 08:01                     |
-|               | 08:02                     |
-|               | 10:16                     |
-|               | 11:47                     |
-|               | 18:04                     |
+Looking for Better Option |
+------------------------- |
+00:51                     |
+00:57                     |
+05:26                     |
+06:02                     |
+07:36                     |
+08:01                     |
+08:02                     |
+09:08                     |
+10:16                     |
+11:47                     |
+12:31                     |
+18:04                     |
 
 
 <h2 align="center">Other Notes</h2>
