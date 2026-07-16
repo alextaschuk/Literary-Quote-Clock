@@ -6,8 +6,6 @@ object for a single quote, import the `generate_img()` function into your file a
 needed.
 
 TODO:
-- see if it's worth it/possible to make global Fonts object
-- update README
 - add logic to split credits into two lines
 - write tests
 - (for future) match delimiters to markdown (will need to handle instances where, e.g., * is
@@ -24,6 +22,8 @@ of space between the quote and credit bboxes. If there is, wrap the last word of
 onto the second line, pushing everything down by one... but this would force you to reduce
 fontsize by at least 1... so idk. or increase fontsize by 1 and reduce the bbox size?
     - See "And you keep quiet, Betty..." (02:48). The credit bbox is also weird for this quote.
+- Not sure that the newline delim is working properly when calculating fontsize
+    - E.g., try `09:08|09:08:35 a.m.|◻09:08:35 a.m.◻ ␤WHEN MARK WAS SHOT ␤◻I was shattered. Shifted. ␤Never the same again.◻|Long Way Down|Jason Reynolds`
 '''
 import csv
 import logging
@@ -34,6 +34,11 @@ from typing import Optional
 
 from PIL import Image, ImageDraw, ImageFont
 
+from constants import SCREEN_WIDTH, SCREEN_HEIGHT
+from constants import QUOTE_COLOR, TIME_COLOR, BG_COLOR, IMAGE_FORMAT, INCLUDE_CREDITS
+from constants import QUOTES_PATH, IMAGE_PATH
+from constants import MIN_FONT_SIZE, MAX_FONT_SIZE
+
 from writer import BoundingBox
 from writer import CharacterDelimiters
 from writer import Fonts
@@ -41,28 +46,9 @@ from writer import FontPath
 from writer import Pen
 from writer import TextType
 from writer import WordDelimiters
-from writer import MIN_FONT_SIZE
-from writer import MAX_FONT_SIZE
 
 logging.basicConfig(level=logging.DEBUG)
 
-'''Screen Config'''
-SCREEN_WIDTH  = 800
-SCREEN_HEIGHT = 480
-
-'''Image Config'''
-# color is in RGB
-BG_COLOR     = 255 # image's background color is white
-QUOTE_COLOR  = 128 # non-timestring text is grey
-TIME_COLOR   = 0   # timestring text is black
-CREDIT_COLOR = 0   # credit text is black
-
-QUOTES_PATH  = 'quotes.csv'
-IMAGE_PATH = 'images/'
-
-# for a list of all image formats that Pillow supports, see
-# https://pillow.readthedocs.io/en/stable/handbook/image-file-formats.html#fully-supported-formats
-IMAGE_FORMAT = 'bmp'
 
 def format_char(char:str, fonts:Fonts, pen:Pen) -> str:
     '''Determine the font and color to write a character with.
@@ -136,34 +122,6 @@ def format_word(word:str, lines:list[str], word_len:int, pen:Pen):
     else:
         # add the current word to the current line
         lines[-1] = f'{lines[-1]} {word}'
-
-
-def draw_word(img: Image.Image, word: str, fonts: Fonts, pen: Pen):
-    '''Draw a word onto an image character-by-character.
-    
-    Args:
-        img (Image.Image): The image object the word is drawn onto.
-        word (str): The word to be drawn.
-        fonts (Fonts): Contains the possible fonts that may be used to write the word.
-        pen (Pen): The pen used to write the word.
-    '''
-    canvas = ImageDraw.Draw(img)
-    write = canvas.text
-    for char in word:
-        char = format_char(char, fonts, pen)
-        if char == '':
-            continue
-        write((pen.coords['x'], pen.coords['y']), char, pen.color, pen.font)
-        pen.coords['x'] += int(pen.font.getlength(char))
-
-    # add a space after each word
-    write((pen.coords['x'], pen.coords['y']), ' ', pen.color, pen.font)
-    pen.coords['x'] += int(pen.font.getlength(' '))
-
-    for delimiter in pen.char_delimiters:
-        if delimiter.count >= 2:
-            delimiter.count = 0
-            pen.font = fonts.regular
 
 
 def wrap_text(text: str, fonts: Fonts, pen: Pen) -> str:
@@ -267,16 +225,48 @@ def find_optimal_font_size(text: str, bbox: BoundingBox, text_type: TextType) ->
         else:  # text didn't fit
             max_size = mid_size - 1
 
-    lines_height = 0
+    lines_height = 0 # sum of all lines
+    line_width = 0 # length of the longest line.
     for line in best_fit_lines.splitlines():
         # TODO: Replace with get_lineheight()
         lines_height += int(fonts.regular.getbbox("A")[3] + 4)
+        curr_line_width = int(fonts.regular.getlength(line))
+        if curr_line_width > line_width:
+            line_width = curr_line_width
 
-    if text_type == TextType.QUOTE:
-        bbox.bottom_right_y = bbox.top_left_y + lines_height  # left-justified
-    else:
-        bbox.top_left_y = bbox.bottom_right_y - lines_height  # right-justified for credits
+    # Resize the credit bbox so to give the quote bbox the most space possible to write with.
+    if text_type == TextType.CREDITS:
+        bbox.top_left_y = bbox.bottom_right_y - lines_height
+        bbox.top_left_x = bbox.bottom_right_x - line_width
     return (optimal_size, best_fit_lines)
+
+
+def draw_word(img: Image.Image, word: str, fonts: Fonts, pen: Pen):
+    '''Draw a word onto an image character-by-character.
+    
+    Args:
+        img (Image.Image): The image object the word is drawn onto.
+        word (str): The word to be drawn.
+        fonts (Fonts): Contains the possible fonts that may be used to write the word.
+        pen (Pen): The pen used to write the word.
+    '''
+    canvas = ImageDraw.Draw(img)
+    write = canvas.text
+    for char in word:
+        char = format_char(char, fonts, pen)
+        if char == '':
+            continue
+        write((pen.coords['x'], pen.coords['y']), char, pen.color, pen.font)
+        pen.coords['x'] += int(pen.font.getlength(char))
+
+    # add a space after each word
+    write((pen.coords['x'], pen.coords['y']), ' ', pen.color, pen.font)
+    pen.coords['x'] += int(pen.font.getlength(' '))
+
+    for delimiter in pen.char_delimiters:
+        if delimiter.count >= 2:
+            delimiter.count = 0
+            pen.font = fonts.regular
 
 def find_timestr_indices(pen:Pen, timestr: str):
     '''Find the indices where the timestring begins and ends in the quote.'''
@@ -320,7 +310,8 @@ def write_in_bbox(img: Image.Image, pen: Pen, timestr: Optional[str] = ""):
 
     if optimal_fontsize <= MIN_FONT_SIZE:
         bbox_repr = repr(pen.bbox)
-        logging.error('Text starting with "%s..." is too long and doesn\'t fit in bbox=%s with minimum font=%i',pen.text[:30], bbox_repr, MIN_FONT_SIZE)
+        logging.error('Text starting with "%s..." is too long and doesn\'t fit in bbox=%s with' \
+        'minimum font=%i', pen.text[:30], bbox_repr, MIN_FONT_SIZE)
 
     fonts = Fonts(
         regular=ImageFont.truetype(FontPath.REGULAR, optimal_fontsize, ImageFont.Layout.BASIC),
@@ -432,7 +423,8 @@ if __name__ == "__main__":
             filepath = f'{IMAGE_PATH}quote_{time}_{img_num}.{IMAGE_FORMAT}' # e.g., images/quote_1235_2.bmp
             filepath = path.normpath(filepath)
 
-            quote_img = generate_img(curr_row, True, my_pen)
+            quote_img = generate_img(curr_row, INCLUDE_CREDITS, my_pen)
             quote_img.save(filepath)
             progressbar = f'Creating images... {i+1}/{num_quotes}'
             print(progressbar, end='\r', flush=True)
+    print('Image generation complete.\r\n')

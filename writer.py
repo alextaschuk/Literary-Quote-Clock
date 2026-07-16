@@ -9,9 +9,11 @@ and a `Pen` class to track which font and what color to use, when writing and wh
 '''
 from dataclasses import dataclass
 from enum import Enum
+
 from PIL import ImageFont
 
-'''Text Config'''
+from constants import MIN_FONT_SIZE
+
 @dataclass
 class FontPath:
     REGULAR     = 'fonts/Bookerly.ttf'                # non-timestring words
@@ -20,8 +22,6 @@ class FontPath:
     ITALIC_BOLD = 'fonts/Bookerly-Bold-Italic.ttf'    # italicized timestring words
     CREDIT      = BOLD # for the quote's book title and author
 
-MIN_FONT_SIZE = 12
-MAX_FONT_SIZE = 150
 
 class TextType(Enum):
     '''Describes which part of the text is being written.'''
