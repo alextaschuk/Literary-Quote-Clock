@@ -9,14 +9,18 @@ import time
 
 from PIL import Image
 
-from waveshare_libraries import epd7in5_V2 # Waveshare's library for their 7.5 inch screen
+from constants import ScreenOptions, SCREEN_TYPE, STARTUP_MSG, BUFFER_SIZE, INCLUDE_CREDITS
 from image_generator import generate_img, QUOTES_PATH
 from writer import Pen
 
-logging.basicConfig(level=logging.DEBUG)
+if SCREEN_TYPE == ScreenOptions.IT8951:
+    from IT8951 import constants
+    from IT8951.display import AutoEPDDisplay
+elif SCREEN_TYPE == ScreenOptions.WAVESHARE:
+    from waveshare_libraries import epd7in5_V2 # Waveshare's library for their 7.5 inch screen
 
-STARTUP_MSG = 'Literary Quote Clock is Starting…'
-BUFFER_SIZE = 3 # number of quotes to buffer
+
+logging.basicConfig(level=logging.DEBUG)
 
 class Clock:
     '''
@@ -36,7 +40,11 @@ class Clock:
     '''
     def __init__(self):
         self.quote_buffer: list[Image.Image] = []
-        self.epd = epd7in5_V2.EPD()
+        if SCREEN_TYPE == ScreenOptions.IT8951:
+            self.display = AutoEPDDisplay(vcom=-2.79) # set to VCOM value that's on the FPC
+        elif SCREEN_TYPE == ScreenOptions.WAVESHARE:
+            self.epd = epd7in5_V2.EPD()
+
         self.pen = Pen()
         logging.info('created clock obj.')
 
@@ -56,7 +64,7 @@ class Clock:
         hour = '0' + str(quote_time.hour) if quote_time.hour < 10 else str(quote_time.hour)
         formatted_time = f'{hour}:{minute}'  # e.g. '13:45'
         usable_rows = []
-        include_metadata = True  # include the quote's author and book title
+        include_metadata = INCLUDE_CREDITS  # include the quote's author and book title
 
         # go row-by-row through the CSV and get all quotes for the upcoming time
         try:
@@ -112,19 +120,31 @@ class Clock:
             IOError: An error occurred when displaying the image on the screen.
         '''
         try:
-            self.epd.display(self.epd.getbuffer(self.quote_buffer[0]))
-            self.epd.sleep() # put screen to sleep to increase its lifespan
+            self.quote_buffer[0].show()
+            if SCREEN_TYPE == ScreenOptions.IT8951:
+                self.display.frame_buf.paste(self.quote_buffer[0])
+                self.display.draw_full(constants.DisplayModes.GC16)
+                self.display.sleep() # necessary/real?
+            elif SCREEN_TYPE == ScreenOptions.WAVESHARE:
+                self.epd.display(self.epd.getbuffer(self.quote_buffer[0]))
+                self.epd.sleep() # put screen to sleep to increase its lifespan
         except IOError as e:
             logging.error('Unable to display image: %s', str(e))
             self.wipe_screen()
+            if SCREEN_TYPE == ScreenOptions.WAVESHARE:
+                self.epdconfig.module_exit(cleanup=True)
+
 
 
     def wipe_screen(self):
         '''Wipe the screen when something breaks to prevent ghosting.'''
         logging.info("clearing the screen…\n")
-        self.epd.init()  # wake the screen so that it can be cleared
-        self.epd.Clear()
-        self.epdconfig.module_exit(cleanup=True)
+        if SCREEN_TYPE == 'it8951':
+            self.display.clear()
+        else:
+            self.epd.init()  # wake the screen so that it can be cleared
+            self.epd.Clear()
+
 
 
     def main(self):
@@ -141,10 +161,14 @@ class Clock:
         '''
         if datetime.now().minute == 59:
             logging.info('An hour has passed. Performing full refresh on screen.')
-            self.epd.init()
-            self.epd.Clear()
+            if SCREEN_TYPE == ScreenOptions.IT8951:
+                self.display.clear()
+            elif SCREEN_TYPE == ScreenOptions.WAVESHARE:
+                self.epd.init()
+                self.epd.Clear()
         else:
-            self.epd.init_fast() # speeds up displaying an image, according to Waveshare support
+            if SCREEN_TYPE == ScreenOptions.WAVESHARE:
+                self.epd.init_fast() # speeds up displaying an image, according to Waveshare support
         self.display_quote()
         self.refresh_buffer()
         time.sleep(59 - datetime.now().second)
@@ -163,6 +187,8 @@ def signal_handler(sig, frame):
     logging.info('sigint() called. Shutting clock down…\n')
     signal.signal(sig, signal.SIG_IGN)  # ignore additional signals
     clock.wipe_screen()
+    if SCREEN_TYPE == ScreenOptions.WAVESHARE:
+        clock.epdconfig.module_exit(cleanup=True)
     sys.exit(0)
 
 
@@ -181,7 +207,7 @@ if __name__ == '__main__':
         clock.epd.display(clock.epd.getbuffer(startup_img))
         clock.epd.sleep()
 
-        time.sleep(3) # wait for the Pi's system clock to update after powering on (it has no RTC)
+        time.sleep(30) # wait for the Pi's system clock to update after powering on (it has no RTC)
         first_img = clock.get_image(datetime.now())
         clock.quote_buffer.append(first_img)
 
@@ -194,9 +220,13 @@ if __name__ == '__main__':
         except Exception as e:
             logging.info('An error occured: %s', str(e))
             clock.wipe_screen()
+            if SCREEN_TYPE == ScreenOptions.WAVESHARE:
+                clock.epdconfig.module_exit(cleanup=True)
             sys.exit(0)
 
     except KeyboardInterrupt as e:
         logging.info('Program interrupted: %s', str(e))
         clock.wipe_screen()
+        if SCREEN_TYPE == ScreenOptions.WAVESHARE:
+            clock.epdconfig.module_exit(cleanup=True)
         sys.exit(0)
