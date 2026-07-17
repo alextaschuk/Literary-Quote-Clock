@@ -124,7 +124,6 @@ class Clock:
             if SCREEN_TYPE == ScreenOptions.IT8951:
                 self.display.frame_buf.paste(self.quote_buffer[0])
                 self.display.draw_full(constants.DisplayModes.GC16) # update display
-                self.display.sleep() # necessary/real?
             elif SCREEN_TYPE == ScreenOptions.WAVESHARE:
                 self.epd.display(self.epd.getbuffer(self.quote_buffer[0]))
                 self.epd.sleep() # put screen to sleep to increase its lifespan
@@ -208,7 +207,6 @@ if __name__ == '__main__':
         if SCREEN_TYPE == ScreenOptions.IT8951:
             clock.display.frame_buf.paste(startup_img)
             clock.display.draw_full(constants.DisplayModes.GC16)
-            clock.display.sleep()
         elif SCREEN_TYPE == ScreenOptions.WAVESHARE:
             clock.epd.display(clock.epd.getbuffer(startup_img))
             clock.epd.sleep()
