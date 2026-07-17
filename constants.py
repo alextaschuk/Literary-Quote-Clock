@@ -30,8 +30,7 @@ QUOTE_COLOR  = 128 # non-timestring text is grey
 TIME_COLOR   = 0   # timestring text is black
 CREDIT_COLOR = 0   # credit text is black
 
-#QUOTES_PATH = 'quotes.csv'
-QUOTES_PATH = 'misc/test.csv'
+QUOTES_PATH = 'quotes.csv'
 IMAGE_PATH = 'images/'
 
 # for a list of all image formats that Pillow supports, see
@@ -43,7 +42,7 @@ INCLUDE_CREDITS = True # print the quote's author and the book that it comes fro
 # Text Config #
 ###############
 MIN_FONT_SIZE = 12
-MAX_FONT_SIZE = 150 # depending on image dimensions, this may need to be increased
+MAX_FONT_SIZE = 150 # depending on screen resolution, this may need to be changed
 
 ################
 # Clock Config #
