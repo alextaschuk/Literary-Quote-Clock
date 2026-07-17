@@ -123,7 +123,7 @@ class Clock:
             self.quote_buffer[0].show()
             if SCREEN_TYPE == ScreenOptions.IT8951:
                 self.display.frame_buf.paste(self.quote_buffer[0])
-                self.display.draw_full(constants.DisplayModes.GC16)
+                self.display.draw_full(constants.DisplayModes.GC16) # update display
                 self.display.sleep() # necessary/real?
             elif SCREEN_TYPE == ScreenOptions.WAVESHARE:
                 self.epd.display(self.epd.getbuffer(self.quote_buffer[0]))
@@ -198,14 +198,20 @@ if __name__ == '__main__':
         clock = Clock()
 
         logging.info('Initializing and clearing the screen')
-        clock.epd.init()
-        clock.epd.Clear()
+        if SCREEN_TYPE == ScreenOptions.WAVESHARE:
+            clock.epd.init()
+            clock.epd.Clear()
 
         logging.info('Displaying startup screen')
         startup_row = {'quote': STARTUP_MSG,'timestring': STARTUP_MSG, 'title': '', 'author': ''}
         startup_img = generate_img(startup_row, False, clock.pen)
-        clock.epd.display(clock.epd.getbuffer(startup_img))
-        clock.epd.sleep()
+        if SCREEN_TYPE == ScreenOptions.IT8951:
+            clock.display.frame_buf.paste(startup_img)
+            clock.display.draw_full(constants.DisplayModes.GC16)
+            clock.display.sleep()
+        elif SCREEN_TYPE == ScreenOptions.WAVESHARE:
+            clock.epd.display(clock.epd.getbuffer(startup_img))
+            clock.epd.sleep()
 
         time.sleep(30) # wait for the Pi's system clock to update after powering on (it has no RTC)
         first_img = clock.get_image(datetime.now())
