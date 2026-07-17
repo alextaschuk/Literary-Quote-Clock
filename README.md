@@ -2,24 +2,126 @@
 
 I made a clock that displays the time using quotes from various books using a [Raspberry Pi Zero 2WH](https://www.raspberryPi.com/products/raspberry-Pi-zero-2-w/) and Waveshare's [7.5 inch E-ink display](https://www.waveshare.com/7.5inch-e-paper-hat.htm). All 1,440 minutes of the day have at least one corresponding quote, but many have multiple possible quotes that may be used (one is chosen at random).
 
+The clock is also designed to work with Waveshare's 6-inch, which uses an IT8951 driver (meaning a third-party library is needed, since Waveshare doesn't have their own for this kind of driver). There are instructions on how to set up the clock for both types of screens.
+
 <p align="center">
     <img src="misc/demo/demo.jpg" alt="the clock in its frame with a quote that reads There's a train a seventeen minutes to two, said Didier. He blessed himself and got to his feet. He hesitated. 'What's the matter?' 'Shouldn't we say goodbye to Grandpa? He usually has a cheque for me.' —The Public Prosecutor, Jef Geeraerts" width="600"/>
 </p>
 
-<h2 align="center">Materials</h2>
+## Table of Contents
+<details>
+<summary>Click to View</summary>
+
+1. [Materials](#materials)
+2. [How to Setup the Clock](#how-to-setup-the-clock)
+3. [How the Clock Works](#how-the-clock-works)
+4. [Credits](#credits)
+5. [Formatting Text](#formatting-text)
+6. [Adding, Editing, and Finding Quotes](#adding-editing-and-finding-quotes)
+7. [Other Notes](#other-notes)
+
+</details>
+
+## Materials
+<!--<h2 align="center">Materials</h2>-->
+
+### Non-IT8951 Screens
 
 - [Waveshare 7.5 inch E-ink Display & HAT](https://www.waveshare.com/7.5inch-e-paper-hat.htm)
-- [Raspberry Pi Zero 2WH](https://www.raspberryPi.com/products/raspberry-Pi-zero-2-w/)
+- [Raspberry Pi Zero 2WH](https://www.raspberrypi.com/products/raspberry-pi-zero-2-w/)
   - _Note:_ Waveshare sells a [pre-soldered Pi](https://www.waveshare.com/product/raspberry-Pi/boards-kits/raspberry-Pi-zero-2-w-cat/raspberry-Pi-zero-2-w.htm?sku=21039), which is what I used.
 - The frame was handmade using walnut wood.
 
-<h2 align="center">How to Setup the Clock</h2>
+### IT8951 Screens
+- [Waveshare 6-inch E-ink Display & HAT](https://www.waveshare.com/6inch-hd-e-paper-hat.htm)
+- [Raspberry Pi Model 3](https://www.raspberrypi.com/products/raspberry-pi-4-model-b/)
+    - _Note:_ Any Model Pi should work, as long as the hat fits. Check Waveshare's documentation first.
+- The frame is currently a WIP.
+
+## How to Setup the Clock
+<!--<h2 align="center">How to Setup the Clock</h2>-->
 
 The Pi running the clock uses a headless version of the Raspberry Pi OS.
 
 - _Note:_ Any Unix-like OS should work, but I haven't tried anything else personally. You may need to place the startup script in a different location, and the process of making a crontab may be a bit different.
 
-Prior to following the instructions below, make sure you have completed a basic setup of your Pi (at a minimum, make sure you've configured your timezone, have connected the Pi to a WiFi network, and have some version of Python3 installed).
+Prior to following the instructions below, make sure you have completed a basic setup of your Pi. At a minimum, make sure you've configured your timezone, have connected the Pi to a WiFi network, and have some version of Python3 installed. I also recommend configuring SSH to make your life easier.
+
+The next steps are dependent on the type of screen you have. For this documentation, I'll focus on setting up the 7.5" and 6" screens, but these instructions should be easy to adapt for other screens too; just make sure you follow the right one. The library for each of these screens uses the same functions, so you just need to follow the instructions that are specific to your screen.
+
+### IT8951 Screens 
+
+For these type of screens, Greg Meyer's [IT8951](https://github.com/GregDMeyer/IT8951/tree/master) Python library will be used. It is the library that Waveshare recommends.
+
+1. Follow steps 1, 2, and 4 in the [Working with Raspberry Pi (SPI)](https://www.waveshare.com/wiki/6inch_HD_e-Paper_HAT#Working_with_Raspberry_Pi_.28SPI.29) section of Waveshare's wiki. That is, make sure that the screen is properly connected to the Pi, the DIP switch is set to SPI mode, and that the SPI interface is enabled in the Pi's settings.
+
+2. There are a couple of packages that need to be installed for the IT8951 library to work. Run the following:
+
+    ```sh
+    sudo apt install build-essential python3-dev python3-tk
+    ```
+
+    - `build-essential` is a bundle of C compiler tools.
+    - `python3-dev` installs Cythonic stuff for the driver
+    - `python3-tk` installs tkinter for the driver. The IT8951 library includes a dev mode where you can print things onto your desktop via tkinter rather than onto the e-paper screen.
+
+3. Clone this repository recursively to the Pi (this will download this repository and the IT9851's library) with:
+
+    ```sh
+    git clone --recursive https://github.com/alextaschuk/Literary-Quote-Clock.git
+    ```
+
+    - _Note:_ If you forgot the `--recursive` flag, run `git submodule update --init` to clone the IT8951 library locally.
+
+4. Configure a virtual environment within the cloned repo.
+
+    First, `cd` into the cloned repo and initialize a venv:
+
+    ```sh
+    python3 -m venv venv
+    ```
+    
+    Then, activate the venv:
+    ```sh
+    source venv/bin/activate
+    ```
+    
+    Lastly, install the clock's necessary packages:
+    
+    ```sh
+    pip install -r requirements.txt
+    ```
+
+5. Install the IT8951 library by running:
+
+    ```sh
+    pip install ./[rpi]
+    ```
+
+6. (Optional) You can test that everything was installed properly with:
+
+    ```sh
+    python
+    from IT8951.display import AutoEPDDisplay
+    exit()
+    ```
+    
+    If no errors are thrown, everything was installed correctly.
+
+7. The `constants.py` file is set up for non-IT8951 screens by default, so there are a few modifications that will need to be made:
+
+    1. Change the `SCREEN_WIDTH` and `SCREEN_HEIGHT`, if necessary.
+    2. Change the `SCREEN_TYPE` to `ScreenOptions.WAVESHARE`.
+    3. Change the `IMAGE_FORMAT` to `'png'`.
+    4. Depending on the screen's resolution, you may need to increase `MAX_FONT_SIZE`.
+
+8. In the [clock.service](/scripts/clock.service) script, modify the `WorkingDirectory` variable to store the path to the cloned repo and the `ExecStart` variable to store the path to `clock.py` in the cloned repo. Then, move [clock.service](/scripts/clock.service) into `/etc/systemd/system`.
+
+    - For example, if the repo was cloned into the `Desktop/` directory, change the `WorkingDirectory` variable to `WorkingDirectory=/home/[username]/Literary-Quote-Clock`. Similarly, change `ExecStart` to `ExecStart=/home/[username]/Literary-Quote-Clock/venv/bin/python3 /home/[username]/Literary-Quote-Clock/clock.py`.
+
+***
+
+### Non-IT8951 Screens 
 
 1. Waveshare has provided a handy guide for configuring a Pi to use their screen. The guide can be accessed [here](https://www.waveshare.com/wiki/7.5inch_e-Paper_HAT_Manual). The [Working With Raspberry Pi](https://www.waveshare.com/wiki/7.5inch_e-Paper_HAT_Manual#Working_With_Raspberry_Pi) section pertains to this specific project.
 
@@ -28,6 +130,8 @@ Prior to following the instructions below, make sure you have completed a basic 
     ```sh
     git clone https://github.com/alextaschuk/Literary-Quote-Clock.git
     ```
+
+    - _Note:_ Don't include the `--recursive` flag! This is only necessary for IT8951 screens.
 
 3. Configure a virtual environment within the cloned repo.
 
@@ -48,19 +152,18 @@ Prior to following the instructions below, make sure you have completed a basic 
     pip install -r requirements.txt
     ```
 
+4. The `constants.py` file is set up for non-IT8951 screens by default, but there may be some modifications that will need to be made:
+
+    1. Change the `SCREEN_WIDTH` and `SCREEN_HEIGHT`, if necessary.
+    4. Depending on the screen's resolution, you may need to increase `MAX_FONT_SIZE`.
+
 4. In the [clock.service](/scripts/clock.service) script, modify the `WorkingDirectory` variable to store the path to the cloned repo and the `ExecStart` variable to store the path to `clock.py` in the cloned repo. Then, move [clock.service](/scripts/clock.service) into `/etc/systemd/system`.
 
-    - For example, if the repo was cloned into the `Desktop/` directory, change the `WorkingDirectory` variable to `WorkingDirectory=/home/[username]/Desktop/Literary-Quote-Clock`. Similarly, change `ExecStart` to `ExecStart=/home/[username]/Desktop/Literary-Quote-Clock/clock.py`.
+    - For example, if the repo was cloned into the `Desktop/` directory, change the `WorkingDirectory` variable to `WorkingDirectory=/home/[username]/Literary-Quote-Clock`. Similarly, change `ExecStart` to `ExecStart=/home/[username]/Literary-Quote-Clock/venv/bin/python3 /home/[username]/Literary-Quote-Clock/clock.py`.
 
-5. To run the clock's startup script, run:
+### Aditional Setup
 
-    ```sh
-    sudo systemctl restart clock.service
-    ```
-
-    The script will now automatically start the clock when the Pi is powered on.
-
-6. (Optional) I've come across a problem where the clock becomes desync'd with the actual time due to   an unstable WiFi connection, meaning quotes don't change at the correct moment. A workaround to the issue is to add a crontab that reboots the Pi every day at 4 AM. This doesn't always fix the problem, and sometimes the Pi has to be unplugged from its power source, which usually does the trick for some reason. You can add this cron job by running:
+This is an optional step to help with desync issues and automatically update the clock. I've come across a problem where the clock becomes desync'd with the actual time due to an unstable WiFi connection, meaning quotes don't change at the correct moment. A workaround to the issue is to add a crontab that reboots the Pi every day at 4 AM. This doesn't always fix the problem, and sometimes the Pi has to be unplugged from its power source, which usually does the trick for some reason. The script will pull changes from the clock's remote repository first, so any updates I make (e.g., adding new quotes) will be automatically downloaded. To can add this cron job, run:
 
    ```sh
    sudo crontab -e
@@ -71,10 +174,9 @@ Prior to following the instructions below, make sure you have completed a basic 
    ```sh
    0 4 * * * bash /path/to/Literary-Quote-Clock/scripts/update_clock.sh
    ```
-   
-   - _Note_: the script will pull changes from the clock's remote repository first, so any updates I make (e.g., adding new quotes) will be automatically downloaded.
 
-<h3>Other Commands</h3>
+### Other Commands
+<!--<h3>Other Commands</h3>-->
 
 - To generate the quote images and save them to a `/images` directory:
 
@@ -92,7 +194,8 @@ Prior to following the instructions below, make sure you have completed a basic 
     journalctl -e -u clock.service
     ```
 
-<h2 align="center">How the Clock Works</h2>
+## How the Clock Works
+<!--<h2 align="center">How the Clock Works</h2>-->
 
 <p align="center">
 <img src="./misc/demo/startup-img.bmp" alt="The clock's startup image" width="400"/>
@@ -108,14 +211,16 @@ Here's an example: Suppose that the clock's program is started at 13:31:15. Afte
 
 The program wakes up at 13:31:59, and calls `display_quote()` to show the quote for 13:32 on the screen. Then, `refresh_buffer()` is called, which removes the image for 13:32 from the buffer and appends an image for 13:35. The program then sleeps until 13:32:59.
 
-<h2 align="center">Credits</h2>
+## Credits
+<!--<h2 align="center">Credits</h2>-->
 
 I used [JohannesNE's CSV file](https://github.com/JohannesNE/literature-clock/blob/master/litclock_annotated.csv) as a starting point for gathering quotes, and have since made several modifications to the quotes in the file (see the section titled *Adding, Editing, and Finding Quotes*).
 
 Images are generated by parsing the CSV file and writing each row to a .bmp file. I originally used a self-modified version of elegantalchemist's [quote_to_image.py](https://github.com/elegantalchemist/literaryclock/blob/main/quote%20to%20image/quote_to_image.py) program to generate images of the quotes. The biggest modification I made to the image generation files is that it could handle italic and bold characters. However, I wasn't very happy with how readable or maintainable the code turned out to be and I felt that there was a lot of refactoring to be done to the program. I opted to rewrite the entire thing, allowing for any future formatting additions or modifications to be easily added later down the line. The logic for converting a row from the CSV file into an image now exists in [image_generator.py](/image_generator.py) and [writer.py](/writer.py).
 
 
-<h2 align="center">Formatting Text</h2>
+## Formatting Text
+<!--<h2 align="center">Formatting Text</h2>-->
 
 ### Character Formatting
 
@@ -176,7 +281,8 @@ For example, the CSV stores:
 </p>
 
 
-<h2 align="center">Adding, Editing, and Finding Quotes</h2>
+## Adding, Editing, and Finding Quotes
+<!--<h2 align="center">Adding, Editing, and Finding Quotes</h2>-->
 
 I have manually read through all ~3500 quotes in the original CSV and am in the process of modifying ~700 of them. I have a somewhat strict list of qualities that the quotes can and cannot have, and specific types of changes that I make depending on what I think is "wrong" about the quote's context, formatting, etc. This section covers some of the things that I look for when evaluating if a quote needs to be modified or removed, my own quotes that I have found and added, and a list of minutes that are missing quotes/are in need of better quotes.
 
@@ -310,13 +416,12 @@ Quotes Needing Replacement |
 08:01                      |
 08:02                      |
 09:08                      |
-10:16                      |
-11:47                      |
 12:31                      |
+17:35                      |
 18:04                      |
 
-
-<h2 align="center">Other Notes</h2>
+## Other Notes
+<!--<h2 align="center">Other Notes</h2>-->
 
 <h3>Troubleshooting the Pi</h3>
 
@@ -332,5 +437,3 @@ If the you take the clock into a new timezone, the Pi's localization settings ne
 <h3>Miscellaneous</h3>
 
 Waveshare has some additional helpful [documentation](https://www.waveshare.com/wiki/E-Paper_APi_Analysis#Python) on other functions and things that can be done on the screen (separate from their config guide).
-
-*Note*: No AI (e.g., Claude, Gemini, etc.) has been used to any extent for this project.
