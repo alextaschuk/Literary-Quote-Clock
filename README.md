@@ -119,6 +119,12 @@ For these type of screens, Greg Meyer's [IT8951](https://github.com/GregDMeyer/I
 
     - For example, if the repo was cloned into the `Desktop/` directory, change the `WorkingDirectory` variable to `WorkingDirectory=/home/[username]/Literary-Quote-Clock`. Similarly, change `ExecStart` to `ExecStart=/home/[username]/Literary-Quote-Clock/venv/bin/python3 /home/[username]/Literary-Quote-Clock/clock.py`.
 
+9. Start the clock with:
+
+    ```sh
+    sudo systemctl enable --now clock.service
+    ```
+
 ***
 
 ### Non-IT8951 Screens 
@@ -157,9 +163,16 @@ For these type of screens, Greg Meyer's [IT8951](https://github.com/GregDMeyer/I
     1. Change the `SCREEN_WIDTH` and `SCREEN_HEIGHT`, if necessary.
     4. Depending on the screen's resolution, you may need to increase `MAX_FONT_SIZE`.
 
-4. In the [clock.service](/scripts/clock.service) script, modify the `WorkingDirectory` variable to store the path to the cloned repo and the `ExecStart` variable to store the path to `clock.py` in the cloned repo. Then, move [clock.service](/scripts/clock.service) into `/etc/systemd/system`.
+5. In the [clock.service](/scripts/clock.service) script, modify the `WorkingDirectory` variable to store the path to the cloned repo and the `ExecStart` variable to store the path to `clock.py` in the cloned repo. Then, move [clock.service](/scripts/clock.service) into `/etc/systemd/system`.
 
     - For example, if the repo was cloned into the `Desktop/` directory, change the `WorkingDirectory` variable to `WorkingDirectory=/home/[username]/Literary-Quote-Clock`. Similarly, change `ExecStart` to `ExecStart=/home/[username]/Literary-Quote-Clock/venv/bin/python3 /home/[username]/Literary-Quote-Clock/clock.py`.
+
+6. Start the clock with:
+
+    ```sh
+    sudo systemctl enable --now clock.service
+    ```
+
 
 ### Aditional Setup
 
