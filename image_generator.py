@@ -384,6 +384,11 @@ def generate_img(row:dict, include_credits:bool, pen:Pen) -> Image.Image:
     pen.text_type = TextType.QUOTE
     write_in_bbox(quote_image, pen, timestring)
     pen.reset(pen.bbox.top_left_x, pen.bbox.top_left_y) # reset for the next img
+
+    # Uncomment if images are being generated for a Kindle! The images need to be physically rotated
+    # to display on the screen properly.
+    #quote_image = quote_image.transpose(method=Image.Transpose.ROTATE_270)
+
     return quote_image
 
 

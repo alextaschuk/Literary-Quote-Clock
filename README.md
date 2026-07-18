@@ -65,7 +65,7 @@ For these type of screens, Greg Meyer's [IT8951](https://github.com/GregDMeyer/I
     - `python3-dev` installs Cythonic stuff for the driver
     - `python3-tk` installs tkinter for the driver. The IT8951 library includes a dev mode where you can print things onto your desktop via tkinter rather than onto the e-paper screen.
 
-3. Clone this repository recursively to the Pi (this will download this repository and the IT9851's library) with:
+3. Clone this repository recursively to the Pi (this will download this repository and the IT9851 library) with:
 
     ```sh
     git clone --recursive https://github.com/alextaschuk/Literary-Quote-Clock.git
@@ -98,15 +98,25 @@ For these type of screens, Greg Meyer's [IT8951](https://github.com/GregDMeyer/I
     pip install ./[rpi]
     ```
 
-6. (Optional) You can test that everything was installed properly with:
+6. (Optional) You can test that everything was installed properly:
 
+    1. Start an interactive interpreter for Python:
+    
     ```sh
     python
+    ```
+
+    2. Try importing something from the library:
+
+    ```sh
     from IT8951.display import AutoEPDDisplay
+    ```
+
+    3. If no errors are thrown, everything was installed correctly. Exit the interpreter:
+
+    ```sh
     exit()
     ```
-    
-    If no errors are thrown, everything was installed correctly.
 
 7. The `constants.py` file is set up for non-IT8951 screens by default, so there are a few modifications that will need to be made:
 
@@ -187,6 +197,8 @@ This is an optional step to help with desync issues and automatically update the
    ```sh
    0 4 * * * bash /path/to/Literary-Quote-Clock/scripts/update_clock.sh
    ```
+
+   - Don't forget to modify the path!
 
 ### Other Commands
 <!--<h3>Other Commands</h3>-->
