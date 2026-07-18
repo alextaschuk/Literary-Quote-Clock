@@ -6,6 +6,8 @@ https://www.mobileread.com/forums/showthread.php?t=367713 for python bin
 
 Where to find FBInk binary by itself: https://www.mobileread.com/forums/showthread.php?t=299620
 
+there is an fbink file in /mnt/us/libkh/bin/fbink. idk if i put it there or if someone else did.
+
 # Literary Quote Clock Scriptlet / KUAL Extension
 
 Jailbroken software can change/become irrelevant very quickly, so parts of this documentation may become out of date. That said, the bottom line is that you need to accomplish two things for this to work:
@@ -49,13 +51,15 @@ The setup instructions will be broken into two parts: generating the images for 
     2. Change the `IMAGE_FORMAT` to `'png'`.
     3. Depending on the screen’s resolution, you may need to increase `MAX_FONT_SIZE`.
 
-4. Generate the images by running:
+4. In image_generator.py, Uncomment `quote_image = quote_image.transpose(method=Image.Transpose.ROTATE_270)` at the end of the `generate_img()` function. The images need to be physically rotated to display on the screen properly.
+
+5. Generate the images by running:
 
     ```sh
-    python generate_images.py
+    python image_generator.py
     ```
 
-5. Move the images/ folder into /kindle_clock/literary_clock/.
+6. Move the images/ folder into /kindle_clock/literary_clock/.
 
 ***
 
