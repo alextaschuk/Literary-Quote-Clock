@@ -1,12 +1,22 @@
 <h1 align="center">Literary Quote Clock</h1>
 
-I made a clock that displays the time using quotes from various books using a [Raspberry Pi Zero 2WH](https://www.raspberryPi.com/products/raspberry-Pi-zero-2-w/) and Waveshare's [7.5 inch E-ink display](https://www.waveshare.com/7.5inch-e-paper-hat.htm). All 1,440 minutes of the day have at least one corresponding quote, but many have multiple possible quotes that may be used (one is chosen at random).
-
-The clock is also designed to work with Waveshare's 6-inch, which uses an IT8951 driver (meaning a third-party library is needed, since Waveshare doesn't have their own for this kind of driver). There are instructions on how to set up the clock for both types of screens.
+I made a clock that displays the time using quotes from various books. All 1,440 minutes of the day have at least one corresponding quote, but many have multiple possible quotes that may be used (one is chosen at random).
 
 <p align="center">
     <img src="misc/demo/demo.jpg" alt="the clock in its frame with a quote that reads There's a train a seventeen minutes to two, said Didier. He blessed himself and got to his feet. He hesitated. 'What's the matter?' 'Shouldn't we say goodbye to Grandpa? He usually has a cheque for me.' —The Public Prosecutor, Jef Geeraerts" width="600"/>
 </p>
+
+I have provided three ways to make the clock:
+
+1. A [Raspberry Pi Zero 2WH](https://www.raspberryPi.com/products/raspberry-Pi-zero-2-w/) and Waveshare's [7.5-inch E-ink display](https://www.waveshare.com/7.5inch-e-paper-hat.htm).
+    -  Or any non-IT8951 screen, with minor modification required.
+
+2. A [Raspberry Pi Model 3](https://www.raspberrypi.com/products/raspberry-pi-4-model-b/) and Waveshare's [6-inch E-ink display](https://www.waveshare.com/6inch-hd-e-paper-hat.htm).
+    -  Or any IT8951 screen, with minor modification required.
+
+3. A jailbroken Kindle.
+
+There are instructions on how to set up the clock for both types of screens below. For instructions on how to install the clock on a jailbroken Kindle, check out the [README](/kindle_clock/README.md) in the */kindle_clock/* folder.
 
 ## Table of Contents
 <details>
@@ -48,6 +58,7 @@ The Pi running the clock uses a headless version of the Raspberry Pi OS.
 Prior to following the instructions below, make sure you have completed a basic setup of your Pi. At a minimum, make sure you've configured your timezone, have connected the Pi to a WiFi network, and have some version of Python3 installed. I also recommend configuring SSH to make your life easier.
 
 The next steps are dependent on the type of screen you have. For this documentation, I'll focus on setting up the 7.5" and 6" screens, but these instructions should be easy to adapt for other screens too; just make sure you follow the right one. The library for each of these screens uses the same functions, so you just need to follow the instructions that are specific to your screen.
+
 
 ### IT8951 Screens 
 
@@ -102,27 +113,30 @@ For these type of screens, Greg Meyer's [IT8951](https://github.com/GregDMeyer/I
 
     1. Start an interactive interpreter for Python:
     
-    ```sh
-    python
-    ```
+        ```sh
+        python
+        ```
 
     2. Try importing something from the library:
 
-    ```sh
-    from IT8951.display import AutoEPDDisplay
-    ```
+        ```sh
+        from IT8951.display import AutoEPDDisplay
+        ```
 
     3. If no errors are thrown, everything was installed correctly. Exit the interpreter:
 
-    ```sh
-    exit()
-    ```
+        ```sh
+        exit()
+        ```
 
-7. The `constants.py` file is set up for non-IT8951 screens by default, so there are a few modifications that will need to be made:
+7. The [constants.py](/constants.py) file is set up for non-IT8951 screens by default, so there are a few modifications that will need to be made:
 
     1. Change the `SCREEN_WIDTH` and `SCREEN_HEIGHT`, if necessary.
+
     2. Change the `SCREEN_TYPE` to `ScreenOptions.WAVESHARE`.
+
     3. Change the `IMAGE_FORMAT` to `'png'`.
+
     4. Depending on the screen's resolution, you may need to increase `MAX_FONT_SIZE`.
 
 8. In the [clock.service](/scripts/clock.service) script, modify the `WorkingDirectory` variable to store the path to the cloned repo and the `ExecStart` variable to store the path to `clock.py` in the cloned repo. Then, move [clock.service](/scripts/clock.service) into `/etc/systemd/system`.
@@ -168,14 +182,15 @@ For these type of screens, Greg Meyer's [IT8951](https://github.com/GregDMeyer/I
     pip install -r requirements.txt
     ```
 
-4. The `constants.py` file is set up for non-IT8951 screens by default, but there may be some modifications that will need to be made:
+4. The [constants.py](/constants.py) file is set up for non-IT8951 screens by default, but there may be some modifications that will need to be made:
 
     1. Change the `SCREEN_WIDTH` and `SCREEN_HEIGHT`, if necessary.
-    4. Depending on the screen's resolution, you may need to increase `MAX_FONT_SIZE`.
+
+    2. Depending on the screen's resolution, you may need to increase `MAX_FONT_SIZE`.
 
 5. In the [clock.service](/scripts/clock.service) script, modify the `WorkingDirectory` variable to store the path to the cloned repo and the `ExecStart` variable to store the path to `clock.py` in the cloned repo. Then, move [clock.service](/scripts/clock.service) into `/etc/systemd/system`.
 
-    - For example, if the repo was cloned into the `Desktop/` directory, change the `WorkingDirectory` variable to `WorkingDirectory=/home/[username]/Literary-Quote-Clock`. Similarly, change `ExecStart` to `ExecStart=/home/[username]/Literary-Quote-Clock/venv/bin/python3 /home/[username]/Literary-Quote-Clock/clock.py`.
+    - For example, if the repo was cloned into a `Desktop/` directory, change the `WorkingDirectory` variable to `WorkingDirectory=/home/[username]/Desktop/Literary-Quote-Clock`. Similarly, change `ExecStart` to `ExecStart=/home/[username]/Desktop/Literary-Quote-Clock/venv/bin/python3 /home/[username]/Desktop/Literary-Quote-Clock/clock.py`.
 
 6. Start the clock with:
 
@@ -239,7 +254,7 @@ The program wakes up at 13:31:59, and calls `display_quote()` to show the quote 
 ## Credits
 <!--<h2 align="center">Credits</h2>-->
 
-I used [JohannesNE's CSV file](https://github.com/JohannesNE/literature-clock/blob/master/litclock_annotated.csv) as a starting point for gathering quotes, and have since made several modifications to the quotes in the file (see the section titled *Adding, Editing, and Finding Quotes*).
+I used [JohannesNE's CSV file](https://github.com/JohannesNE/literature-clock/blob/master/litclock_annotated.csv) as a starting point for gathering quotes, and have since made several modifications to the quotes in the file (see [Adding, Editing, and Finding Quotes](#adding-editing-and-finding-quotes)).
 
 Images are generated by parsing the CSV file and writing each row to a .bmp file. I originally used a self-modified version of elegantalchemist's [quote_to_image.py](https://github.com/elegantalchemist/literaryclock/blob/main/quote%20to%20image/quote_to_image.py) program to generate images of the quotes. The biggest modification I made to the image generation files is that it could handle italic and bold characters. However, I wasn't very happy with how readable or maintainable the code turned out to be and I felt that there was a lot of refactoring to be done to the program. I opted to rewrite the entire thing, allowing for any future formatting additions or modifications to be easily added later down the line. The logic for converting a row from the CSV file into an image now exists in [image_generator.py](/image_generator.py) and [writer.py](/writer.py).
 
