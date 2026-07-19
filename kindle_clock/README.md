@@ -81,9 +81,9 @@ Since the type of jailbreak you need varies depending on the type of Kindle you 
 
 ## How to Turn the Clock Off
 
-1. Swipe down on the screen to open to Quick Settings panel, then exit this panel. This will bring you back to the Home screen.
+1. Swipe down on the screen to open the Quick Settings panel, then exit this panel. This will bring you back to the Home screen.
 
-2. Select on the Literary Quote Clock thumbnail in your library. This will turn the clock off. To turn it back on, simply click on the Clock’s thumbnail in your library again.
+2. Select the Literary Quote Clock thumbnail in your library. This will turn the clock off.
 
 ***
 
