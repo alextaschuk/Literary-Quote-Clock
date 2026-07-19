@@ -6,13 +6,11 @@ I made a clock that displays the time using quotes from various books. All 1,440
     <img src="misc/demo/demo.jpg" alt="the clock in its frame with a quote that reads There's a train a seventeen minutes to two, said Didier. He blessed himself and got to his feet. He hesitated. 'What's the matter?' 'Shouldn't we say goodbye to Grandpa? He usually has a cheque for me.' —The Public Prosecutor, Jef Geeraerts" width="600"/>
 </p>
 
-I have provided three ways to make the clock:
+There are three ways to make the clock:
 
-1. A [Raspberry Pi Zero 2WH](https://www.raspberryPi.com/products/raspberry-Pi-zero-2-w/) and Waveshare's [7.5-inch E-ink display](https://www.waveshare.com/7.5inch-e-paper-hat.htm).
-    -  Or any non-IT8951 screen, with minor modification required.
+1. A [Raspberry Pi Zero 2WH](https://www.raspberryPi.com/products/raspberry-Pi-zero-2-w/) and Waveshare's [7.5-inch E-ink display](https://www.waveshare.com/7.5inch-e-paper-hat.htm) (or any non-IT8951 screen, with minor modification required).
 
-2. A [Raspberry Pi Model 3](https://www.raspberrypi.com/products/raspberry-pi-4-model-b/) and Waveshare's [6-inch E-ink display](https://www.waveshare.com/6inch-hd-e-paper-hat.htm).
-    -  Or any IT8951 screen, with minor modification required.
+2. A [Raspberry Pi Model 3](https://www.raspberrypi.com/products/raspberry-pi-4-model-b/) and Waveshare's [6-inch E-ink display](https://www.waveshare.com/6inch-hd-e-paper-hat.htm) (or any IT8951 screen, with minor modification required).
 
 3. A jailbroken Kindle.
 
