@@ -1,6 +1,13 @@
-# Literary Quote Clock Scriptlet
+# Literary Quote Clock Kindle Scriptlet
 
-Jailbroken software can change/become irrelevant very quickly, so parts of this documentation may become out of date. That said, the bottom line is that you need to accomplish two things for this to work:
+## Table of Contents
+<details>
+<summary>Click to View</summary>
+
+1. [Installing the Extension](#installing-the-extension)
+2. [How to Turn the Clock Off](#how-to-turn-the-clock-off)
+
+</details>
 
 ## Installing the Extension
 
@@ -51,7 +58,7 @@ The setup instructions will be broken into two parts: generating the images for 
 
 6. Move the _images/_ folder into */kindle_clock/literary_clock/*.
 
-***
+### Installing the Extension
 
 Next, you need to jailbreak your Kindle. If you have already done this and have KUAL installed, skip to step 5.
 
