@@ -2,11 +2,15 @@
 # Name: Literary Quote Clock
 # Author: alextaschuk
 # Icon: /mnt/us/literary_clock/thumbnail.jpg
+# DontUseFBInk: true
 
 PID_FILE=/tmp/literary_clock.pid
-#LOG=/tmp/literary_clock.log
-LOG=/mnt/us/literary_clock/literary_clock.log
+LOG=/tmp/literary_clock.log
 IMAGES=/mnt/us/literary_clock/images
+
+# adds the fbink binary to the shell path so that
+# the shell can find it and use the fbink commands
+export PATH=/mnt/us/libkh/bin/:$PATH 
 
 log() { echo "$(date '+%H:%M:%S') $*" >> "$LOG"; }
 
@@ -77,16 +81,11 @@ run_clock()
 
 # If the clock is already running, kill the process and exit
 if [ -f "$PID_FILE" ] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
-    #eips -c >> "$LOG" 2>&1
-    eips 0 0 "Stopping the clock..." >> "$LOG" 2>&1
+    fbink "Stopping the clock..."
     sleep 2
     kill "$(cat "$PID_FILE")"
     rm -f "$PID_FILE"
     exit 0
-else
-    #eips -c >> "$LOG" 2>&1
-    eips 0 0 "Starting the clock..." >> "$LOG" 2>&1
-    sleep 2
 fi
 
 # Start clock loop in background
