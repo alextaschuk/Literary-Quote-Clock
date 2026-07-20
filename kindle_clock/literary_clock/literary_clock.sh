@@ -33,10 +33,8 @@ check_active_hours()
     log "CURR_TIME=$CURR_TIME, START=$START, END=$END"
     if [ "$CURR_TIME" -lt "$START" ] && [ "$CURR_TIME" -gt "$END" ]; then
         IN_ACTIVE_HOURS=1 # prevent the Kindle from sleeping
-        log "IN_ACTIVE_HOURS set to 1"
     else
         IN_ACTIVE_HOURS=0 # allow the Kindle to sleep
-        log "IN_ACTIVE_HOURS set to 0"
     fi
     log "IN_ACTIVE_HOURS=$IN_ACTIVE_HOURS"
 }
@@ -47,7 +45,7 @@ get_image()
     QUOTE_IMGS=$(ls "${IMAGES}/quote_${TIME_KEY}_"*.png 2>/dev/null)
 
     if [ -z "$QUOTE_IMGS" ]; then
-        log "($QUOTE_IMGS) no images for $TIME_KEY, sleeping"
+        log "($QUOTE_IMGS) missing quote for $TIME_KEY"
         return 1
     fi
 
@@ -93,10 +91,8 @@ run_clock()
     EPDC_VALUE=$(lipc-get-prop com.lab126.winmgr epdcMode)
     if [ $? -eq 0 ] && [ -n "$EPDC_VALUE" ]; then
         SUPPORTS_epdcMODE=1
-        log "set SUPPORTS_epdcMODE to 1"
     else
         SUPPORTS_epdcMODE=0
-        log "set SUPPORTS_epdcMODE to 0"
     fi
     LAST_MODE=""
     log "LAST_MODE=$LAST_MODE"
@@ -120,26 +116,21 @@ run_clock()
 
         # prevent the screen from sleeping during active hours
         # if the Kindle's battery level is above 20%.
-        log "checking active hours"
         check_active_hours
         BATTERY_LVL=$(lipc-get-prop com.lab126.powerd battLevel 2>>"$LOG")
         [ -z "$BATTERY_LVL" ] && BATTERY_LVL=0 # set to 0 if the lipc call ever fails
-        log "battery level is $BATTERY_LVL"
 
         if [ "$IN_ACTIVE_HOURS" = 1 ] && [ "$BATTERY_LVL" -gt 20 ]; then
             lipc-set-prop com.lab126.powerd preventScreenSaver 1
             DESIRED_MODE=Y8
-            log "DESIRED_MODE set to $DESIRED_MODE"
         else
             lipc-set-prop com.lab126.powerd preventScreenSaver 0
             DESIRED_MODE=Y8INV
-            log "DESIRED_MODE set to $DESIRED_MODE"
         fi
 
         # change epdc modes only at the beginning or end of active hours
         if [ "$SUPPORTS_epdcMODE" = 1 ] && [ "$DESIRED_MODE" != "$LAST_MODE" ]; then
             lipc-set-prop com.lab126.winmgr epdcMode "$DESIRED_MODE"
-            log "epdcMode set to $DESIRED_MODE"
             LAST_MODE="$DESIRED_MODE"
         fi
 
