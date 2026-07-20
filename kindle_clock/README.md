@@ -1,8 +1,5 @@
 # Literary Quote Clock Kindle Scriptlet
 
-There are two things that are 
-
-
 ## Table of Contents
 <details>
 <summary>Click to View</summary>
@@ -85,7 +82,7 @@ Since the type of jailbreak you need varies depending on the type of Kindle you 
 
 6. Move the */literary_clock/* folder from the local repository into _/mnt/us/documents_. Then, move the literary_clock.sh file out of the */literary_clock/* folder and into _/mnt/us/documents_. Next time you turn on the Kindle, the clock should show up in your library.
 
-7. (Optional) By default, the clock is set up to have "active hours" from 07:00 until 21:30, during which it prevents the Kindle from going to sleep. During inactive hours (21:31 to 06:59), the Kindle is able to go to sleep, and, if it is supported, the screen will be put into dark mode. This reduces battery consumption and makes the screen easier on the eyes at night. To change the clock's active hours, modify the `START_SLEEP` and `END_SLEEP` variables in [literary_clock.sh](/kindle_clock/literary_clock/literary_clock.sh).
+7. (Optional) By default, the clock is set up to have "active hours" from 07:00 until 21:30, during which it prevents the Kindle from going to sleep. During inactive hours (21:31 to 06:59), the Kindle is able to go to sleep, and, if it is supported, the screen will be put into dark mode. This reduces battery consumption at night and makes the screen easier on the eyes. To change the clock's active hours, modify the `START_SLEEP` and `END_SLEEP` variables in [literary_clock.sh](/kindle_clock/literary_clock/literary_clock.sh).
     - _Note:_ The clock will also automatically enable going to sleep if the Kindle's battery drops below 20%.
 
 8. Start the clock by selecting the "Literary Quote Clock" book that shows up in your library.
