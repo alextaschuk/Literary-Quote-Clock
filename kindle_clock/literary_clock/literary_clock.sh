@@ -4,148 +4,178 @@
 # Icon: /mnt/us/documents/literary_clock/thumbnail.jpg
 # DontUseFBInk: true
 
-PID_FILE=/tmp/literary_clock.pid
-LOG=/tmp/literary_clock.log
-IMAGES=/mnt/us/documents/literary_clock/images
+readonly PID_FILE=/tmp/literary_clock.pid
+readonly LOG=/tmp/literary_clock.log
+readonly IMAGES=/mnt/us/documents/literary_clock/images
 
-START_SLEEP=21:30
-END_SLEEP=07:00
+readonly START_SLEEP=21:30
+readonly END_SLEEP=07:00
 IN_ACTIVE_HOURS=0
 
-# adds the fbink binary to the shell path so that
+# add the fbink binary to the shell path so that
 # the shell can find it and use the fbink commands
-export PATH=/mnt/us/libkh/bin/:$PATH 
+export PATH=/mnt/us/libkh/bin/:"$PATH"
 
 log() { echo "$(date '+%H:%M:%S') $*" >> "$LOG"; }
 
-check_active_hours()
-{
-    # Checks if the current time is within START_SLEEP and END_SLEEP.
-    # If it is, return false (outside of active hours). Otherwise,
-    # return true.
+check_active_hours() {
+  #######################################
+  # Checks if the current time is within START_SLEEP and END_SLEEP.
+  # IN_ACTIVE_HOURS is updated accordingly.
+  # Globals:
+  #    START_SLEEP
+  #    END_SLEEP
+  #    IN_ACTIVE_HOURS
+  # Arguments:
+  #    None
+  #######################################
 
-    # prepend a 1 so that times with leading zeros (e.g., 07:15) aren't
-    # read by the shell as octal values
-    CURR_TIME=$(( 1$(date +%H%M)))
-    START=$(( 1$(printf '%s' "$START_SLEEP" | tr -d :)))
-    END=$(( 1$(printf '%s' "$END_SLEEP" | tr -d :)))
+  # prepend a 1 so that times with leading zeros (e.g. 07:15) aren't
+  # read by the shell as octal values
+  CURR_TIME=$(( 1$(date +%H%M)))
+  START=$(( 1$(printf '%s' "$START_SLEEP" | tr -d :)))
+  END=$(( 1$(printf '%s' "$END_SLEEP" | tr -d :)))
 
-    log "CURR_TIME=$CURR_TIME, START=$START, END=$END"
-    if [ "$CURR_TIME" -lt "$START" ] && [ "$CURR_TIME" -gt "$END" ]; then
-        IN_ACTIVE_HOURS=1 # prevent the Kindle from sleeping
-    else
-        IN_ACTIVE_HOURS=0 # allow the Kindle to sleep
-    fi
-    log "IN_ACTIVE_HOURS=$IN_ACTIVE_HOURS"
+  if [ "$CURR_TIME" -lt "$START" ] && [ "$CURR_TIME" -gt "$END" ]; then
+      IN_ACTIVE_HOURS=1 # no sleep
+  else
+      IN_ACTIVE_HOURS=0 # yes sleep
+  fi
 }
 
-get_image()
-{
-    # Selects an image at random for the current time to display.
-    QUOTE_IMGS=$(ls "${IMAGES}/quote_${TIME_KEY}_"*.png 2>/dev/null)
-
-    if [ -z "$QUOTE_IMGS" ]; then
-        log "($QUOTE_IMGS) missing quote for $TIME_KEY"
-        return 1
-    fi
-
-    IMAGE=$(printf '%s\n' $QUOTE_IMGS | awk '
-        BEGIN { srand() }
-        { a[++n] = $0 }
-        END { print a[int(rand() * n) + 1] }
-    ')
-    log "path to selected image: $IMAGE"
+check_battery_level() {
+  #######################################
+  # Read the Kindle's battery percentage. If the lipc call fails,
+  # fall back to 0 rather than stopping the clock.
+  # GLOBALS:
+  #    BATTERY_LVL
+  # Arguments:
+  #    None
+  BATTERY_LVL=$(lipc-get-prop com.lab126.powerd battLevel 2>>"$LOG")
+  [ -z "$BATTERY_LVL" ] && BATTERY_LVL=0
 }
 
-show_image()
-{
-    # Display a quote on the screen. At the top of hour, perform a full refresh.
-    # Args:
-        # IMG: Filepath to the png image to be displayed
-        # REFRESH: Pass in "full" to perform a full refresh instead of a partial.
-    IMG="$1"
-    REFRESH="$2"
+get_image() {
+  #######################################
+  # Get all possible images for the current time, select one at
+  # random, and store its filepath.
+  # Globals:
+  #   IMAGE
+  # Returns:
+  #   Sets exit status to 1 if no image is found for the current time.
+  #   Otherwise, the filepath is stored in IMAGE.
+  #######################################
+  QUOTE_IMGS=$(ls "${IMAGES}/quote_${TIME_KEY}_"*.png 2>/dev/null)
 
-    if [ "$REFRESH" = full ]; then
-        eips -c -f >> "$LOG" 2>&1 # full refresh
-    else
-        eips -c >> "$LOG" 2>&1 # partial refresh
-    fi
+  if [ -z "$QUOTE_IMGS" ]; then
+      log "($QUOTE_IMGS) missing quote for $TIME_KEY"
+      return 1
+  fi
+
+  IMAGE=$(printf '%s\n' "$QUOTE_IMGS" | awk '
+      BEGIN { srand() }
+      { a[++n] = $0 }
+      END { print a[int(rand() * n) + 1] }
+  ')
+  log "path to selected image: $IMAGE"
+}
+
+show_image() {
+  #######################################
+  # Clear the screen, then display a quote.
+  # Arguments:
+      # The filepath of a png image to display.
+      # (Optional) "full" to perform a full refresh.
+  #######################################
+  if [ "$2" = full ]; then
+    eips -c -f >> "$LOG" 2>&1 # full refresh
+  else
+    eips -c >> "$LOG" 2>&1 # partial refresh
+  fi
+  eips -g "$1" >> "$LOG" 2>&1 # display the image
+}
+
+run_clock() {
+  #######################################
+  # The main loop that the clock runs in. The clock
+  # performs two one-time checks: 
+  #   1. Does the filepath to the images dir exist?
+  #   2. Does the Kindle support dark mode?
+  # Then, it runs in a continuous loop to display a
+  # new quote once every minute.
+  # Globals:
+  #   IMAGES
+  #   IMAGE
+  # Arguments:
+  #    None
+  #######################################
+  log "Literary Quote Clock Started"
+
+  if [ ! -d "$IMAGES" ]; then
+      log "ERROR: images dir not found: $IMAGES"
+      return 1
+  fi
+
     
-    eips -g "$IMG" >> "$LOG" 2>&1 # display the image
-}
+  if lipc-get-prop com.lab126.winmgr epdcMode >/dev/null 2>&1; then
+      SUPPORTS_epdcMODE=1 # epdc = Electronic Paper Display Controller
+      log "Dark mode supported"
+  else
+      SUPPORTS_epdcMODE=0
+      log "Dark mode not supported"
+  fi
+  CURR_MODE="" 
 
-run_clock()
-{
-    # The main loop that the clock runs in.
-    log "Literary Quote Clock Started"
+  while true; do
+    TIME=$(date +"%H:%M")
+    TIME_KEY=$(date +"%H%M")
+    log "Displaying quote for $TIME"
 
-    if [ ! -d "$IMAGES" ]; then
-        log "ERROR: images dir not found: $IMAGES"
-        return 1
+    if ! get_image; then
+      eips -c
+      SEC=$(date +%S)
+      sleep "$((60 - ${SEC#0}))"
     fi
 
-    # check if the Kindle natively supports dark mode.
-    # the kindle will be put in dark mode when outside of active hours.
-        # epdc = Electronic Paper Display Controller
-    EPDC_VALUE=$(lipc-get-prop com.lab126.winmgr epdcMode)
-    if [ $? -eq 0 ] && [ -n "$EPDC_VALUE" ]; then
-        SUPPORTS_epdcMODE=1
+    # perform a full refresh at the top of the hour
+    MINUTE=$(date +"%M")
+    if [ "$MINUTE" = "00" ]; then
+      show_image "$IMAGE" full
     else
-        SUPPORTS_epdcMODE=0
+      show_image "$IMAGE"
     fi
-    LAST_MODE=""
-    log "LAST_MODE=$LAST_MODE"
 
-    while true; do
-        TIME=$(date +"%H:%M")
-        TIME_KEY=$(date +"%H%M")
-        log "Displaying quote for $TIME"
+    # prevent the screen from sleeping during active hours if the
+    # Kindle's battery is >20%
+    check_active_hours
+    check_battery_level
 
-        if ! get_image; then
-            SEC=$(date +%S)
-            sleep "$((60 - ${SEC#0}))"
-        fi
+    if [ "$IN_ACTIVE_HOURS" = 1 ] && [ "$BATTERY_LVL" -gt 20 ]; then
+      lipc-set-prop com.lab126.powerd preventScreenSaver 1
+      DESIRED_MODE=Y8
+    else
+      lipc-set-prop com.lab126.powerd preventScreenSaver 0
+      DESIRED_MODE=Y8INV
+    fi
 
-        MINUTE=$(date +"%M")
-        if [ "$MINUTE" = "00" ]; then
-            show_image "$IMAGE" full # perform full refresh every hour
-        else
-            show_image "$IMAGE"
-        fi
+    # change epdc modes only at the beginning or end of active hours
+    if [ "$SUPPORTS_epdcMODE" = 1 ] && [ "$DESIRED_MODE" != "$CURR_MODE" ]; then
+      lipc-set-prop com.lab126.winmgr epdcMode "$DESIRED_MODE"
+      CURR_MODE="$DESIRED_MODE"
+    fi
 
-        # prevent the screen from sleeping during active hours
-        # if the Kindle's battery level is above 20%.
-        check_active_hours
-        BATTERY_LVL=$(lipc-get-prop com.lab126.powerd battLevel 2>>"$LOG")
-        [ -z "$BATTERY_LVL" ] && BATTERY_LVL=0 # set to 0 if the lipc call ever fails
-
-        if [ "$IN_ACTIVE_HOURS" = 1 ] && [ "$BATTERY_LVL" -gt 20 ]; then
-            lipc-set-prop com.lab126.powerd preventScreenSaver 1
-            DESIRED_MODE=Y8
-        else
-            lipc-set-prop com.lab126.powerd preventScreenSaver 0
-            DESIRED_MODE=Y8INV
-        fi
-
-        # change epdc modes only at the beginning or end of active hours
-        if [ "$SUPPORTS_epdcMODE" = 1 ] && [ "$DESIRED_MODE" != "$LAST_MODE" ]; then
-            lipc-set-prop com.lab126.winmgr epdcMode "$DESIRED_MODE"
-            LAST_MODE="$DESIRED_MODE"
-        fi
-
-        SEC=$(date +%S)
-        sleep "$((60 - ${SEC#0}))"
-    done
+    SEC=$(date +%S)
+    sleep "$((60 - ${SEC#0}))"
+  done
 }
 
 # If the clock is already running, kill the process and exit
 if [ -f "$PID_FILE" ] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
-    fbink "Stopping the clock..."
-    lipc-set-prop com.lab126.powerd preventScreenSaver 0
-    kill "$(cat "$PID_FILE")"
-    rm -f "$PID_FILE"
-    exit 0
+  fbink "Stopping the clock..."
+  lipc-set-prop com.lab126.powerd preventScreenSaver 0
+  kill "$(cat "$PID_FILE")"
+  rm -f "$PID_FILE"
+  exit 0
 fi
 
 # Start clock loop in background
