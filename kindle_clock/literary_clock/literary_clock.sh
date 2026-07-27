@@ -23,11 +23,11 @@ check_active_hours() {
   # Checks if the current time is within START_SLEEP and END_SLEEP.
   # IN_ACTIVE_HOURS is updated accordingly.
   # Globals:
-  #    START_SLEEP
-  #    END_SLEEP
-  #    IN_ACTIVE_HOURS
+  #   START_SLEEP
+  #   END_SLEEP
+  #   IN_ACTIVE_HOURS
   # Arguments:
-  #    None
+  #   None
   #######################################
 
   # prepend a 1 so that times with leading zeros (e.g. 07:15) aren't
@@ -61,6 +61,8 @@ get_image() {
   # random, and store its filepath.
   # Globals:
   #   IMAGE
+  # Arguments:
+  #   None
   # Returns:
   #   Sets exit status to 1 if no image is found for the current time.
   #   Otherwise, the filepath is stored in IMAGE.
@@ -83,9 +85,11 @@ get_image() {
 show_image() {
   #######################################
   # Clear the screen, then display a quote.
+  # Globals:
+  #   None
   # Arguments:
-      # The filepath of a png image to display.
-      # (Optional) "full" to perform a full refresh.
+  #   The filepath of a png image to display.
+  #   (Optional) "full" to perform a full refresh.
   #######################################
   if [ "$2" = full ]; then
     eips -c -f >> "$LOG" 2>&1 # full refresh
@@ -107,7 +111,7 @@ clock_loop() {
   #   IMAGES
   #   IMAGE
   # Arguments:
-  #    None
+  #   None
   #######################################
   log "Literary Quote Clock Started"
 
@@ -188,6 +192,8 @@ cleanup() {
   # process.
   # Globals:
   #   PID_FILE
+  # Arguments:
+  #   None
   #######################################
   fbink -c -f -m -M "Stopping the clock..."
   lipc-set-prop com.lab126.powerd preventScreenSaver 0 # allow sleep
