@@ -21,7 +21,7 @@ Since this repository is set up to work as a clock for Kindles and other e-paper
 1. Clone this repository to your local device with:
 
     ```sh
-    git clone --recursive https://github.com/alextaschuk/Literary-Quote-Clock.git
+    git clone https://github.com/alextaschuk/Literary-Quote-Clock.git
     ```
     
     - _Note:_ Don’t include the `--recursive` flag! This is only necessary for IT8951 screens.
@@ -102,4 +102,6 @@ In the future, I may turn this into a KUAL extension or a KOReader plugin.
 
 There are a few odd behaviors about the script that I may attempt to fix in the future, since they're very minor.
 
-When the script first starts up, the first image will not display properly because part of the Kindle's screen refreshes when it opens a new "book". You'll also notice this when the Kindle's battery changes, or when it goes to sleep—it will be drawn over top of the current image shown. This will fix itself when the next minute rolls around.
+When the script first starts up, the first image will not display properly because part of the Kindle's Home screen refreshes when it opens a new "book". You'll also notice this when the Kindle's battery changes, or when it goes to sleep—it will be drawn over top of the current image shown. This will fix itself when the next minute rolls around.
+
+<img src="../misc/demo/kindle-first-quote.png" alt="Most of a Kindle's Home page with part of a quote visable at the top of the screen." width="300"/>
