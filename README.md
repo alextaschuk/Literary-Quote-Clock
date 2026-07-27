@@ -6,22 +6,12 @@ I made a clock that displays the time using quotes from various books. All 1,440
     <img src="misc/demo/demo.jpg" alt="the clock in its frame with a quote that reads There's a train a seventeen minutes to two, said Didier. He blessed himself and got to his feet. He hesitated. 'What's the matter?' 'Shouldn't we say goodbye to Grandpa? He usually has a cheque for me.' —The Public Prosecutor, Jef Geeraerts" width="600"/>
 </p>
 
-There are three ways to make the clock:
-
-1. A [Raspberry Pi Zero 2WH](https://www.raspberryPi.com/products/raspberry-Pi-zero-2-w/) and Waveshare's [7.5-inch E-ink display](https://www.waveshare.com/7.5inch-e-paper-hat.htm) (or any non-IT8951 screen, with minor modification required).
-
-2. A [Raspberry Pi Model 3](https://www.raspberrypi.com/products/raspberry-pi-4-model-b/) and Waveshare's [6-inch E-ink display](https://www.waveshare.com/6inch-hd-e-paper-hat.htm) (or any IT8951 screen, with minor modification required).
-
-3. A jailbroken Kindle.
-
-There are instructions on how to set up the clock for both types of screens below. For instructions on how to install the clock on a jailbroken Kindle, check out the [README](/kindle_clock/README.md) in the */kindle_clock/* folder.
-
 ## Table of Contents
 <details>
 <summary>Click to View</summary>
 
 1. [Materials](#materials)
-2. [How to Setup the Clock](#how-to-setup-the-clock)
+2. [How to Setup the Clock (Non-Kindle Only)](#how-to-setup-the-clock-non-kindle-only)
 3. [How the Clock Works](#how-the-clock-works)
 4. [Credits](#credits)
 5. [Formatting Text](#formatting-text)
@@ -32,6 +22,8 @@ There are instructions on how to set up the clock for both types of screens belo
 
 ## Materials
 <!--<h2 align="center">Materials</h2>-->
+
+There are three ways to make the clock, depending on your hardware choices:
 
 ### Non-IT8951 Screens
 
@@ -46,7 +38,12 @@ There are instructions on how to set up the clock for both types of screens belo
     - _Note:_ Any Model Pi should work, as long as the hat fits. Check Waveshare's documentation first.
 - The frame is currently a WIP.
 
-## How to Setup the Clock
+### Turning Your Kindle into a Clock
+
+- A jailbroken kindle that can run scriptlets. For instructions on how to install the clock on a jailbroken Kindle, check out the [README](/kindle_clock/README.md) in the */kindle_clock/* folder.
+    - Pretty much all modern (and probably older Kindles, too) have this ability. All that is required to run scriptlets is [SH_integration](https://github.com/KindleModding/sh_integration).
+
+## How to Setup the Clock (Non-Kindle Only)
 <!--<h2 align="center">How to Setup the Clock</h2>-->
 
 The Pi running the clock uses a headless version of the Raspberry Pi OS.
@@ -444,19 +441,29 @@ As I find quotes in the books I read in my free time, I add them to the CSV file
 
 There are some minutes of the day that only have one quote as an option that I'd like to remove, but can't since it's the only quote for that time. 
 
-Quotes Needing Replacement |
--------------------------  |
-00:51                      |
-00:57                      |
-05:26                      |
-06:02                      |
-07:36                      |
-08:01                      |
-08:02                      |
-09:08                      |
-12:31                      |
-17:35                      |
-18:04                      |
+| First Half of the Day | Second Half of the Day |
+| --------------------- | ---------------------- |
+| 00:51                 | 12:31                  |
+| 00:57                 | 13:21                  |
+| 05:26                 | 14:18                  |
+| 06:02                 | 15:29                  |
+|                       | 16:16                  |
+|                       | 16:18                  |
+| 06:31                 | 17:75                  |
+| 06:34                 | 18:04                  |
+| 07:08                 | 19:31                  |
+| 07:18                 | 19:44                  |
+| 07:22                 | 19:46                  |
+| 07:36                 | 19:47                  |
+| 07:48                 | 19:52                  |
+| 08:01                 | 20:22                  |
+| 08:02                 | 20:39                  |
+| 09:08                 | 21:43                  |
+|                       | 21:46                  |
+|                       | 21:52                  |
+|                       | 22:49                  |
+|                       | 23:24                  |
+
 
 ## Other Notes
 <!--<h2 align="center">Other Notes</h2>-->
