@@ -6,6 +6,7 @@
 
 1. [Setting Up and Installing the Extension](#setting-up-and-installing-the-extension)
 2. [How to Turn the Clock Off](#how-to-turn-the-clock-off)
+3. [Notes About the Script](#notes-about-the-script)
 
 </details>
 
@@ -89,10 +90,16 @@ Since the type of jailbreak you need varies depending on the type of Kindle you 
 
 ## How to Turn the Clock Off
 
-1. Swipe down on the screen to open the Quick Settings panel, then exit this panel. This will bring you back to the Home screen.
+1. Swipe down on the screen to open the Quick Settings panel, then exit this panel. From here, you will be able to paritally see the Home screen.
 
 2. Select the Literary Quote Clock thumbnail in your library. This will turn the clock off.
 
 ***
 
-In the future, I may turn this into a KUAL extension.
+In the future, I may turn this into a KUAL extension or a KOReader plugin.
+
+## Notes About the Script
+
+There are a few odd behaviors about the script that I may attempt to fix in the future, since they're very minor.
+
+When the script first starts up, the first image will not display properly because part of the Kindle's screen refreshes when it opens a new "book". You'll also notice this when the Kindle's battery changes, or when it goes to sleep—it will be drawn over top of the current image shown. This will fix itself when the next minute rolls around.
