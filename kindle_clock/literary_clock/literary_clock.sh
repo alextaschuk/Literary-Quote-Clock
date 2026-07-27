@@ -95,7 +95,7 @@ show_image() {
   eips -g "$1" >> "$LOG" 2>&1 # display the image
 }
 
-run_clock() {
+clock_loop() {
   #######################################
   # The main loop that the clock runs in. The clock
   # performs two one-time checks: 
@@ -116,15 +116,16 @@ run_clock() {
       return 1
   fi
 
-    
+  # epdc = Electronic Paper Display Controller
   if lipc-get-prop com.lab126.winmgr epdcMode >/dev/null 2>&1; then
-      SUPPORTS_epdcMODE=1 # epdc = Electronic Paper Display Controller
-      log "Dark mode supported"
+      SUPPORTS_epdcMODE=1
+      log "Kindle supports darkmode"
   else
       SUPPORTS_epdcMODE=0
-      log "Dark mode not supported"
+      log "Kindle does not support darkmode"
   fi
-  CURR_MODE="" 
+  CURR_MODE=""      # V8 for lightmode, or V8INV for darkmode
+  DESIRED_STATE=""  # Active during active hours, inactive otherwise
 
   while true; do
     TIME=$(date +"%H:%M")
@@ -151,11 +152,22 @@ run_clock() {
     check_battery_level
 
     if [ "$IN_ACTIVE_HOURS" = 1 ] && [ "$BATTERY_LVL" -gt 20 ]; then
-      lipc-set-prop com.lab126.powerd preventScreenSaver 1
-      DESIRED_MODE=Y8
+      DESIRED_STATE=active
     else
-      lipc-set-prop com.lab126.powerd preventScreenSaver 0
-      DESIRED_MODE=Y8INV
+      # shellcheck disable=SC2209
+      DESIRED_STATE=sleep
+    fi
+
+    # change if the kindle is allowed to sleep or not
+    if [ "$DESIRED_STATE" != "$CURR_STATE" ]; then
+      if [ "$DESIRED_STATE" = active ]; then
+        lipc-set-prop com.lab126.powerd preventScreenSaver 1
+        DESIRED_MODE=Y8
+      else
+        lipc-set-prop com.lab126.powerd preventScreenSaver 0
+        DESIRED_MODE=Y8INV
+      fi
+      CURR_STATE="$DESIRED_STATE"
     fi
 
     # change epdc modes only at the beginning or end of active hours
@@ -169,14 +181,26 @@ run_clock() {
   done
 }
 
-# If the clock is already running, kill the process and exit
-if [ -f "$PID_FILE" ] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
-  fbink "Stopping the clock..."
-  lipc-set-prop com.lab126.powerd preventScreenSaver 0
+cleanup() {
+  #######################################
+  # Allows the screen to sleep and sets it to light mode,
+  # allows non-clock UI to show, then kills the clock's
+  # process.
+  # Globals:
+  #   PID_FILE
+  #######################################
+  fbink -c -f -m -M "Stopping the clock..."
+  lipc-set-prop com.lab126.powerd preventScreenSaver 0 # allow sleep
+  lipc-set-prop com.lab126.winmgr epdcMode "Y8" # light mode
+  
   kill "$(cat "$PID_FILE")"
   rm -f "$PID_FILE"
   exit 0
+}
+
+# If the clock is already running, kill the process and exit
+if [ -f "$PID_FILE" ] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
+    cleanup
 fi
 
-# Start clock loop in background
-run_clock & echo $! > "$PID_FILE"
+clock_loop & echo $! > "$PID_FILE" # Start clock loop in background
