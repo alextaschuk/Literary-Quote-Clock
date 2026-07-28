@@ -13,6 +13,7 @@ from enum import Enum
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 480
 STARTUP_MSG = 'Literary Quote Clock is Starting…'
+VCOM = -2.79 # FOR IT8951 SCREENS ONLY -- set to VCOM value that's on the screen's FPC
 
 class ScreenOptions(Enum):
     '''docstring'''

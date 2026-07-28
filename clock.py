@@ -9,18 +9,19 @@ import time
 
 from PIL import Image
 
-from constants import ScreenOptions, SCREEN_TYPE, STARTUP_MSG, BUFFER_SIZE, INCLUDE_CREDITS
+from constants import ScreenOptions, SCREEN_TYPE, VCOM, STARTUP_MSG, BUFFER_SIZE, INCLUDE_CREDITS
 from image_generator import generate_img, QUOTES_PATH
 from writer import Pen
+
+logging.basicConfig(level=logging.DEBUG)
 
 if SCREEN_TYPE == ScreenOptions.IT8951:
     from IT8951 import constants
     from IT8951.display import AutoEPDDisplay
 elif SCREEN_TYPE == ScreenOptions.WAVESHARE:
     from waveshare_libraries import epd7in5_V2 # Waveshare's library for their 7.5 inch screen
-
-
-logging.basicConfig(level=logging.DEBUG)
+else:
+    logging.error('Invalid option for SCREEN_TYPE.')
 
 class Clock:
     '''
@@ -31,6 +32,7 @@ class Clock:
     as possible).
 
     Attributes:
+        quotes (list[list[dict]]): Stores all rows of quotes from the CSV file.
         quote_buffer (list[Image.Image]): A buffer that contains the images to be displayed for the
          next BUFFER_SIZE minutes, including the currently displayed image.
         epd (epd7in5_V2.EPD): Waveshare's EPD module to control the e-paper screen and what is
@@ -39,18 +41,53 @@ class Clock:
          row into an image.
     '''
     def __init__(self):
+        self.quotes: list[list[dict]] = []
         self.quote_buffer: list[Image.Image] = []
         if SCREEN_TYPE == ScreenOptions.IT8951:
-            self.display = AutoEPDDisplay(vcom=-2.79) # set to VCOM value that's on the FPC
+            self.display = AutoEPDDisplay(vcom=VCOM)
         elif SCREEN_TYPE == ScreenOptions.WAVESHARE:
             self.epd = epd7in5_V2.EPD()
 
         self.pen = Pen()
         logging.info('created clock obj.')
 
+    def cache_quotes(self):
+        '''Parses the CSV file containing all of the quotes and stores the rows in a list.
+        
+        Example structure:
+        ```Python
+        self.quotes = [
+            [0000_0 = {...}, 0000_1 = {...}], # rows for 00:00
+            [0001_0 = {...}, 0001_1 = {...}, ...] # rows for 00:01
+        ]
+        ```
+        TODO: Would it be better to store this in a JSON obj? Could be more memory efficient.
+        '''
+        curr_time = '00:00'
+        try:
+            with open(QUOTES_PATH, newline='\n', encoding='UTF-8') as quotefile:
+                quotefile.seek(0)
+                quotereader = csv.DictReader(quotefile, delimiter='|')
+                min_rows: list[dict] = [] # all rows for a given minute
+                for row in quotereader:
+                    # roll over to next minute
+                    if int(row['time'][3:]) - 1 == int(curr_time[3:]):
+                        self.quotes.append(min_rows)
+                        min_rows = []
+                        curr_time = f'{curr_time[:2]}:{row["time"][3:]}'
+                    # roll over to next hour
+                    elif int(row['time'][:2]) - 1 == int(curr_time[:2]):
+                        self.quotes.append(min_rows)
+                        min_rows = []
+                        curr_time = f'{row["time"][:2]}:00'
+                    min_rows.append(row)
+        except FileNotFoundError:
+            logging.error('File %s not found', QUOTES_PATH)
+            sys.exit(0)
+
     def get_image(self, quote_time: datetime) -> Image.Image:
         '''
-        Find all possible quotes for the  provided `quote_time`, select one at random, and create an
+        Find all possible quotes for the provided `quote_time`, select one at random, and create an
         image for the quote to be displayed.
 
         Args:
@@ -62,24 +99,13 @@ class Clock:
         '''
         minute = '0' + str(quote_time.minute) if quote_time.minute < 10 else str(quote_time.minute)
         hour = '0' + str(quote_time.hour) if quote_time.hour < 10 else str(quote_time.hour)
-        formatted_time = f'{hour}:{minute}'  # e.g. '13:45'
+        formatted_time = f'{hour}{minute}'  # e.g. '13:45'
         usable_rows = []
-        include_metadata = INCLUDE_CREDITS  # include the quote's author and book title
+        include_metadata = INCLUDE_CREDITS
 
-        # go row-by-row through the CSV and get all quotes for the upcoming time
-        try:
-            with open(QUOTES_PATH, newline='\n', encoding='UTF-8') as quotefile:
-                quotefile.seek(0)
-                quotereader = csv.DictReader(quotefile, delimiter='|')
-                for row in quotereader:
-                    if row['time'] == formatted_time:
-                        usable_rows.append(row)
-        except FileNotFoundError:
-            logging.error('File %s not found', QUOTES_PATH)
-            sys.exit(0)
-
-        # display an error message to the clock if quote is missing
-        if not usable_rows:
+        rows_idx = int(hour) * 60 + int(minute) # index in self.quotes where quote_time's rows are
+        usable_rows:list[dict] = self.quotes[rows_idx]
+        if not usable_rows: # display an error message to the clock if quote is missing
             quote = f'Error: There is currently no quote for {formatted_time}.'
             usable_rows.append({'time': formatted_time, 'quote': quote, 'timestring': 'Error', 'author': '', 'title': ''})
             include_metadata = False
@@ -120,7 +146,6 @@ class Clock:
             IOError: An error occurred when displaying the image on the screen.
         '''
         try:
-            self.quote_buffer[0].show()
             if SCREEN_TYPE == ScreenOptions.IT8951:
                 self.display.frame_buf.paste(self.quote_buffer[0])
                 self.display.draw_full(constants.DisplayModes.GC16) # update display
@@ -134,7 +159,6 @@ class Clock:
                 self.epdconfig.module_exit(cleanup=True)
 
 
-
     def wipe_screen(self):
         '''Wipe the screen when something breaks to prevent ghosting.'''
         logging.info("clearing the screen…\n")
@@ -143,7 +167,6 @@ class Clock:
         else:
             self.epd.init()  # wake the screen so that it can be cleared
             self.epd.Clear()
-
 
 
     def main(self):
@@ -195,6 +218,7 @@ if __name__ == '__main__':
     try:
         logging.info("Literary Quote Clock Started")
         clock = Clock()
+        clock.cache_quotes()
 
         logging.info('Initializing and clearing the screen')
         if SCREEN_TYPE == ScreenOptions.WAVESHARE:
@@ -204,6 +228,7 @@ if __name__ == '__main__':
         logging.info('Displaying startup screen')
         startup_row = {'quote': STARTUP_MSG,'timestring': STARTUP_MSG, 'title': '', 'author': ''}
         startup_img = generate_img(startup_row, False, clock.pen)
+        startup_img.show()
         if SCREEN_TYPE == ScreenOptions.IT8951:
             clock.display.frame_buf.paste(startup_img)
             clock.display.draw_full(constants.DisplayModes.GC16)

@@ -59,7 +59,8 @@ The next steps are dependent on the type of screen you have. For this documentat
 
 For these type of screens, Greg Meyer's [IT8951](https://github.com/GregDMeyer/IT8951/tree/master) Python library will be used. It is the library that Waveshare recommends.
 
-1. Follow steps 1, 2, and 4 in the [Working with Raspberry Pi (SPI)](https://www.waveshare.com/wiki/6inch_HD_e-Paper_HAT#Working_with_Raspberry_Pi_.28SPI.29) section of Waveshare's wiki. That is, make sure that the screen is properly connected to the Pi, the DIP switch is set to SPI mode, and that the SPI interface is enabled in the Pi's settings.
+1. Follow steps 1, 2, and 4 in the [Working with Raspberry Pi (SPI)](https://www.waveshare.com/wiki/6inch_HD_e-Paper_HAT#Working_with_Raspberry_Pi_.28SPI.29) section of Waveshare's wiki.
+- That is, make sure that the screen is properly connected to the Pi, the DIP switch is set to SPI mode, and that the SPI interface is enabled in the Pi's settings.
 
 2. There are a couple of packages that need to be installed for the IT8951 library to work. Run the following:
 
@@ -69,7 +70,7 @@ For these type of screens, Greg Meyer's [IT8951](https://github.com/GregDMeyer/I
 
     - `build-essential` is a bundle of C compiler tools.
     - `python3-dev` installs Cythonic stuff for the driver
-    - `python3-tk` installs tkinter for the driver. The IT8951 library includes a dev mode where you can print things onto your desktop via tkinter rather than onto the e-paper screen.
+    - `python3-tk` installs tkinter for the driver. The IT8951 library includes a dev mode where you can print things onto your desktop via tkinter rather than onto the e-paper screen. Even if you don't use the feature, the package is still required.
 
 3. Clone this repository recursively to the Pi (this will download this repository and the IT9851 library) with:
 
@@ -79,20 +80,20 @@ For these type of screens, Greg Meyer's [IT8951](https://github.com/GregDMeyer/I
 
     - _Note:_ If you forgot the `--recursive` flag, run `git submodule update --init` to clone the IT8951 library locally.
 
-4. Configure a virtual environment within the cloned repo.
+4. Configure a virtual environment within the cloned repo:
 
-    First, `cd` into the cloned repo and initialize a venv:
+    1. `cd` into the cloned repo and initialize a venv:
 
     ```sh
     python3 -m venv venv
     ```
     
-    Then, activate the venv:
+    2. Activate the venv:
     ```sh
     source venv/bin/activate
     ```
     
-    Lastly, install the clock's necessary packages:
+    3. Install the clock's necessary packages:
     
     ```sh
     pip install -r requirements.txt
@@ -104,7 +105,27 @@ For these type of screens, Greg Meyer's [IT8951](https://github.com/GregDMeyer/I
     pip install ./[rpi]
     ```
 
-6. (Optional) You can test that everything was installed properly:
+6. The [constants.py](/constants.py) file is set up for non-IT8951 screens by default, so there are a few modifications that will need to be made:
+
+    1. Change the `SCREEN_WIDTH` and `SCREEN_HEIGHT`, if necessary.
+
+    2. Modify the `VCOM` value to match what is on your screen's FPC.
+
+    3. Change the `SCREEN_TYPE` variable to:
+    
+        ```Python
+        SCREEN_TYPE = ScreenOptions.WAVESHARE
+        ```
+
+    4. Change the `IMAGE_FORMAT` to:
+    
+        ```Python
+        IMAGE_FORMAT = 'png'
+        ```
+
+    5. Depending on the screen's resolution, you may need to increase `MAX_FONT_SIZE`.
+
+7. (Optional) You can test that everything was installed properly:
 
     1. Start an interactive interpreter for Python:
     
@@ -124,15 +145,6 @@ For these type of screens, Greg Meyer's [IT8951](https://github.com/GregDMeyer/I
         exit()
         ```
 
-7. The [constants.py](/constants.py) file is set up for non-IT8951 screens by default, so there are a few modifications that will need to be made:
-
-    1. Change the `SCREEN_WIDTH` and `SCREEN_HEIGHT`, if necessary.
-
-    2. Change the `SCREEN_TYPE` to `ScreenOptions.WAVESHARE`.
-
-    3. Change the `IMAGE_FORMAT` to `'png'`.
-
-    4. Depending on the screen's resolution, you may need to increase `MAX_FONT_SIZE`.
 
 8. In the [clock.service](/scripts/clock.service) script, modify the `WorkingDirectory` variable to store the path to the cloned repo and the `ExecStart` variable to store the path to `clock.py` in the cloned repo. Then, move [clock.service](/scripts/clock.service) into `/etc/systemd/system`.
 
@@ -148,7 +160,8 @@ For these type of screens, Greg Meyer's [IT8951](https://github.com/GregDMeyer/I
 
 ### Non-IT8951 Screens 
 
-1. Waveshare has provided a handy guide for configuring a Pi to use their screen. The guide can be accessed [here](https://www.waveshare.com/wiki/7.5inch_e-Paper_HAT_Manual). The [Working With Raspberry Pi](https://www.waveshare.com/wiki/7.5inch_e-Paper_HAT_Manual#Working_With_Raspberry_Pi) section pertains to this specific project.
+1. Waveshare has provided a handy guide for configuring a Pi to use their screen. The guide can be accessed [here](https://www.waveshare.com/wiki/7.5inch_e-Paper_HAT_Manual). The "[Working With Raspberry Pi](https://www.waveshare.com/wiki/7.5inch_e-Paper_HAT_Manual#Working_With_Raspberry_Pi)" section pertains to this specific project.
+    - _Note:_ This guide is specific to Waveshare's 7.5" screen. If you are using a different screen size, refer to the wiki page for your specific screen's setup instructions.
 
 2. After you have verified that the screen is working via Waveshare's demo, clone this repository to the Pi with:
 
@@ -196,7 +209,7 @@ For these type of screens, Greg Meyer's [IT8951](https://github.com/GregDMeyer/I
 
 ### Aditional Setup
 
-This is an optional step to help with desync issues and automatically update the clock. I've come across a problem where the clock becomes desync'd with the actual time due to an unstable WiFi connection, meaning quotes don't change at the correct moment. A workaround to the issue is to add a crontab that reboots the Pi every day at 4 AM. This doesn't always fix the problem, and sometimes the Pi has to be unplugged from its power source, which usually does the trick for some reason. The script will pull changes from the clock's remote repository first, so any updates I make (e.g., adding new quotes) will be automatically downloaded. To can add this cron job, run:
+This is an optional step to help with desync issues and automatically update the clock, regardless of screen type. I've come across a problem where the clock becomes desync'd with the actual time due to an unstable WiFi connection, meaning quotes don't change at the correct moment. A workaround to the issue is to add a crontab that reboots the Pi every day at 4 AM. This doesn't always fix the problem, and sometimes the Pi has to be unplugged from its power source, which usually does the trick for some reason. The script will pull changes from the clock's remote repository first, so any updates I make (e.g., adding new quotes) will be automatically downloaded. To can add this cron job, run:
 
    ```sh
    sudo crontab -e
@@ -441,29 +454,42 @@ As I find quotes in the books I read in my free time, I add them to the CSV file
 
 There are some minutes of the day that only have one quote as an option that I'd like to remove, but can't since it's the only quote for that time. 
 
-| First Half of the Day | Second Half of the Day |
-| --------------------- | ---------------------- |
-| 00:51                 | 12:31                  |
-| 00:57                 | 13:21                  |
-| 05:26                 | 14:18                  |
-| 06:02                 | 15:29                  |
-|                       | 16:16                  |
-|                       | 16:18                  |
-| 06:31                 | 17:75                  |
-| 06:34                 | 18:04                  |
-| 07:08                 | 19:31                  |
-| 07:18                 | 19:44                  |
-| 07:22                 | 19:46                  |
-| 07:36                 | 19:47                  |
-| 07:48                 | 19:52                  |
-| 08:01                 | 20:22                  |
-| 08:02                 | 20:39                  |
-| 09:08                 | 21:43                  |
-|                       | 21:46                  |
-|                       | 21:52                  |
-|                       | 22:49                  |
-|                       | 23:24                  |
-
+- 00:51
+- 00:57
+- 05:26
+- 06:02
+- 06:31
+- 06:34
+- 07:08
+- 07:18
+- 07:22
+- 07:36
+- 07:48
+- 08:01
+- 08:02
+- 09:08
+- 10:16
+- 12:26
+- 12:31
+- 13:21
+- 14:18
+- 15:29
+- 16:16
+- 16:18
+- 17:75
+- 18:04
+- 19:31
+- 19:44
+- 19:46
+- 19:47
+- 19:52
+- 20:22
+- 20:39
+- 21:43
+- 21:46
+- 21:52
+- 22:49
+- 23:24
 
 ## Other Notes
 <!--<h2 align="center">Other Notes</h2>-->
