@@ -24,6 +24,7 @@ fontsize by at least 1... so idk. or increase fontsize by 1 and reduce the bbox 
     - See "And you keep quiet, Betty..." (02:48). The credit bbox is also weird for this quote.
 - Not sure that the newline delim is working properly when calculating fontsize
     - E.g., try `09:08|09:08:35 a.m.|◻09:08:35 a.m.◻ ␤WHEN MARK WAS SHOT ␤◻I was shattered. Shifted. ␤Never the same again.◻|Long Way Down|Jason Reynolds`
+https://stackoverflow.com/questions/43060479/how-to-get-the-font-pixel-height-using-pils-imagefont-class
 '''
 import csv
 import logging
@@ -412,7 +413,7 @@ if __name__ == "__main__":
 
         quotereader = csv.DictReader(csvfile, delimiter='|')
         img_num = 0
-        previous_time = ''
+        previous_time = '00:00'
         quote_img:Image.Image
         for i, curr_row in enumerate(quotereader):
             if i >= num_quotes:
@@ -421,6 +422,11 @@ if __name__ == "__main__":
             if curr_row['time'] == previous_time:
                 img_num += 1
             else:
+                if not int(curr_row['time'][3:]) - 1 == int(previous_time[3:]) and previous_time[3:] != '59':
+                    missing_min = int(previous_time[3:]) + 1
+                    missing_min = f'0{str(missing_min)}' if missing_min <= 9 else str(missing_min)
+                    missing_time = f'{previous_time[:2]}:{missing_min}'
+                    print(f'Error: Missing or out-of-order quote for {missing_time}')
                 img_num = 0
                 previous_time = curr_row['time']
 
