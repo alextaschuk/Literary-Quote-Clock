@@ -1,6 +1,5 @@
 #!/bin/bash
-
-# This is run by a cron job once a day at 4:00 AM 
+# This is run by a cron job once a day at 4:00 A.M. 
 
 #echo Stopping clock.service > /home/clock/Desktop/log.txt
 sudo systemctl stop clock.service
