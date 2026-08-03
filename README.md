@@ -1,6 +1,6 @@
 <h1 align="center">Literary Quote Clock</h1>
 
-I made a clock that displays the time using quotes from various books. All 1,440 minutes of the day have at least one corresponding quote, but many have multiple possible quotes that may be used (one is chosen at random).
+I made a clock that displays the time using quotes from various books. All 1,440 minutes of the day have at least one corresponding quote, but many have multiple possible quotes that may be used (one is chosen at random). There are over 3,800 possible quotes.
 
 <p align="center">
     <img src="misc/demo/demo.jpg" alt="the clock in its frame with a quote that reads There's a train a seventeen minutes to two, said Didier. He blessed himself and got to his feet. He hesitated. 'What's the matter?' 'Shouldn't we say goodbye to Grandpa? He usually has a cheque for me.' —The Public Prosecutor, Jef Geeraerts" width="600"/>
@@ -25,23 +25,28 @@ I made a clock that displays the time using quotes from various books. All 1,440
 
 There are three ways to make the clock, depending on your hardware choices:
 
+### IT8951 Screens
+
+IT8951 is a type of driver that is used to control and display things to an e-paper display (EPD). This is the hardware that I used to make an IT8951-based clock:
+
+- [Waveshare 6-inch E-ink Display & HAT](https://www.waveshare.com/6inch-hd-e-paper-hat.htm)
+- [Raspberry Pi Model 3](https://www.raspberrypi.com/products/raspberry-pi-4-model-b/)
+    - _Note:_ Any Model Pi should work, as long as the hat fits. Check Waveshare's documentation first.
+- The frame is currently a WIP.
+
 ### Non-IT8951 Screens
+
+Most of Waveshare's EPDs do not use an IT8951 driver. This is the hardware that I used to make a non-IT8951-based clock:
 
 - [Waveshare 7.5 inch E-ink Display & HAT](https://www.waveshare.com/7.5inch-e-paper-hat.htm)
 - [Raspberry Pi Zero 2WH](https://www.raspberrypi.com/products/raspberry-pi-zero-2-w/)
   - _Note:_ Waveshare sells a [pre-soldered Pi](https://www.waveshare.com/product/raspberry-Pi/boards-kits/raspberry-Pi-zero-2-w-cat/raspberry-Pi-zero-2-w.htm?sku=21039), which is what I used.
 - The frame was handmade using walnut wood.
 
-### IT8951 Screens
-- [Waveshare 6-inch E-ink Display & HAT](https://www.waveshare.com/6inch-hd-e-paper-hat.htm)
-- [Raspberry Pi Model 3](https://www.raspberrypi.com/products/raspberry-pi-4-model-b/)
-    - _Note:_ Any Model Pi should work, as long as the hat fits. Check Waveshare's documentation first.
-- The frame is currently a WIP.
+### Kindles
 
-### Turning Your Kindle into a Clock
-
-- A jailbroken kindle that can run scriptlets. For instructions on how to install the clock on a jailbroken Kindle, check out the [README](/kindle_clock/README.md) in the */kindle_clock/* folder.
-    - Pretty much all modern (and probably older Kindles, too) have this ability. All that is required to run scriptlets is [SH_integration](https://github.com/KindleModding/sh_integration).
+All you need is jailbroken kindle that can run scriptlets. For instructions on how to install the clock on a jailbroken Kindle, check out the [README](/kindle_clock/README.md) in the */kindle_clock/* folder.
+    - Pretty much every modern jailbreak (and probably most older ones, too) has this ability. All that is required to run scriptlets is [SH_integration](https://github.com/KindleModding/sh_integration).
 
 ## How to Setup the Clock (Non-Kindle Only)
 <!--<h2 align="center">How to Setup the Clock</h2>-->
@@ -431,20 +436,20 @@ As I find quotes in the books I read in my free time, I add them to the CSV file
 | Title                          | Author               | Number of Quotes      |
 | ------------------------------ | -------------------- | ----------------      |
 | Battle Royale                  | Koshun Takami        | 59                    |
-| Stoner                         | John Williams        | 21                    |
+| Stoner                         | John Williams        | 23                    |
 | All Quiet on the Western Front | Erich Maria Remarque | 20                    |
 | In Cold Blood                  | Truman Capote        | 84                    |
 | The Road                       | Cormac McCarthy      | 8                     |
 | Butcher’s Crossing             | John Williams        | 16                    |
 | The Great Gatsby               | F. Scott Fitzgerald  | 51                    |
-| 2001: A Space Odyssey          | Arthur C. Clarke     | 10                    |
-| Before the Coffee Gets Cold    | Toshikazu Kawaguchi  | 3                     |
-| Dungeon Crawler Carl           | Matt Dinniman        | 5                     |
+| Before the Coffee Gets Cold    | Toshikazu Kawaguchi  | 8                     |
+| Dungeon Crawler Carl           | Matt Dinniman        | 6                     |
 | Carl’s Doomsday Scenario       | Matt Dinniman        | 2                     |
-| Dune                           | Frank Herbert        | 12                    |
+| Dune                           | Frank Herbert        | 3                     |
 | Dune Messiah                   | Frank Herbert        | 3                     |
 | Children of Dune               | Frank Herbert        | 16                    |
-| God Emperor of Dune            | Frank Herbert        | 1 (Currently Reading) |
+| God Emperor of Dune            | Frank Herbert        | 10                    |
+|                                | Total                | 309                   |
 
 - *Note*: A few of these quotes are used for AM and PM, so the third column is for total quotes found in each book, not unique quotes.
 
@@ -471,23 +476,30 @@ There are some minutes of the day that only have one quote as an option that I'd
 - 10:16
 - 12:26
 - 12:31
+- 13:18
 - 13:21
+- 13:26
 - 14:18
 - 15:29
 - 16:16
 - 16:18
 - 17:75
 - 18:04
+- 18:49
 - 19:31
 - 19:44
 - 19:46
 - 19:47
 - 19:52
+- 20:13
 - 20:22
+- 20:23
 - 20:39
+- 21:17
 - 21:43
 - 21:46
 - 21:52
+- 22:19
 - 22:49
 - 23:24
 
