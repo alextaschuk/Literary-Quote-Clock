@@ -99,29 +99,20 @@ class Clock:
         '''
         minute = '0' + str(quote_time.minute) if quote_time.minute < 10 else str(quote_time.minute)
         hour = '0' + str(quote_time.hour) if quote_time.hour < 10 else str(quote_time.hour)
-        formatted_time = f'{hour}{minute}'  # e.g. '13:45'
         usable_rows = []
         include_metadata = INCLUDE_CREDITS
 
         rows_idx = int(hour) * 60 + int(minute) # index in self.quotes where quote_time's rows are
         usable_rows:list[dict] = self.quotes[rows_idx]
-        if not usable_rows: # display an error message to the clock if quote is missing
-            quote = f'Error: There is currently no quote for {formatted_time}.'
-            usable_rows.append({'time': formatted_time, 'quote': quote, 'timestring': 'Error', 'author': '', 'title': ''})
-            include_metadata = False
-            logging.error('Missing quote for %s', formatted_time)
-
-        row = usable_rows[random.randrange(0, len(usable_rows))]
-        logging.info('Selected a quote for %s: "%s..."', formatted_time, row['quote'][:50])
-
-        quote_image = generate_img(row, include_metadata, self.pen)
+        selected_row = usable_rows[random.randrange(0, len(usable_rows))]
+        quote_image = generate_img(selected_row, include_metadata, self.pen)
         return quote_image
 
     def refresh_buffer(self):
         '''Update the clock's buffer with one or more new images of quotes.
         
-        First, the image at the front of the buffer is removed (it is for the previous minute). Then,
-        new quote(s) are added until the number of quotes in the buffer matches `BUFFER_SIZE`.
+        First, the image at the front of the buffer is removed (it is for the previous minute).
+        Then, new quote(s) are added until the number of quotes in the buffer matches `BUFFER_SIZE`.
         '''
         del self.quote_buffer[0]
         curr_time = datetime.now()
