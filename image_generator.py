@@ -11,19 +11,6 @@ TODO:
 - (for future) match delimiters to markdown (will need to handle instances where, e.g., * is
 actually used) -- can use one delim for bold and italic. just track total number seen. if
 num % 2 == 0 then bold otherwise italic if num > 0
-- add check if quote has any formatting at all. if not, write entire quote word-by-word instead.
-- find better delim chars for ~~newline~~ and double newline
-- the quote and the credits because the text wrapper only really checks for horizontal wrapping,
-so sometimes a quote fits better horizontally, but a bigger font may be usable if wrapping is
-used earlier. Figure out a way to wrap text that takes horizontal and vertical wrapping into
-consideration. Another (worse) option is to resize the credit bbox to just above the bottom of
-the quote's text, after drawing the quote, giving it more space. Maybe check if there is 1 line
-of space between the quote and credit bboxes. If there is, wrap the last word of the first line
-onto the second line, pushing everything down by one... but this would force you to reduce
-fontsize by at least 1... so idk. or increase fontsize by 1 and reduce the bbox size?
-    - See "And you keep quiet, Betty..." (02:48). The credit bbox is also weird for this quote.
-- Not sure that the newline delim is working properly when calculating fontsize
-    - E.g., try `09:08|09:08:35 a.m.|◻09:08:35 a.m.◻ ␤WHEN MARK WAS SHOT ␤◻I was shattered. Shifted. ␤Never the same again.◻|Long Way Down|Jason Reynolds`
 https://stackoverflow.com/questions/43060479/how-to-get-the-font-pixel-height-using-pils-imagefont-class
 '''
 import csv
@@ -95,7 +82,7 @@ def format_char(char:str, fonts:Fonts, pen:Pen) -> str:
     return char
 
 def format_word(word:str, lines:list[str], word_len:int, pen:Pen):
-    '''Check if a word needs to be moved onto a new line, separately from text wrapping.
+    '''Check if a word needs to be moved onto a new line, either due to text wrapping or formatting.
     
     Args:
         word (str): The word to be formatted.
@@ -105,21 +92,18 @@ def format_word(word:str, lines:list[str], word_len:int, pen:Pen):
     '''
     add_line = False
     if WordDelimiters.NEWLINE in word:
-        pen.coords['x'] = pen.bbox.top_left_x
-        pen.coords['y'] += int(pen.font.getbbox("A")[3] + 4)
         add_line = True
     elif WordDelimiters.DOUBLE_NEWLINE in word:
-        pen.coords['x'] = pen.bbox.top_left_x
-        pen.coords['y'] += 2 * int(pen.font.getbbox("A")[3] + 4)
         add_line = True
+        pen.coords['y'] += int(pen.font.getbbox("A")[3] + 4)
         lines.append(' ')
 
     if pen.coords['x'] + word_len > pen.bbox.bottom_right_x or add_line:
         # move to the next line, add the current word to the line, and reset x coord
         # TODO: Replace with get_lineheight()
+        pen.coords['x'] = pen.bbox.top_left_x
         pen.coords['y'] += int(pen.font.getbbox("A")[3] + 4)
         lines.append(word)
-        pen.coords['x'] = pen.bbox.top_left_x
     else:
         # add the current word to the current line
         lines[-1] = f'{lines[-1]} {word}'
@@ -169,9 +153,8 @@ def wrap_text(text: str, fonts: Fonts, pen: Pen) -> str:
 
     wrapped = '\n'.join(lines)
 
+    # TODO: figure out how pillow calculates bbox and manually implement height calculation so that I dont have to make an objects each time
     # verify that the wrapping fits
-    # TODO: figure out how pillow calculates bbox and manually implement height calculation so that
-    # I dont have to make all of these objects each time
     temp_img = Image.new(mode='L', size=(SCREEN_WIDTH, SCREEN_HEIGHT), color=BG_COLOR)
     canvas = ImageDraw.Draw(temp_img)
     pil_bbox = canvas.multiline_textbbox((pen.bbox.top_left_x, pen.bbox.top_left_y), wrapped, fonts.regular)
