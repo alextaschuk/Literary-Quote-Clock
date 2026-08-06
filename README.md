@@ -45,7 +45,7 @@ Most of Waveshare's EPDs do not use an IT8951 driver. This is the hardware that 
 
 ### Kindles
 
-All you need is jailbroken kindle that can run scriptlets. For instructions on how to install the clock on a jailbroken Kindle, check out the [README](/kindle_clock/README.md) in the */kindle_clock/* folder.
+All you need is a jailbroken Kindle that can run scriptlets. For instructions on how to install the clock on a jailbroken Kindle, check out the [README](/kindle_clock/README.md) in the */kindle_clock/* folder.
     - Pretty much every modern jailbreak (and probably most older ones, too) has this ability. All that is required to run scriptlets is [SH_integration](https://github.com/KindleModding/sh_integration).
 
 ## How to Setup the Clock (Non-Kindle Only)
@@ -62,7 +62,7 @@ The next steps are dependent on the type of screen you have. For this documentat
 
 ### IT8951 Screens 
 
-For these type of screens, Greg Meyer's [IT8951](https://github.com/GregDMeyer/IT8951/tree/master) Python library will be used. It is the library that Waveshare recommends.
+For this type of screen, Greg Meyer's [IT8951](https://github.com/GregDMeyer/IT8951/tree/master) Python library will be used. It is the library that Waveshare recommends.
 
 1. Follow steps 1, 2, and 4 in the [Working with Raspberry Pi (SPI)](https://www.waveshare.com/wiki/6inch_HD_e-Paper_HAT#Working_with_Raspberry_Pi_.28SPI.29) section of Waveshare's wiki.
     
@@ -204,7 +204,7 @@ For these type of screens, Greg Meyer's [IT8951](https://github.com/GregDMeyer/I
 
     2. Depending on the screen's resolution, you may need to increase `MAX_FONT_SIZE`.
 
-5. (Optional) If you are using something other than the 7.5" screen, you will also need to download the correct EPD module and modify clock.py to use it instead of the 7.5" module.
+5. (Optional) If you are using something other than the 7.5" screen, you will also need to download the correct EPD module from Waveshare and modify clock.py to use it instead of the 7.5" module.
 
 5. In the [clock.service](/scripts/clock.service) script, modify the `WorkingDirectory` variable to store the path to the cloned repo and the `ExecStart` variable to store the path to `clock.py` in the cloned repo. Then, move [clock.service](/scripts/clock.service) into `/etc/systemd/system`.
 
@@ -217,7 +217,7 @@ For these type of screens, Greg Meyer's [IT8951](https://github.com/GregDMeyer/I
     ```
 
 
-### Aditional Setup
+### Additional Setup
 
 This is an optional step to help with desync issues and automatically update the clock, regardless of screen type. I've come across a problem where the clock becomes desync'd with the actual time due to an unstable WiFi connection, meaning quotes don't change at the correct moment. A workaround to the issue is to add a crontab that reboots the Pi every day at 4 AM. This doesn't always fix the problem, and sometimes the Pi has to be unplugged from its power source, which usually does the trick for some reason. The script will pull changes from the clock's remote repository first, so any updates I make (e.g., adding new quotes) will be automatically downloaded. To can add this cron job, run:
 
@@ -261,11 +261,11 @@ This is an optional step to help with desync issues and automatically update the
 
 This project was a gift, so I wanted it to be as plug-and-play as possible. To achieve this, I created a simple systemd unit configuration file ([clock.service](/clock.service)) that starts the clock by running the [clock.py](/clock.py) file after the Pi connects to a WiFi network. It still takes about half a minute for the Pi's internal clock to be updated from this point, so the clock performs a full initialization on the screen to remove any ghosted Pixels and displays a startup image in the meantime, then goes to sleep for 30 seconds.
 
-All of the clock's logic lies in [clock.py](./clock.py), and all of the quotes are stored in [quotes.csv](./quotes.csv). When the clock is first ran, it parses the CSV and caches all of the quotes into a nested list. The program runs in a continuous loop that calls the `main()` function once every minute. The clock maintains a buffer that contains three images, each a succeeding minute past the current minute of the hour. At the top of a minute—technically, the 59th second of the previous minute; you'll see what I mean—`display_quote()` is called, and the image at the front of the buffer is displayed to the screen. Then, `refresh_buffer()` is called, which removes the quote that was just displayed from the buffer, and appends a new image for the time that is three minutes ahead of the next image to be displayed.
+All of the clock's logic lies in [clock.py](./clock.py), and all of the quotes are stored in [quotes.csv](./quotes.csv). When the clock is first run, the quotes are cached. The program runs in a continuous loop that calls the `main()` function once every minute. The clock maintains a buffer that contains three images, each a succeeding minute past the current minute of the hour. At the top of a minute—technically, the 59th second of the previous minute; you'll see what I mean—`display_quote()` is called, and the image at the front of the buffer is displayed to the screen. Then, `refresh_buffer()` is called, which removes the quote that was just displayed from the buffer and appends a new image for the time that is three minutes ahead of the next image to be displayed.
 
-Here's an example: Suppose that the clock's program is started at 13:31:15. After sleeping for 30 seconds (it is now 13:31:45), the first image to be displayed is generated outside of the `main()` function and is appened to the buffer (this is necessary because of how the buffer works). Then, the `main()` function is called. Inside of `main()`, `display_quote()` is called, to display the image for 13:31. Then, `refresh_buffer()` is called. Inside of this function, the image for 13:31 is removed from the buffer, and the buffer is populated with images for 13:32, 13:33, and 13:34. Assuming this whole process took 1 second, the time is now 13:31:46, so the program goes to sleep for 13 seconds.
+Here's an example: Suppose that the clock's program is started at 13:31:15. After sleeping for 30 seconds (it is now 13:31:45), the first image to be displayed is generated outside of the `main()` function and is appended to the buffer (this is necessary because of how the buffer works). Then, the `main()` function is called. Inside of `main()`, `display_quote()` is called, to display the image for 13:31. Then, `refresh_buffer()` is called. Inside of this function, the image for 13:31 is removed from the buffer, and the buffer is populated with images for 13:32, 13:33, and 13:34. Assuming this whole process took 1 second, the time is now 13:31:46, so the program goes to sleep for 13 seconds.
 
-- If you're wondering why it slept for 13 seconds instead of 14 (since 60-46 = 14), this is because it takes ~1 second for the image shown on the screen to change, so the program wakes up at the 59th second of the minute instead of the 0th second of the next minute. This makes it look like the change is actually occuring at the 0th second of the next minute instead of the 1st second.
+- If you're wondering why it slept for 13 seconds instead of 14 (since 60-46 = 14), this is because it takes ~1 second for the image shown on the screen to change, so the program wakes up at the 59th second of the minute instead of the 0th second of the next minute. This makes it look like the change is actually occurring at the 0th second of the next minute instead of the 1st second.
 
 The program wakes up at 13:31:59, and calls `display_quote()` to show the quote for 13:32 on the screen. Then, `refresh_buffer()` is called, which removes the image for 13:32 from the buffer and appends an image for 13:35. The program then sleeps until 13:32:59.
 
@@ -284,7 +284,7 @@ An image is generated by parsing the cached CSV file and drawing the quote on a 
 
 JohannesNE's CSV file contains quotes that have italic characters, and their project is a website, so the formatting of text in a quote could easily be changed using the CSS `font-style` property to specify if the text should be normal or _italic_, and the `font-weight` property to specify how thick the text should be to make it **bold** (you can even combine them for text that is _**italicized and bolded**_).
 
-In my case, each style of a font needs its own font file. Since each quote is parsed and drawn on a .bmp image character-by-character, my solution to formatting text is similar to how it is done in markdown where a substring of text can be wrapped with custom character delimiters to specify when different font styles should be applied.
+In my case, each style of a font needs its own font file. Since each quote is parsed and drawn on a .bmp image character-by-character, my solution to formatting text is similar to how it is done in Markdown, where a substring of text can be wrapped with custom character delimiters to specify when different font styles should be applied.
 
 #### Italic '`◻`' (White Medium Square, `U+25FB`) 
 
@@ -372,7 +372,7 @@ Example:
 
 > My watch lay on the dressing-table close by; glancing at it, I saw that the time was **twenty-five minutes to seven**. I had been told that the family breakfasted at nine, so I had nearly two-and-a-half hours of leisure. Of course, I would go out, and enjoy the freshness of the morning. —_Ravensdene Court_, J.S. Fletcher
 
-This quote was used for 06:35, but it can also be used for 09:00. However,it didn't have a row for 09:00 (it can technically be used for 07:00 too, though I chose not to add it for this time because "**seven**" is being used to refer to a number of minutes before 07:00). Furthermore, it is clear from the context of the quote that the time of day is morning, so the quote should only be added for 9:00 and not 21:00 too. Using the quote for 09:00, it would look like this:
+This quote was used for 06:35, but it can also be used for 09:00. However, it didn't have a row for 09:00 (it can technically be used for 07:00 too, though I chose not to add it for this time because "**seven**" is being used to refer to a number of minutes before 07:00). Furthermore, it is clear from the context of the quote that the time of day is morning, so the quote should only be added for 9:00 and not 21:00 too. Using the quote for 09:00, it would look like this:
 
 > My watch lay on the dressing-table close by; glancing at it, I saw that the time was twenty-five minutes to seven. I had been told that the family breakfasted at **nine**, so I had nearly two-and-a-half hours of leisure. Of course, I would go out, and enjoy the freshness of the morning. —_Ravensdene Court_, J.S. Fletcher
 
@@ -409,13 +409,13 @@ Example 1:
 
 > Raymond came back with Masson around one-thirty. His arm was bandaged up and he had an adhesive plaster on the corner of his mouth. The doctor had told him it was nothing, but Raymond looked pretty grim. Masson tried to make him laugh. But he still wouldn't say anything. —_The Stranger_, Albert Camus
 
-Prior to modification, this quote was being used for 13:31, with the time quote being "Raymond came back with Masson **around one-thirty**." My issue with this is that "around" leaves too much room for interpretation and doesn't tell the reader what time it actually is. I moved it to be displayed at 13:30 and change the time quote to instead be "Raymond came back with Masson around **one-thirty**."
+Prior to modification, this quote was being used for 13:31, with the time quote being "Raymond came back with Masson **around one-thirty**." My issue with this is that "around" leaves too much room for interpretation and doesn't tell the reader what time it actually is. I moved it to be displayed at 13:30 and changed the time quote to instead be "Raymond came back with Masson around **one-thirty**."
 
 Example 2:
 
 > Shuya held his watch up to the moonlight. The finely crafted old model K. Hattori diver’s watch (a gift, like most of his possessions, with him living in an orphanage) read **just past 2:40**. Whatever had happened to Yoshio Akamatsu, nearly all of the students would have left the school by now, save for two or three. —_Battle Royale_, Koushun Takami
 
-- I would use this quote for 02:41, but it would be perfectly fine to use it for 02:40 instead (though, I wouldn't use it for both since that could cause the same quote to be displayed back-to-back).
+- I would use this quote for 02:41, but it would be perfectly fine to use it for 02:40 instead (though I wouldn't use it for both since that could cause the same quote to be displayed back-to-back).
 
 ---
 
@@ -521,14 +521,14 @@ There are some minutes of the day that only have one quote as an option that I'd
 
 <h3>Troubleshooting the Pi</h3>
 
-The Raspberry Pi Zero 2W cannot connect to a 5 Ghz WiFi channel; it only works with 2.4 GHz. If you have issues connecting try the following to troubleshoot:
+The Raspberry Pi Zero 2W cannot connect to a 5 Ghz WiFi channel; it only works with 2.4 GHz. If you have issues connecting, try the following to troubleshoot:
 
   1. Log into your modem and temporarily disable the 5 GHz channel, allowing the Pi to connect only to the 2.4 GHz channel. After it connects, you can re-enable the 5 GHz channel.
      - _Note: You shouldn't have to do this every time you turn the Pi on. Once it connects to your WiFi on the 2.4 GHz channel for the first time, it should do so automatically every time moving forward._
   2. Rename the 2.4 GHz channel to have a different SSID.
      - E.g. `SSID-Name-2_4GHz`
 
-If the you take the clock into a new timezone, the Pi's localization settings need to be changed manually. Otherwise the clock won't display the correct time.
+If you take the clock into a new timezone, the Pi's localization settings need to be changed manually. Otherwise the clock won't display the correct time.
 
 ### Miscellaneous
 <!--<h3>Miscellaneous</h3>-->
