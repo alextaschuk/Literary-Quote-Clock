@@ -27,16 +27,18 @@ class Clock:
     '''
     Determines which image should be displayed and when it should be displayed.
 
-    This class contains all of logic to ensure that the correct quote is displayed on the screen and
-    that the screen is updated with a new quote at the 0th second of each minute (or as close to it
-    as possible).
+    This class contains all of the logic to ensure that the correct quote is displayed on the screen
+    and that the screen is updated with a new quote at the 0th second of each minute (or as close to
+    it as possible).
 
     Attributes:
         quotes (list[list[dict]]): Stores all rows of quotes from the CSV file.
         quote_buffer (list[Image.Image]): A buffer that contains the images to be displayed for the
          next BUFFER_SIZE minutes, including the currently displayed image.
-        epd (epd7in5_V2.EPD): Waveshare's EPD module to control the e-paper screen and what is
-         displayed to it. 
+        epd (epd7in5_V2.EPD): Waveshare's EPD module to control a non-IT8951 screen and what is
+         displayed to it.
+        display (AutoEPDDisplay): The EPD module to control an IT8951 screen and what is displayed
+         to it.
         pen (Pen): The pen that is passed into the image generation function to convert a quote's
          row into an image.
     '''
@@ -164,7 +166,7 @@ class Clock:
     def main(self):
         '''Handles refreshing the screen, displaying quotes, and updating the clock's buffer.
 
-        This function is continuously called once every minute and it performs four steps:
+        This function is continuously called once every minute, and it performs four steps:
 
         1. If it is the 59th minute of the hour, perform a full refresh. This helps prevent ghosting
         and increases the screen's lifespan.
@@ -192,7 +194,7 @@ def signal_handler(sig, frame):
     '''
     Listen for `SIGINT` signals from the user.
     
-    For some reason, sending a `sudo shutdown -h now` command over SSH to the Pi doesn't sent a
+    For some reason, sending a `sudo shutdown -h now` command over SSH to the Pi doesn't send a
     `SIGINT` signal to the program, telling it to shutdown (i.e., clear the screen). I'm not totally
     sure why `sudo shutdown -h now` only triggers the program's shutdown process when sent directly
     from the Pi and not over SSH, but this is my workaround to the issue.
