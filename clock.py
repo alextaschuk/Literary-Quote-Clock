@@ -153,9 +153,9 @@ class Clock:
     def wipe_screen(self):
         '''Wipe the screen when something breaks to prevent ghosting.'''
         logging.info("clearing the screen…\n")
-        if SCREEN_TYPE == 'it8951':
+        if SCREEN_TYPE == ScreenOptions.IT8951:
             self.display.clear()
-        else:
+        elif SCREEN_TYPE == ScreenOptions.WAVESHARE:
             self.epd.init()  # wake the screen so that it can be cleared
             self.epd.Clear()
 
@@ -212,9 +212,7 @@ if __name__ == '__main__':
         clock.cache_quotes()
 
         logging.info('Initializing and clearing the screen')
-        if SCREEN_TYPE == ScreenOptions.WAVESHARE:
-            clock.epd.init()
-            clock.epd.Clear()
+        clock.wipe_screen()
 
         logging.info('Displaying startup screen')
         startup_row = {'quote': STARTUP_MSG,'timestring': STARTUP_MSG, 'title': '', 'author': ''}
