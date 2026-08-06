@@ -355,13 +355,13 @@ def generate_img(row:dict, include_credits:bool, pen:Pen) -> Image.Image:
             top_left_x=int(SCREEN_WIDTH * 0.45), # adjust these magic numbers as needed.
             top_left_y=int(SCREEN_HEIGHT * 0.85),
             bottom_right_x=int(SCREEN_WIDTH),
-            bottom_right_y=int(SCREEN_HEIGHT * 0.99)
+            bottom_right_y=int(SCREEN_HEIGHT * scale_multiplier)
         )
 
-        quote_credit = f'—{title.strip()}, {author.strip()}'
+        quote_credit = f'—{title.strip()}, ␤{author.strip()}'
         pen.text = quote_credit
         write_in_bbox(quote_image, pen)
-        quote_bbox.bottom_right_y = int(pen.bbox.top_left_y * 0.99) # resize to above credit bbox
+        quote_bbox.bottom_right_y = int(pen.bbox.top_left_y * scale_multiplier) # resize to above credit bbox
 
     pen.bbox = quote_bbox
     pen.text = quote
