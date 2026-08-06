@@ -65,7 +65,8 @@ The next steps are dependent on the type of screen you have. For this documentat
 For these type of screens, Greg Meyer's [IT8951](https://github.com/GregDMeyer/IT8951/tree/master) Python library will be used. It is the library that Waveshare recommends.
 
 1. Follow steps 1, 2, and 4 in the [Working with Raspberry Pi (SPI)](https://www.waveshare.com/wiki/6inch_HD_e-Paper_HAT#Working_with_Raspberry_Pi_.28SPI.29) section of Waveshare's wiki.
-- That is, make sure that the screen is properly connected to the Pi, the DIP switch is set to SPI mode, and that the SPI interface is enabled in the Pi's settings.
+    
+    - That is, make sure that the screen is properly connected to the Pi, the DIP switch is set to SPI mode, and that the SPI interface is enabled in the Pi's settings.
 
 2. There are a couple of packages that need to be installed for the IT8951 library to work. Run the following:
 
@@ -203,6 +204,8 @@ For these type of screens, Greg Meyer's [IT8951](https://github.com/GregDMeyer/I
 
     2. Depending on the screen's resolution, you may need to increase `MAX_FONT_SIZE`.
 
+5. (Optional) If you are using something other than the 7.5" screen, you will also need to download the correct EPD module and modify clock.py to use it instead of the 7.5" module.
+
 5. In the [clock.service](/scripts/clock.service) script, modify the `WorkingDirectory` variable to store the path to the cloned repo and the `ExecStart` variable to store the path to `clock.py` in the cloned repo. Then, move [clock.service](/scripts/clock.service) into `/etc/systemd/system`.
 
     - For example, if the repo was cloned into a `Desktop/` directory, change the `WorkingDirectory` variable to `WorkingDirectory=/home/[username]/Desktop/Literary-Quote-Clock`. Similarly, change `ExecStart` to `ExecStart=/home/[username]/Desktop/Literary-Quote-Clock/venv/bin/python3 /home/[username]/Desktop/Literary-Quote-Clock/clock.py`.
@@ -233,7 +236,7 @@ This is an optional step to help with desync issues and automatically update the
 ### Other Commands
 <!--<h3>Other Commands</h3>-->
 
-- To generate the quote images and save them to a `/images` directory:
+- To generate the quote images and save them to an `/images` directory:
 
     ```bash
     python3 image_generator.py
@@ -258,7 +261,7 @@ This is an optional step to help with desync issues and automatically update the
 
 This project was a gift, so I wanted it to be as plug-and-play as possible. To achieve this, I created a simple systemd unit configuration file ([clock.service](/clock.service)) that starts the clock by running the [clock.py](/clock.py) file after the Pi connects to a WiFi network. It still takes about half a minute for the Pi's internal clock to be updated from this point, so the clock performs a full initialization on the screen to remove any ghosted Pixels and displays a startup image in the meantime, then goes to sleep for 30 seconds.
 
-All of the clock's logic lies in [clock.py](./clock.py), and all of the quotes are stored in [quotes.csv](./quotes.csv). The clock runs in a continuous loop that calls the `main()` function once every minute. The clock maintains a buffer that contains three images, each a succeeding minute past the current minute of the hour. At the top of a minute—technically, the 59th second of the previous minute; you'll see what I mean—`display_quote()` is called, and the image at the front of the buffer is displayed to the screen. Then, `refresh_buffer()` is called, which removes the quote that was just displayed from the buffer, and appends a new image for the time that is three minutes ahead of the next image to be displayed.
+All of the clock's logic lies in [clock.py](./clock.py), and all of the quotes are stored in [quotes.csv](./quotes.csv). When the clock is first ran, it parses the CSV and caches all of the quotes into a nested list. The program runs in a continuous loop that calls the `main()` function once every minute. The clock maintains a buffer that contains three images, each a succeeding minute past the current minute of the hour. At the top of a minute—technically, the 59th second of the previous minute; you'll see what I mean—`display_quote()` is called, and the image at the front of the buffer is displayed to the screen. Then, `refresh_buffer()` is called, which removes the quote that was just displayed from the buffer, and appends a new image for the time that is three minutes ahead of the next image to be displayed.
 
 Here's an example: Suppose that the clock's program is started at 13:31:15. After sleeping for 30 seconds (it is now 13:31:45), the first image to be displayed is generated outside of the `main()` function and is appened to the buffer (this is necessary because of how the buffer works). Then, the `main()` function is called. Inside of `main()`, `display_quote()` is called, to display the image for 13:31. Then, `refresh_buffer()` is called. Inside of this function, the image for 13:31 is removed from the buffer, and the buffer is populated with images for 13:32, 13:33, and 13:34. Assuming this whole process took 1 second, the time is now 13:31:46, so the program goes to sleep for 13 seconds.
 
@@ -271,7 +274,7 @@ The program wakes up at 13:31:59, and calls `display_quote()` to show the quote 
 
 I used [JohannesNE's CSV file](https://github.com/JohannesNE/literature-clock/blob/master/litclock_annotated.csv) as a starting point for gathering quotes, and have since made several modifications to the quotes in the file (see [Adding, Editing, and Finding Quotes](#adding-editing-and-finding-quotes)).
 
-Images are generated by parsing the CSV file and writing each row to a .bmp file. I originally used a self-modified version of elegantalchemist's [quote_to_image.py](https://github.com/elegantalchemist/literaryclock/blob/main/quote%20to%20image/quote_to_image.py) program to generate images of the quotes. The biggest modification I made to the image generation files is that it could handle italic and bold characters. However, I wasn't very happy with how readable or maintainable the code turned out to be and I felt that there was a lot of refactoring to be done to the program. I opted to rewrite the entire thing, allowing for any future formatting additions or modifications to be easily added later down the line. The logic for converting a row from the CSV file into an image now exists in [image_generator.py](/image_generator.py) and [writer.py](/writer.py).
+An image is generated by parsing the cached CSV file and drawing the quote on a .bmp file. I originally used a self-modified version of elegantalchemist's [quote_to_image.py](https://github.com/elegantalchemist/literaryclock/blob/main/quote%20to%20image/quote_to_image.py) program to generate images of the quotes. The biggest modification I made to the image generation files is that it could handle italic and bold characters. However, the code was not very readable or maintainable, and I felt that there was a lot of refactoring needed. I opted to rewrite the entire thing, allowing for any future formatting additions or modifications to be easily added later down the line. The logic for converting a row from the CSV file into an image now exists in [image_generator.py](/image_generator.py), [writer.py](/writer.py), and [constants.py](/constants.py).
 
 
 ## Formatting Text
@@ -279,7 +282,7 @@ Images are generated by parsing the CSV file and writing each row to a .bmp file
 
 ### Character Formatting
 
-JohannesNE's CSV file contains a few quotes that have italic characters, and their project is a website, so the formatting of text in a quote could easily be changed using the CSS `font-style` property to specify if the text should be normal or _italic_, and the `font-weight` property to specify how thick the text should be to make it **bold** (you can even combine them for text that is _**italicized and bolded**_).
+JohannesNE's CSV file contains quotes that have italic characters, and their project is a website, so the formatting of text in a quote could easily be changed using the CSS `font-style` property to specify if the text should be normal or _italic_, and the `font-weight` property to specify how thick the text should be to make it **bold** (you can even combine them for text that is _**italicized and bolded**_).
 
 In my case, each style of a font needs its own font file. Since each quote is parsed and drawn on a .bmp image character-by-character, my solution to formatting text is similar to how it is done in markdown where a substring of text can be wrapped with custom character delimiters to specify when different font styles should be applied.
 
