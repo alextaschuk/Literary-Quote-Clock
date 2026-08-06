@@ -89,20 +89,21 @@ For these type of screens, Greg Meyer's [IT8951](https://github.com/GregDMeyer/I
 
     1. `cd` into the cloned repo and initialize a venv:
 
-    ```sh
-    python3 -m venv venv
-    ```
+        ```sh
+        python3 -m venv venv
+        ```
     
     2. Activate the venv:
-    ```sh
-    source venv/bin/activate
-    ```
+        
+        ```sh
+        source venv/bin/activate
+        ```
     
     3. Install the clock's necessary packages:
     
-    ```sh
-    pip install -r requirements.txt
-    ```
+        ```sh
+        pip install -r requirements.txt
+        ```
 
 5. Install the IT8951 library by running:
 
@@ -112,7 +113,7 @@ For these type of screens, Greg Meyer's [IT8951](https://github.com/GregDMeyer/I
 
 6. The [constants.py](/constants.py) file is set up for non-IT8951 screens by default, so there are a few modifications that will need to be made:
 
-    1. Change the `SCREEN_WIDTH` and `SCREEN_HEIGHT`, if necessary.
+    1. Change the `SCREEN_WIDTH` and `SCREEN_HEIGHT` to your screen's pixel dimensions.
 
     2. Modify the `VCOM` value to match what is on your screen's FPC.
 
@@ -176,28 +177,29 @@ For these type of screens, Greg Meyer's [IT8951](https://github.com/GregDMeyer/I
 
     - _Note:_ Don't include the `--recursive` flag! This is only necessary for IT8951 screens.
 
-3. Configure a virtual environment within the cloned repo.
+3. Configure a virtual environment within the cloned repo:
 
-    First, `cd` into the cloned repo and initialize a venv:
+    1. `cd` into the cloned repo and initialize a venv:
 
-    ```sh
-    python3 -m venv venv
-    ```
+        ```sh
+        python3 -m venv venv
+        ```
     
-    Then, activate the venv:
-    ```sh
-    source venv/bin/activate
-    ```
+    2. Activate the venv:
+        
+        ```sh
+        source venv/bin/activate
+        ```
     
-    Lastly, install the clock's necessary packages:
+    3. Install the clock's necessary packages:
     
-    ```sh
-    pip install -r requirements.txt
-    ```
+        ```sh
+        pip install -r requirements.txt
+        ```
 
 4. The [constants.py](/constants.py) file is set up for non-IT8951 screens by default, but there may be some modifications that will need to be made:
 
-    1. Change the `SCREEN_WIDTH` and `SCREEN_HEIGHT`, if necessary.
+    1. Change the `SCREEN_WIDTH` and `SCREEN_HEIGHT` to your screen's pixel dimensions.
 
     2. Depending on the screen's resolution, you may need to increase `MAX_FONT_SIZE`.
 
@@ -422,14 +424,16 @@ This sentence should have "in the afternoon" as a part of the time quote because
 
 > A man driving a tractor saw her, four hundred yards from her house, **six minutes past two in the afternoon**. —_A Change of Climate_, Hilary Mantel
 
-Minor changes to character formatting, including:
+I've made changes to character formatting, including:
 - Replacing instances of three full stops (`...`) with a proper horizontal ellipsis character (`…`, `U+2026`)
 - Replacing instances of two hyphens (`--`) with an em dash (`—`)
 - Replacing all instances of double quotation marks (`"`) with a left double quotation mark (`“`, `U+201C`) or a right double quotation mark (`”`, `U+201D`) for the opening and closing of quotes.
+- Replacing all instances of single quotation marks (`'`) with a left single quotation mark (`‘`, `U+2018`) or a right single quotation mark (`’`, `U+2019`) for the opening and closing of quotes.
 
 ---
 
-<h3>Adding My Own Quotes</h3>
+### Adding My Own Quotes
+<!--<h3>Adding My Own Quotes</h3>-->
 
 As I find quotes in the books I read in my free time, I add them to the CSV file (see [my-quotes.csv](./misc/my-quotes.csv) for only the quotes I have found). Here are the books I have found quotes in while reading:
 
@@ -455,16 +459,19 @@ As I find quotes in the books I read in my free time, I add them to the CSV file
 
 ---
 
-<h3>Times In Need of a Better Quote</h3>
+### Times In Need of a Better Quote
+<!--<h3>Times In Need of a Better Quote</h3>-->
 
 There are some minutes of the day that only have one quote as an option that I'd like to remove, but can't since it's the only quote for that time. 
 
 - 00:51
 - 00:57
 - 05:26
+- 05:31
 - 06:02
 - 06:31
 - 06:34
+- 06:49
 - 07:08
 - 07:18
 - 07:22
@@ -474,6 +481,8 @@ There are some minutes of the day that only have one quote as an option that I'd
 - 08:02
 - 09:08
 - 10:16
+- 10:19
+- 11:28
 - 12:26
 - 12:31
 - 13:18
@@ -495,6 +504,7 @@ There are some minutes of the day that only have one quote as an option that I'd
 - 20:22
 - 20:23
 - 20:39
+- 21:09
 - 21:17
 - 21:43
 - 21:46
@@ -517,6 +527,7 @@ The Raspberry Pi Zero 2W cannot connect to a 5 Ghz WiFi channel; it only works w
 
 If the you take the clock into a new timezone, the Pi's localization settings need to be changed manually. Otherwise the clock won't display the correct time.
 
-<h3>Miscellaneous</h3>
+### Miscellaneous
+<!--<h3>Miscellaneous</h3>-->
 
 Waveshare has some additional helpful [documentation](https://www.waveshare.com/wiki/E-Paper_APi_Analysis#Python) on other functions and things that can be done on the screen (separate from their config guide).
