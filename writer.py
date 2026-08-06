@@ -16,6 +16,7 @@ from constants import MIN_FONT_SIZE
 
 @dataclass
 class FontPath:
+    '''Stores the absolute file paths to all of the font files in the project.'''
     REGULAR     = 'fonts/Bookerly.ttf'                # non-timestring words
     BOLD        = 'fonts/Bookerly-Bold.ttf'           # timestring words
     ITALIC      = 'fonts/Bookerly-Italic.ttf'         # italicized words
@@ -30,7 +31,7 @@ class TextType(Enum):
 
 @dataclass
 class CharacterDelimiters:
-    '''Stores all deliminating characters for text formatting.
+    '''Stores all deliminating characters to format one or more characters.
     
     Attributes:
         ITALIC (str): Text wrapped with this delimiter is written using an *italicized* version
@@ -41,18 +42,20 @@ class CharacterDelimiters:
           and italic***.
         TIMESTR (str): The timestring part of the quote is automatically wrapped with this
          delimiter.
+         - Note: A timestring should never be manually wrapped in the quote CSV file because it is
+         automatically found and wrapped when a quote is drawn.
     '''
     ITALIC  = '◻' # U+25FB (White Medium Square)
     BOLD    = '◯' # U+25EF (Large Circle)
     TIMESTR = '|' # U+007C (Vertical Line)
 
     def __dir__(self)->list[str]:
-        '''Return a list of delimiting characters for character formatting.'''
+        '''Return a list of the delimiting characters for character formatting.'''
         return [self.ITALIC, self.BOLD, self.TIMESTR]
 
 @dataclass
 class WordDelimiters:
-    '''Stores delimiting characters for word formatting.
+    '''Stores delimiting characters to format one or more words.
     
     Attributes:
         NEWLINE (str): Insert a newline between the current and succeeding text. (Equivalent to
@@ -64,7 +67,7 @@ class WordDelimiters:
     DOUBLE_NEWLINE = '⇇' # U+21C7 (Leftwards Paired Arrows)
 
     def __dir__(self)->list[str]:
-        '''Return a list of delimiting characters for word formatting.'''
+        '''Return a list of the delimiting characters for word formatting.'''
         return [self.NEWLINE, self.DOUBLE_NEWLINE]
 
 @dataclass
@@ -121,7 +124,7 @@ class Pen:
         self.text: str = ''
         self.bbox = BoundingBox(0,0,0,0)
         self.coords: dict = {'x':0, 'y':0}
-        self.char_delimiters: list[Delimiter] = [ # TODO: replace with loop to iterate over class attrs and make new objs
+        self.char_delimiters: list[Delimiter] = [
             Delimiter(CharacterDelimiters.ITALIC),
             Delimiter(CharacterDelimiters.BOLD),
             Delimiter(CharacterDelimiters.TIMESTR)
