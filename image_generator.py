@@ -6,7 +6,6 @@ object for a single quote, import the `generate_img()` function into your file a
 needed.
 
 TODO:
-- add logic to split credits into two lines
 - write tests
 - (for future) match delimiters to markdown (will need to handle instances where, e.g., * is
 actually used) -- can use one delim for bold and italic. just track total number seen. if
@@ -358,7 +357,7 @@ def generate_img(row:dict, include_credits:bool, pen:Pen) -> Image.Image:
             bottom_right_y=int(SCREEN_HEIGHT * scale_multiplier)
         )
 
-        quote_credit = f'—{title.strip()}, ␤{author.strip()}'
+        quote_credit = f'—{title.strip()}, {WordDelimiters.NEWLINE}{author.strip()}'
         pen.text = quote_credit
         write_in_bbox(quote_image, pen)
         quote_bbox.bottom_right_y = int(pen.bbox.top_left_y * scale_multiplier) # resize to above credit bbox
