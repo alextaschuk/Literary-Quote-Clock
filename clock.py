@@ -81,6 +81,7 @@ class Clock:
                         min_rows = []
                         curr_time = f'{row["time"][:2]}:00'
                     min_rows.append(row)
+            self.quotes.append(min_rows)
         except FileNotFoundError:
             logging.error('File %s not found', QUOTES_PATH)
             sys.exit(0)
@@ -217,7 +218,7 @@ if __name__ == '__main__':
         logging.info('Displaying startup screen')
         startup_row = {'quote': STARTUP_MSG,'timestring': STARTUP_MSG, 'title': '', 'author': ''}
         startup_img = generate_img(startup_row, False, clock.pen)
-        startup_img.show()
+
         if SCREEN_TYPE == ScreenOptions.IT8951:
             clock.display.frame_buf.paste(startup_img)
             clock.display.draw_full(constants.DisplayModes.GC16)
