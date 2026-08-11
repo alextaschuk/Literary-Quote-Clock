@@ -456,7 +456,8 @@ As I find quotes in the books I read in my free time, I add them to the CSV file
 | Dune Messiah                   | Frank Herbert        | 3                     |
 | Children of Dune               | Frank Herbert        | 16                    |
 | God Emperor of Dune            | Frank Herbert        | 10                    |
-|                                | Total                | 309                   |
+| Heretics of Dune               | Frank Herbert        | 1 (Currently Reading) |
+|                                | Total                | 310                   |
 
 - *Note*: A few of these quotes are used for AM and PM, so the third column is for total quotes found in each book, not unique quotes.
 
@@ -467,54 +468,22 @@ As I find quotes in the books I read in my free time, I add them to the CSV file
 
 There are some minutes of the day that only have one quote as an option that I'd like to remove, but can't since it's the only quote for that time. 
 
-- 00:51
-- 00:57
-- 05:26
-- 05:31
-- 06:02
-- 06:31
-- 06:34
-- 06:49
-- 07:08
-- 07:18
-- 07:22
-- 07:36
-- 07:48
-- 08:01
-- 08:02
-- 09:08
-- 10:16
-- 10:19
-- 11:28
-- 12:26
-- 12:31
-- 13:18
-- 13:21
-- 13:26
-- 14:18
-- 15:29
-- 16:16
-- 16:18
-- 17:75
-- 18:04
-- 18:49
-- 19:31
-- 19:44
-- 19:46
-- 19:47
-- 19:52
-- 20:13
-- 20:22
-- 20:23
-- 20:39
-- 21:09
-- 21:17
-- 21:43
-- 21:46
-- 21:52
-- 22:19
-- 22:49
-- 23:24
+| 00:00 | 05:00 | 06:00 | 07:00 | 08:00 | 09:00 | 10:00 | 11:00 | 12:00 |
+| ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- |
+| 00:51 | 05:26 | 06:02 | 07:08 | 08:01 | 09:08 | 10:16 | 11:28 | 12:26 |
+| 00:57 | 05:31 | 06:31 | 07:18 | 08:02 |       | 10:19 |       | 12:31 |
+|       |       | 06:34 | 07:22 |       |       |       |       |       |
+|       |       | 06:49 | 07:36 |       |       |       |       |       |
+|       |       |       | 07:48 |       |       |       |       |       |
+
+| 13:00 | 14:00 | 15:00 | 16:00 | 17:00 | 18:00 | 19:00 | 20:00 | 21:00 | 22:00 | 23:00 |
+| ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- |
+| 13:18 | 14:18 | 15:29 | 16:16 | 17:75 | 18:04 | 19:31 | 20:13 | 21:09 | 22:19 | 23:24 |
+| 13:26 |       |       | 16:18 |       | 18:49 | 19:44 | 20:22 | 21:17 | 22:49 |       |
+|       |       |       |       |       |       | 19:46 | 20:39 | 21:43 |       |       |
+|       |       |       |       |       |       | 19:47 |       | 21:46 |       |       |
+|       |       |       |       |       |       | 19:52 |       | 21:52 |       |       |
+
 
 ## Other Notes
 <!--<h2 align="center">Other Notes</h2>-->
