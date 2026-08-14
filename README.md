@@ -27,6 +27,8 @@ There are three ways to make the clock, depending on your hardware choices:
 
 ### IT8951 Screens
 
+*Jump to [setting up IT8951 screens](#it8951-screens-1)*
+
 IT8951 is a type of driver that is used to control and display things to an e-paper display (EPD). This is the hardware that I used to make an IT8951-based clock:
 
 - [Waveshare 6-inch E-ink Display & HAT](https://www.waveshare.com/6inch-hd-e-paper-hat.htm)
@@ -35,6 +37,8 @@ IT8951 is a type of driver that is used to control and display things to an e-pa
 - The frame is currently a WIP.
 
 ### Non-IT8951 Screens
+
+*Jump to [setting up non-IT8951 screens](#non-it8951-screens-1)*
 
 Most of Waveshare's EPDs do not use an IT8951 driver. This is the hardware that I used to make a non-IT8951-based clock:
 
@@ -219,7 +223,7 @@ For this type of screen, Greg Meyer's [IT8951](https://github.com/GregDMeyer/IT8
 
 ### Additional Setup
 
-This is an optional step to help with desync issues and automatically update the clock, regardless of screen type. I've come across a problem where the clock becomes desync'd with the actual time due to an unstable WiFi connection, meaning quotes don't change at the correct moment. A workaround to the issue is to add a crontab that reboots the Pi every day at 4 AM. This doesn't always fix the problem, and sometimes the Pi has to be unplugged from its power source, which usually does the trick for some reason. The script will pull changes from the clock's remote repository first, so any updates I make (e.g., adding new quotes) will be automatically downloaded. To can add this cron job, run:
+This is an optional step to help with desync issues and automatically update the clock, regardless of screen type. I've come across a problem where the clock becomes desync'd with the actual time due to an unstable WiFi connection, causing the screen to not update with a new quote at the correct moment. A workaround to the issue is to add a crontab that reboots the Pi every day at 4 AM. This doesn't always fix the problem, and sometimes the Pi has to be unplugged from its power source, which usually does the trick for some reason. The script will pull changes from the clock's remote repository first, so any updates I make (e.g., adding new quotes) will be automatically downloaded. To can add this cron job, run:
 
    ```sh
    sudo crontab -e
@@ -456,8 +460,8 @@ As I find quotes in the books I read in my free time, I add them to the CSV file
 | Dune Messiah                   | Frank Herbert        | 3                     |
 | Children of Dune               | Frank Herbert        | 16                    |
 | God Emperor of Dune            | Frank Herbert        | 10                    |
-| Heretics of Dune               | Frank Herbert        | 1 (Currently Reading) |
-|                                | Total                | 310                   |
+| Heretics of Dune               | Frank Herbert        | 2 (Currently Reading) |
+|                                | Total                | 311                   |
 
 - *Note*: A few of these quotes are used for AM and PM, so the third column is for total quotes found in each book, not unique quotes.
 
@@ -468,21 +472,21 @@ As I find quotes in the books I read in my free time, I add them to the CSV file
 
 There are some minutes of the day that only have one quote as an option that I'd like to remove, but can't since it's the only quote for that time. 
 
-| 00:00 | 05:00 | 06:00 | 07:00 | 08:00 | 09:00 | 10:00 | 11:00 | 12:00 |
-| ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- |
-| 00:51 | 05:26 | 06:02 | 07:08 | 08:01 | 09:08 | 10:16 | 11:28 | 12:26 |
-| 00:57 | 05:31 | 06:31 | 07:18 | 08:02 |       | 10:19 |       | 12:31 |
-|       |       | 06:34 | 07:22 |       |       |       |       |       |
-|       |       | 06:49 | 07:36 |       |       |       |       |       |
-|       |       |       | 07:48 |       |       |       |       |       |
+| 00:00 | 01:00 | 02:00 | 03:00 | 04:00 | 05:00 | 06:00 | 07:00 | 08:00 | 09:00 | 10:00 | 11:00 |
+| ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- |
+| 00:51 |       |       |       |       | 05:26 | 06:02 | 07:08 | 08:01 | 09:08 | 10:16 | 11:28 |
+| 00:57 |       |       |       |       | 05:31 | 06:31 | 07:18 | 08:02 |       | 10:19 |       |
+|       |       |       |       |       |       | 06:34 | 07:22 |       |       |       |       |
+|       |       |       |       |       |       | 06:49 | 07:36 |       |       |       |       |
+|       |       |       |       |       |       |       | 07:48 |       |       |       |       |
 
-| 13:00 | 14:00 | 15:00 | 16:00 | 17:00 | 18:00 | 19:00 | 20:00 | 21:00 | 22:00 | 23:00 |
-| ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- |
-| 13:18 | 14:18 | 15:29 | 16:16 | 17:75 | 18:04 | 19:31 | 20:13 | 21:09 | 22:19 | 23:24 |
-| 13:26 |       |       | 16:18 |       | 18:49 | 19:44 | 20:22 | 21:17 | 22:49 |       |
-|       |       |       |       |       |       | 19:46 | 20:39 | 21:43 |       |       |
-|       |       |       |       |       |       | 19:47 |       | 21:46 |       |       |
-|       |       |       |       |       |       | 19:52 |       | 21:52 |       |       |
+| 12:00 | 13:00 | 14:00 | 15:00 | 16:00 | 17:00 | 18:00 | 19:00 | 20:00 | 21:00 | 22:00 | 23:00 |
+| ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- |
+| 12:26 | 13:18 | 14:18 | 15:29 | 16:16 | 17:75 | 18:04 | 19:31 | 20:13 | 21:09 | 22:19 | 23:24 |
+| 12:31 | 13:26 | 14:04 |       | 16:18 |       | 18:49 | 19:44 | 20:22 | 21:17 | 22:49 |       |
+|       |       |       |       |       |       | 19:46 | 20:39 | 21:43 |       |       |       |
+|       |       |       |       |       |       | 19:47 |       | 21:46 |       |       |       |
+|       |       |       |       |       |       | 19:52 |       | 21:52 |       |       |       |
 
 
 ## Other Notes
