@@ -37,7 +37,7 @@ IMAGE_PATH = 'images/'
 # for a list of all image formats that Pillow supports, see
 # https://pillow.readthedocs.io/en/stable/handbook/image-file-formats.html#fully-supported-formats
 IMAGE_FORMAT = 'bmp'
-INCLUDE_CREDITS = True # print the quote's author and the book that it comes from?
+INCLUDE_CREDITS = True # print the quote's author and the book's title?
 
 ###############
 # Text Config #
@@ -48,4 +48,4 @@ MAX_FONT_SIZE = 150 # depending on screen resolution, this may need to be change
 ################
 # Clock Config #
 ################
-BUFFER_SIZE = 3 # number of quotes to buffer
+BUFFER_SIZE = 3
