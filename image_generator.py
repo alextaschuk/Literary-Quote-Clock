@@ -1,16 +1,21 @@
 '''
 Generate an image of a quote and either save it as a file or return it as an `Image.Image` object.
 
-To save all of the quote images to an /images folder, run this file. To return an `Image.Image`
-object for a single quote, import the `generate_img()` function into your file and call it as
-needed.
+- To generate all quote images and download them to an _/images_ folder, run this file. (e.g., 
+ `python image_generator.py`)
+
+- To return an `Image.Image` object for a single quote, import the `generate_img()` function from
+ this module into your file and call it as needed.
 
 TODO:
 - write tests
-- (for future) match delimiters to markdown (will need to handle instances where, e.g., * is
+- Change italic and bold delimiters to use markdown's 
+ (will need to handle instances where, e.g., * is
 actually used) -- can use one delim for bold and italic. just track total number seen. if
 num % 2 == 0 then bold otherwise italic if num > 0
-https://stackoverflow.com/questions/43060479/how-to-get-the-font-pixel-height-using-pils-imagefont-class
+- FEAT: If the current word doesn't have any formatting delims, and no formatting is active, write
+ the entire word at once.
+- https://stackoverflow.com/questions/43060479/how-to-get-the-font-pixel-height-using-pils-imagefont-class
 '''
 import csv
 import logging
@@ -98,7 +103,7 @@ def format_word(word:str, lines:list[str], word_len:int, pen:Pen):
         lines.append(' ')
 
     if pen.coords['x'] + word_len > pen.bbox.bottom_right_x or add_line:
-        # move to the next line, add the current word to the line, and reset x coord
+        # reset the x coord, move to the next line, and add the current word to the new line
         # TODO: Replace with get_lineheight()
         pen.coords['x'] = pen.bbox.top_left_x
         pen.coords['y'] += int(pen.font.getbbox("A")[3] + 4)
@@ -218,7 +223,7 @@ def find_optimal_font_size(text: str, bbox: BoundingBox, text_type: TextType) ->
             line_width = curr_line_width
 
     # Resize the credit bbox so to give the quote bbox the most space possible to write with.
-    if text_type == TextType.CREDITS:
+    if text_type == TextType.CREDITS and optimal_size > MIN_FONT_SIZE:
         bbox.top_left_y = bbox.bottom_right_y - lines_height
         bbox.top_left_x = bbox.bottom_right_x - line_width
     return (optimal_size, best_fit_lines)
@@ -276,25 +281,28 @@ def write_in_bbox(img: Image.Image, pen: Pen, timestr: Optional[str] = ""):
         try:
             timestr_begin, timestr_end = find_timestr_indices(pen, timestr)
         except ValueError:
-            pen.text = f'Error: Timestring doesn\'t match or isn\'t found in quote starting with \
-                         "{pen.text[:30]}..."'
-            timestr = 'Error:'
-            timestr_begin, timestr_end = find_timestr_indices(pen, timestr)
-            logging.error('Timestring doesn\'t match or isn\'t found in quote starting with' \
-                         '"%s..."', pen.text[:30])
+            msg = f'Error: Timestring doesn\'t match or isn\'t found in quote starting with \
+                "{pen.text[:30]}..."'
+            logging.error(msg)
+            pen.text = f'Error: {msg}'
+            timestr_begin, timestr_end = find_timestr_indices(pen, 'Error')
         delim = CharacterDelimiters.TIMESTR
         quote = pen.text[:timestr_begin]
         quote += f'{delim}{pen.text[timestr_begin:timestr_end]}{delim}'
         quote += pen.text[timestr_end:]
         pen.text = quote
 
-
     optimal_fontsize, wrapped_lines = find_optimal_font_size(pen.text, pen.bbox, pen.text_type)
+    if optimal_fontsize < MIN_FONT_SIZE:
+        if pen.text_type == TextType.QUOTE:
+            msg = f'Quote starting with "{pen.text[:30]}..." is too long and doesn\'t fit on' \
+                'the screen'
+        else:
+            msg = 'Credits too long'
 
-    if optimal_fontsize <= MIN_FONT_SIZE:
-        bbox_repr = repr(pen.bbox)
-        logging.error('Text starting with "%s..." is too long and doesn\'t fit in bbox=%s with' \
-        'minimum font=%i', pen.text[:30], bbox_repr, MIN_FONT_SIZE)
+        logging.error('%s for %s. BBox=%s, MIN_FONT_SIZE=%i', msg, pen.text, repr(pen.bbox), MIN_FONT_SIZE)
+        pen.text = f'◯Error◯: {msg}'
+        optimal_fontsize, wrapped_lines = find_optimal_font_size(pen.text, pen.bbox, pen.text_type)
 
     fonts = Fonts(
         regular=ImageFont.truetype(FontPath.REGULAR, optimal_fontsize, ImageFont.Layout.BASIC),
@@ -368,8 +376,10 @@ def generate_img(row:dict, include_credits:bool, pen:Pen) -> Image.Image:
     write_in_bbox(quote_image, pen, timestring)
     pen.reset(pen.bbox.top_left_x, pen.bbox.top_left_y) # reset for the next img
 
-    # Uncomment if images are being generated for a Kindle! The images need to be physically rotated
-    # to display on the screen properly.
+    '''
+    Uncomment if images are being generated for a Kindle! The images need to be physically rotated
+    to display on the screen properly.
+    '''
     #quote_image = quote_image.transpose(method=Image.Transpose.ROTATE_270)
 
     return quote_image
@@ -413,11 +423,11 @@ if __name__ == "__main__":
                 previous_time = curr_row['time']
 
             time = curr_row['time'].replace(':', '')
-            filepath = f'{IMAGE_PATH}quote_{time}_{img_num}.{IMAGE_FORMAT}' # e.g., images/quote_1235_2.bmp
+            filepath = f'{IMAGE_PATH}quote_{time}_{img_num}.{IMAGE_FORMAT}' # e.g. images/quote_1235_2.bmp
             filepath = path.normpath(filepath)
 
             quote_img = generate_img(curr_row, INCLUDE_CREDITS, my_pen)
             quote_img.save(filepath)
             progressbar = f'Creating images... {i+1}/{num_quotes}'
             print(progressbar, end='\r', flush=True)
-    print('Image generation complete.\r\n')
+    print('\r\nImage generation complete.')
