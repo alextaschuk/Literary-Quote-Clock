@@ -50,6 +50,7 @@ Most of Waveshare's EPDs do not use an IT8951 driver. This is the hardware that 
 ### Kindles
 
 All you need is a jailbroken Kindle that can run scriptlets. For instructions on how to install the clock on a jailbroken Kindle, check out the [README](/kindle_clock/README.md) in the */kindle_clock/* folder.
+    
     - Pretty much every modern jailbreak (and probably most older ones, too) has this ability. All that is required to run scriptlets is [SH_integration](https://github.com/KindleModding/sh_integration).
 
 ## How to Setup the Clock (Non-Kindle Only)
@@ -460,8 +461,8 @@ As I find quotes in the books I read in my free time, I add them to the CSV file
 | Dune Messiah                   | Frank Herbert        | 3                     |
 | Children of Dune               | Frank Herbert        | 16                    |
 | God Emperor of Dune            | Frank Herbert        | 10                    |
-| Heretics of Dune               | Frank Herbert        | 2 (Currently Reading) |
-|                                | Total                | 311                   |
+| Heretics of Dune               | Frank Herbert        | 11                    |
+|                                | Total                | 320                   |
 
 - *Note*: A few of these quotes are used for AM and PM, so the third column is for total quotes found in each book, not unique quotes.
 
