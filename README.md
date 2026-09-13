@@ -53,7 +53,7 @@ Most of Waveshare's EPDs do not use an IT8951 driver. This is the hardware that 
 
 All you need is a jailbroken Kindle that can run scriptlets. For instructions on how to install the clock on a jailbroken Kindle, check out the [README](/kindle_clock/README.md) in the */kindle_clock/* folder.
     
-    - Pretty much every modern jailbreak (and probably most older ones, too) has this ability. All that is required to run scriptlets is [SH_integration](https://github.com/KindleModding/sh_integration).
+- Pretty much every modern jailbreak (and probably most older ones, too) has this ability. All that is required to run scriptlets is [SH_integration](https://github.com/KindleModding/sh_integration).
 
 ## How to Setup the Clock (Non-Kindle Only)
 <!--<h2 align="center">How to Setup the Clock</h2>-->
