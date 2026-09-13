@@ -2,6 +2,8 @@
 
 I made a clock that displays the time using quotes from various books. All 1,440 minutes of the day have at least one corresponding quote, but many have multiple possible quotes that may be used (one is chosen at random). There are over 3,800 possible quotes.
 
+- _Note_: I rewrote this project in C++. The repo can be found [here](https://github.com/alextaschuk/Lit-Clock-Cpp-Rewrite).
+
 <p align="center">
     <img src="misc/demo/demo.jpg" alt="the clock in its frame with a quote that reads There's a train a seventeen minutes to two, said Didier. He blessed himself and got to his feet. He hesitated. 'What's the matter?' 'Shouldn't we say goodbye to Grandpa? He usually has a cheque for me.' —The Public Prosecutor, Jef Geeraerts" width="600"/>
 </p>
@@ -214,6 +216,12 @@ For this type of screen, Greg Meyer's [IT8951](https://github.com/GregDMeyer/IT8
 5. In the [clock.service](/scripts/clock.service) script, modify the `WorkingDirectory` variable to store the path to the cloned repo and the `ExecStart` variable to store the path to `clock.py` in the cloned repo. Then, move [clock.service](/scripts/clock.service) into `/etc/systemd/system`.
 
     - For example, if the repo was cloned into a `Desktop/` directory, change the `WorkingDirectory` variable to `WorkingDirectory=/home/[username]/Desktop/Literary-Quote-Clock`. Similarly, change `ExecStart` to `ExecStart=/home/[username]/Desktop/Literary-Quote-Clock/venv/bin/python3 /home/[username]/Desktop/Literary-Quote-Clock/clock.py`.
+
+6. Reload the systemd manager so that it sees the new clock.service file:
+
+    ```sh
+    sudo systemctl daemon-reload
+    ```
 
 6. Start the clock with:
 
