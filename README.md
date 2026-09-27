@@ -355,15 +355,15 @@ For example, the CSV stores:
 ## Adding, Editing, and Finding Quotes
 <!--<h2 align="center">Adding, Editing, and Finding Quotes</h2>-->
 
-I have manually read through all ~3500 quotes in the original CSV and am in the process of modifying ~700 of them. I have a somewhat strict list of qualities that the quotes can and cannot have, and specific types of changes that I make depending on what I think is "wrong" about the quote's context, formatting, etc. This section covers some of the things that I look for when evaluating if a quote needs to be modified or removed, my own quotes that I have found and added, and a list of minutes that are missing quotes/are in need of better quotes.
+I have manually read through all ~3500 quotes in the original CSV and am in the process of modifying ~700 of them. There is a set of criteria that the quotes should conform to. I've made certain changes to quotes, which depend on what I think is "wrong" about the quote's context, formatting, etc.
+
+This section covers what I look for when evaluating if a quote needs to be modified or removed, a list of books that I have personally found quotes in while reading, and a list of times that are in need of better quotes.
 
 ---
 
-**Can the quote be used for both the A.M. and P.M. times of the day (e.g., 07:00 and 19:00)?**
-    
-- If the answer is "yes", check if the quote has already been used twice. If not, add it to the other time.
+### Quote Modification Criteria
 
-- If the answer is "no", check that the quote wasn't mistakenly added to both times of the day. If it was, remove it from the second time.
+#### Can the quote be used for both the A.M. and P.M. times of the day (e.g., 07:00 and 19:00)?
 
 Example 1:
 > At **8 o’clock** on Thursday morning Arthur didn't feel very good. —_The Hitchhiker’s Guide to the Galaxy_, Douglas Adams
@@ -377,11 +377,11 @@ This quote is vague enough that it is not clear whether "__one minute to ten__" 
 
 ---
 
-**Does the quote mention more than one time of the day?**
+#### Does the quote mention more than one time of the day?
 
 If it does, check if the additional time(s) also have this quote. Otherwise, add them as new rows.
   
-Example:
+Example 1:
 
 > My watch lay on the dressing-table close by; glancing at it, I saw that the time was **twenty-five minutes to seven**. I had been told that the family breakfasted at nine, so I had nearly two-and-a-half hours of leisure. Of course, I would go out, and enjoy the freshness of the morning. —_Ravensdene Court_, J.S. Fletcher
 
@@ -389,46 +389,66 @@ This quote was used for 06:35, but it can also be used for 09:00. However, it di
 
 > My watch lay on the dressing-table close by; glancing at it, I saw that the time was twenty-five minutes to seven. I had been told that the family breakfasted at **nine**, so I had nearly two-and-a-half hours of leisure. Of course, I would go out, and enjoy the freshness of the morning. —_Ravensdene Court_, J.S. Fletcher
 
+Example 2:
+
+>  I turned to Spencer and said, "It is currently **2:00 p.m.** I'm expecting the package at 2:01."
+
+- TODO: find a real example of this.
+
+In this instance, the quote's second time string succeeds the previous mentioned time by one minute. It is best to avoid the possibility of having the same quote be displayed back to back, even though the time strings are different. There are three options:
+
+1. Use this quote either for 02:00 or 02:01 (best/most ideal).
+2. Split the quote up: use "It is currently **2:00 p.m.**" for 02:00 and "I'm expecting the package at **2:01**." for 02:01.
+3. If, for example, there was no other quote for either 02:00 _and_ 02:01, an exception can be made the quote may be used for both times.
+
 ---
   
-**Does the quote require more or less context (i.e., a preceding and/or succeeding sentence)? Could the quote be enhanced by adding more context?**
-
-If more context is required or could possibly enhance the quote,  add it as needed.
+#### Does the quote require more or less context  (i.e., a preceding and/or succeeding sentence), or would adding more context enhance the quote?
 
 Example 1:
-> There were only four words: _Tomorrow morning. 2 o’clock_. —_Full Dark, No Stars_, Stephen King
+> There were only four words: ***Tomorrow morning. 2 o’clock***. —_Full Dark, No Stars_, Stephen King
 
-The context of this sentence is not clear to the reader by itself. The four words could be words that someone spoke, wrote, or read. However, when we add the preceding sentence, the context becomes significantly more obvious: 
+The context of this sentence is not clear to the reader by itself. The four words could be words that someone spoke, wrote, or read. However, when we add the preceding sentence, the context becomes clear: 
 
-> Henry held out his hand for the note, which Victoria gave over in exchange for a Sweet Caporal. There were only four words: _Tomorrow morning. 2 o’clock_.
+> Henry held out his hand for the note, which Victoria gave over in exchange for a Sweet Caporal. There were only four words: ***Tomorrow morning. 2 o’clock***.
 
-Now, it is clear to the reader that the four words were written on a note that a character named Victoria traded to someone named Henry for a pack of Sweet Caporals.
+Now, it is clear to the reader that the four words were written on a note that a character named Victoria traded to someone named Henry for a pack of Sweet Caporals (cigarettes).
 
 Example 2:
 
-> It was nine o’clock when we finished breakfast and went out on the porch. —_The Great Gatsby_, F. Scott Fitzgerald
+> It was **nine o’clock** when we finished breakfast and went out on the porch. —_The Great Gatsby_, F. Scott Fitzgerald
 
-By itself, this quote is perfectly fine and makes sense. However, we can include the sentence that follows to provide a bit more information to the reader:
+By itself, this quote does not require more context to understand it. However, we can include the succeeding sentence to provide a bit more information to the reader:
 
-> It was nine o’clock when we finished breakfast and went out on the porch. The night had made a sharp difference in the weather, and there was an autumn flavor in the air. —The Great Gatsby, F. Scott Fitzgerald
+> It was **nine o’clock** when we finished breakfast and went out on the porch. The night had made a sharp difference in the weather, and there was an autumn flavor in the air. —_The Great Gatsby_, F. Scott Fitzgerald
 
 ---
 
-**Does the quote specify an exact hour and minute?**
+#### Does the quote specify an exact hour and minute?
 
-The strictness of this rule is dependent on a quote-to-quote basis and the wording that is used. If the mention of time in a quote is worded with "just past [**time**]," "just before [**time**]," or similar language, I will usually use the quote the 1st minute or the 59th minute of an hour.
+The strictness of this rule is dependent on a quote-to-quote basis and the wording that is used. If a quote's time string could be interpreted as within ±1 minute of the time that is mentioned, such as "just past [**time**]," "just before [**time**]," or something similar, the quote may be used for the minute before/after the time that is mentioned. If a quote's time string is vauge, but could be inclusive of a specific time such as "around [**time**]", the quote may be used for the **time** that is mentioned. The important thing is that all non-specific quotes that are usable should be consistent in when they're used.
 
 Example 1:
 
-> Raymond came back with Masson around one-thirty. His arm was bandaged up and he had an adhesive plaster on the corner of his mouth. The doctor had told him it was nothing, but Raymond looked pretty grim. Masson tried to make him laugh. But he still wouldn't say anything. —_The Stranger_, Albert Camus
+> Shuya held his watch up to the moonlight. The finely crafted old model K. Hattori diver’s watch (a gift, like most of his possessions, with him living in an orphanage) read **just past 2:40**. —_Battle Royale_, Koushun Takami
 
-Prior to modification, this quote was being used for 13:31, with the time quote being "Raymond came back with Masson **around one-thirty**." My issue with this is that "around" leaves too much room for interpretation and doesn't tell the reader what time it actually is. I moved it to be displayed at 13:30 and changed the time quote to instead be "Raymond came back with Masson around **one-thirty**."
+This quote can be used for either 02:41 or 02:40 (or both, in the event that it is the only option for both times). If used for 02:40, the time string should be "**2:40**". 
 
 Example 2:
 
-> Shuya held his watch up to the moonlight. The finely crafted old model K. Hattori diver’s watch (a gift, like most of his possessions, with him living in an orphanage) read **just past 2:40**. Whatever had happened to Yoshio Akamatsu, nearly all of the students would have left the school by now, save for two or three. —_Battle Royale_, Koushun Takami
+> Raymond came back with Masson **around one-thirty**. His arm was bandaged up and he had an adhesive plaster on the corner of his mouth. The doctor had told him it was nothing, but Raymond looked pretty grim. Masson tried to make him laugh. But he still wouldn't say anything. —_The Stranger_, Albert Camus
 
-- I would use this quote for 02:41, but it would be perfectly fine to use it for 02:40 instead (though I wouldn't use it for both since that could cause the same quote to be displayed back-to-back).
+Prior to modification, this quote was used for 13:31. Vauge language such as "around" leaves too much room for interpretation and doesn't tell the reader what time it actually is. However, because "around" is inclusive of 13:30, it is valid to change the time string to be "**one-thirty**".
+
+> Raymond came back with Masson around **one-thirty**. His arm was bandaged up and he had an adhesive plaster on the corner of his mouth. The doctor had told him it was nothing, but Raymond looked pretty grim. Masson tried to make him laugh. But he still wouldn't say anything. —_The Stranger_, Albert Camus
+
+Example 3:
+
+> When Odell arrived back at the hotel **a few minutes after four**, the first thing he did was order a large flask of hot fruit punch before walking out onto the veranda to take up his post. —_Paths of Glory_, Jeffrey Archer
+
+Similar to the previous example the word "few" it too vague for this to be a time string. However, the language of this time string specifies that the time is _after_ 16:00, and therefore should not be used for 16:00 either. 
+
+- In this case, I would delete the quote.
 
 ---
 
@@ -448,10 +468,10 @@ I've made changes to character formatting, including:
 
 ---
 
-### Adding My Own Quotes
+### Books I Have Found Quotes In
 <!--<h3>Adding My Own Quotes</h3>-->
 
-As I find quotes in the books I read in my free time, I add them to the CSV file (see [my-quotes.csv](./misc/my-quotes.csv) for only the quotes I have found). Here are the books I have found quotes in while reading:
+As I find quotes in the books I read in my free time, I add them to the CSV file (see [my-quotes.csv](./misc/my-quotes.csv) for all of the quotes I have found).
 
 | Title                          | Author               | Number of Quotes      |
 | ------------------------------ | -------------------- | ----------------      |
@@ -470,13 +490,14 @@ As I find quotes in the books I read in my free time, I add them to the CSV file
 | Children of Dune               | Frank Herbert        | 16                    |
 | God Emperor of Dune            | Frank Herbert        | 10                    |
 | Heretics of Dune               | Frank Herbert        | 11                    |
-|                                | Total                | 320                   |
+| Chapterhouse: Dune             | Frank Herbert        | 2 (Currently Reading) |
+|                                | Total                | 322                   |
 
-- *Note*: A few of these quotes are used for AM and PM, so the third column is for total quotes found in each book, not unique quotes.
+- *Note*: There are a few quotes are used for AM and PM times, so the third column represents the total quotes used from each book, not the number of unique quotes.
 
 ---
 
-### Times In Need of a Better Quote
+### Times that Need a Better Quote
 <!--<h3>Times In Need of a Better Quote</h3>-->
 
 There are some minutes of the day that only have one quote as an option that I'd like to remove, but can't since it's the only quote for that time. 
@@ -491,11 +512,12 @@ There are some minutes of the day that only have one quote as an option that I'd
 
 | 12:00 | 13:00 | 14:00 | 15:00 | 16:00 | 17:00 | 18:00 | 19:00 | 20:00 | 21:00 | 22:00 | 23:00 |
 | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- |
-| 12:26 | 13:18 | 14:18 | 15:29 | 16:16 | 17:75 | 18:04 | 19:31 | 20:13 | 21:09 | 22:19 | 23:24 |
-| 12:31 | 13:26 | 14:04 |       | 16:18 |       | 18:49 | 19:44 | 20:22 | 21:17 | 22:49 |       |
-|       |       |       |       |       |       | 19:46 | 20:39 | 21:43 |       |       |       |
-|       |       |       |       |       |       | 19:47 |       | 21:46 |       |       |       |
-|       |       |       |       |       |       | 19:52 |       | 21:52 |       |       |       |
+| 12:09 | 13:18 | 14:18 | 15:29 | 16:16 | 17:75 | 18:04 | 19:31 | 20:13 | 21:09 | 22:19 | 23:24 |
+| 12:26 | 13:21 | 14:04 |       | 16:18 |       | 18:49 | 19:44 | 20:22 | 21:17 | 22:39 |       |
+| 12:31 | 13:26 |       |       | 16:21 |       | 19:46 | 20:39 | 21:43 |       | 22:49 |       |
+|       |       |       |       | 16:28 |       | 19:47 |       | 21:46 |       |       |       |
+|       |       |       |       | 16:29 |       | 19:52 |       | 21:52 |       |       |       |
+|       |       |       |       | 16:32 |       |       |       |       |       |       |       |
 
 
 ## Other Notes
