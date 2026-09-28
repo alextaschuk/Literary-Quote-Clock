@@ -361,7 +361,7 @@ This section covers what I look for when evaluating if a quote needs to be modif
 
 ---
 
-### Quote Modification Criteria
+### Quote Validation & Modification Criteria
 
 #### Can the quote be used for both the A.M. and P.M. times of the day (e.g., 07:00 and 19:00)?
 
@@ -373,7 +373,7 @@ Clearly, this quote should only be used for 08:00. Check if there is also a row 
 Example 2:
 > The front doorbell rang at **one minute to ten**, and Karl answered it. —_Best Kept Secret_, Jeffrey Archer
 
-This quote is vague enough that it is not clear whether "__one minute to ten__" is referring to 9:59 or 21:59 (unless you have read the book, which I haven't). Check if there is a row for the quote at 21:59. If there isn't, add it.
+This quote is vague enough that it is not clear whether "__one minute to ten__" is referring to 9:59 or 21:59 (unless you have read the book, which I haven't). Update the CSV to use the quote for 21:59 too.
 
 ---
 
@@ -385,21 +385,23 @@ Example 1:
 
 > My watch lay on the dressing-table close by; glancing at it, I saw that the time was **twenty-five minutes to seven**. I had been told that the family breakfasted at nine, so I had nearly two-and-a-half hours of leisure. Of course, I would go out, and enjoy the freshness of the morning. —_Ravensdene Court_, J.S. Fletcher
 
-This quote was used for 06:35, but it can also be used for 09:00. However, it didn't have a row for 09:00 (it can technically be used for 07:00 too, though I chose not to add it for this time because "**seven**" is being used to refer to a number of minutes before 07:00). Furthermore, it is clear from the context of the quote that the time of day is morning, so the quote should only be added for 9:00 and not 21:00 too. Using the quote for 09:00, it would look like this:
+This quote was used for 06:35, but it can also be used for 09:00. However, it didn't have a row for 09:00. Additionally, it is clear from the context of the quote that the time of day is morning, so the quote should only be added for 9:00 and not 21:00 too. Using the quote for 09:00, it would look like this:
 
 > My watch lay on the dressing-table close by; glancing at it, I saw that the time was twenty-five minutes to seven. I had been told that the family breakfasted at **nine**, so I had nearly two-and-a-half hours of leisure. Of course, I would go out, and enjoy the freshness of the morning. —_Ravensdene Court_, J.S. Fletcher
 
 Example 2:
 
->  I turned to Spencer and said, "It is currently **2:00 p.m.** I'm expecting the package at 2:01."
+> Both women who died were killed in the morning, a little bit before ten o’clock.” I closed my eyes, trying to picture the reports Genosa had given me. “Right… **nine forty-seven** and nine forty-eight. They died at the same time.” —_Blood Rites_, Jim Butcher
 
-- TODO: find a real example of this.
+> Both women who died were killed in the morning, a little bit before ten o’clock.” I closed my eyes, trying to picture the reports Genosa had given me. “Right… nine forty-seven and **nine forty-eight**. They died at the same time.” —_Blood Rites_, Jim Butcher
 
-In this instance, the quote's second time string succeeds the previous mentioned time by one minute. It is best to avoid the possibility of having the same quote be displayed back to back, even though the time strings are different. There are three options:
+This quote was being used for both 09:47 and 09:48. It is best to avoid the possibility of having the same quote be displayed back to back, even though the time strings are different. There are three options on what to do in this situation:
 
-1. Use this quote either for 02:00 or 02:01 (best/most ideal).
-2. Split the quote up: use "It is currently **2:00 p.m.**" for 02:00 and "I'm expecting the package at **2:01**." for 02:01.
-3. If, for example, there was no other quote for either 02:00 _and_ 02:01, an exception can be made the quote may be used for both times.
+1. Use this quote either for 09:47 or 09:48, but not both (best).
+2. Split the quote up (not possible with this quote, since both time strings are in the same sentence).
+3. In the event that this quote was the only quote for 09:47 and 09:48 an exception is made and the quote may be used for both times.
+
+For this quote, option 1 would be selected—the quote would be used only for 09:48 because there are ten possible quotes for 09:47 and only one for 09:48 (not including the quote).
 
 ---
   
