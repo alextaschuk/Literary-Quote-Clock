@@ -397,11 +397,11 @@ Example 2:
 
 This quote was being used for both 09:47 and 09:48. It is best to avoid the possibility of having the same quote be displayed back to back, even though the time strings are different. There are three options on what to do in this situation:
 
-1. Use this quote either for 09:47 or 09:48, but not both (best).
-2. Split the quote up (not possible with this quote, since both time strings are in the same sentence).
+1. Use this quote for either 09:47 or 09:48, but not both (best).
+2. Split the quote up—not possible with this quote, since both time strings are in the same sentence.
 3. In the event that this quote was the only quote for 09:47 and 09:48 an exception is made and the quote may be used for both times.
 
-For this quote, option 1 would be selected—the quote would be used only for 09:48 because there are ten possible quotes for 09:47 and only one for 09:48 (not including the quote).
+For this quote, option 1 would be selected: the quote would be used only for 09:48 because there are ten possible quotes for 09:47 and only one for 09:48 (not including the quote).
 
 ---
   
@@ -492,8 +492,8 @@ As I find quotes in the books I read in my free time, I add them to the CSV file
 | Children of Dune               | Frank Herbert        | 16                    |
 | God Emperor of Dune            | Frank Herbert        | 10                    |
 | Heretics of Dune               | Frank Herbert        | 11                    |
-| Chapterhouse: Dune             | Frank Herbert        | 2 (Currently Reading) |
-|                                | Total                | 322                   |
+| Chapterhouse: Dune             | Frank Herbert        | 3 (Currently Reading) |
+|                                | Total                | 323                   |
 
 - *Note*: There are a few quotes are used for AM and PM times, so the third column represents the total quotes used from each book, not the number of unique quotes.
 
