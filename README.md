@@ -29,7 +29,7 @@ There are three ways to make the clock, depending on your hardware choices:
 
 ### IT8951 Screens
 
-*Jump to [setting up IT8951 screens](#it8951-screens-1)*
+*Jump to [setting up IT8951 screens](#it8951-based-screens)*
 
 IT8951 is a type of driver that is used to control and display things to an e-paper display (EPD). This is the hardware that I used to make an IT8951-based clock:
 
@@ -55,21 +55,22 @@ All you need is a jailbroken Kindle that can run scriptlets. For instructions on
     
 - Pretty much every modern jailbreak (and probably most older ones, too) has this ability. All that is required to run scriptlets is [SH_integration](https://github.com/KindleModding/sh_integration).
 
+
 ## How to Setup the Clock (Non-Kindle Only)
 <!--<h2 align="center">How to Setup the Clock</h2>-->
 
-The Pi running the clock uses a headless version of the Raspberry Pi OS.
+These instructions will assume the clock is being installed on a Pi running some version of the Raspberry Pi OS.
 
-- _Note:_ Any Unix-like OS should work, but I haven't tried anything else personally. You may need to place the startup script in a different location, and the process of making a crontab may be a bit different.
+- _Note:_ Any Unix-like OS should work, but I haven't tried any others, so these instructions may not translate one-to-one on other Unix-based operating systems.
 
 Prior to following the instructions below, make sure you have completed a basic setup of your Pi. At a minimum, make sure you've configured your timezone, have connected the Pi to a WiFi network, and have some version of Python3 installed. I also recommend configuring SSH to make your life easier.
 
-The next steps are dependent on the type of screen you have. For this documentation, I'll focus on setting up the 7.5" and 6" screens, but these instructions should be easy to adapt for other screens too; just make sure you follow the right one. The library for each of these screens uses the same functions, so you just need to follow the instructions that are specific to your screen.
+The next steps are dependent on the type of driver your screen  uses. For this documentation, I'll focus on setting up the 6" IT8951 screen and the 7.5" non-IT8951 screen, but it should be easy to adapt for other screens too. The functions within my clock work for both types of screen drivers, so you just need to follow the setup instructions that correspond to your screen.
 
 
-### IT8951 Screens 
+### IT8951-Based Screens 
 
-For this type of screen, Greg Meyer's [IT8951](https://github.com/GregDMeyer/IT8951/tree/master) Python library will be used. It is the library that Waveshare recommends.
+For these screens, Greg Meyer's [IT8951](https://github.com/GregDMeyer/IT8951/tree/master) Python library will be used. It is the library that Waveshare recommends.
 
 1. Follow steps 1, 2, and 4 in the [Working with Raspberry Pi (SPI)](https://www.waveshare.com/wiki/6inch_HD_e-Paper_HAT#Working_with_Raspberry_Pi_.28SPI.29) section of Waveshare's wiki.
     
@@ -91,30 +92,26 @@ For this type of screen, Greg Meyer's [IT8951](https://github.com/GregDMeyer/IT8
     git clone --recursive https://github.com/alextaschuk/Literary-Quote-Clock.git
     ```
 
-    - _Note:_ If you forgot the `--recursive` flag, run `git submodule update --init` to clone the IT8951 library locally.
+    - _Note:_ If you forget the `--recursive` flag, run `git submodule update --init` to clone the IT8951 library locally.
 
 4. Configure a virtual environment within the cloned repo:
 
     1. `cd` into the cloned repo and initialize a venv:
-
         ```sh
         python3 -m venv venv
         ```
     
     2. Activate the venv:
-        
         ```sh
         source venv/bin/activate
         ```
     
     3. Install the clock's necessary packages:
-    
         ```sh
         pip install -r requirements.txt
         ```
 
 5. Install the IT8951 library by running:
-
     ```sh
     pip install ./[rpi]
     ```
@@ -126,46 +123,49 @@ For this type of screen, Greg Meyer's [IT8951](https://github.com/GregDMeyer/IT8
     2. Modify the `VCOM` value to match what is on your screen's FPC.
 
     3. Change the `SCREEN_TYPE` variable to:
-    
         ```Python
-        SCREEN_TYPE = ScreenOptions.WAVESHARE
+        SCREEN_TYPE = ScreenOptions.IT8951
         ```
 
     4. Change the `IMAGE_FORMAT` to:
-    
         ```Python
         IMAGE_FORMAT = 'png'
         ```
 
     5. Depending on the screen's resolution, you may need to increase `MAX_FONT_SIZE`.
 
-7. (Optional) You can test that everything was installed properly:
+7. (Optional) If you are using something other than the 7.5" screen, you will also need to download the correct EPD module from Waveshare and modify clock.py to import and use it instead of the 7.5" module. 
+
+8. (Optional) Verify that everything was installed properly:
 
     1. Start an interactive interpreter for Python:
-    
         ```sh
         python
         ```
 
     2. Try importing something from the library:
-
         ```sh
         from IT8951.display import AutoEPDDisplay
         ```
 
     3. If no errors are thrown, everything was installed correctly. Exit the interpreter:
-
         ```sh
         exit()
         ```
 
 
-8. In the [clock.service](/scripts/clock.service) script, modify the `WorkingDirectory` variable to store the path to the cloned repo and the `ExecStart` variable to store the path to `clock.py` in the cloned repo. Then, move [clock.service](/scripts/clock.service) into `/etc/systemd/system`.
+9. In the [clock.service](/scripts/clock.service) script, modify the `WorkingDirectory` variable to store the path to the cloned repo and the `ExecStart` variable to store the path to `clock.py` in the cloned repo. Then, move [clock.service](/scripts/clock.service) into `/etc/systemd/system`.
 
-    - For example, if the repo was cloned into the `Desktop/` directory, change the `WorkingDirectory` variable to `WorkingDirectory=/home/[username]/Literary-Quote-Clock`. Similarly, change `ExecStart` to `ExecStart=/home/[username]/Literary-Quote-Clock/venv/bin/python3 /home/[username]/Literary-Quote-Clock/clock.py`.
+    - For example, if the repo was cloned into the home directory, change the `WorkingDirectory` variable to `WorkingDirectory=/home/[username]/Literary-Quote-Clock`. Similarly, change `ExecStart` to `ExecStart=/home/[username]/Literary-Quote-Clock/venv/bin/python3 /home/[username]/Literary-Quote-Clock/clock.py`.
 
-9. Start the clock with:
+<!--9. Reload the systemd manager so that it sees the new clock.service file:-->
+10. Reload the systemd manager:
+    ```sh
+    sudo systemctl daemon-reload
+    ```
 
+<!--10. Start the clock with:-->
+11. Start the clock:
     ```sh
     sudo systemctl enable --now clock.service
     ```
@@ -175,32 +175,30 @@ For this type of screen, Greg Meyer's [IT8951](https://github.com/GregDMeyer/IT8
 ### Non-IT8951 Screens 
 
 1. Waveshare has provided a handy guide for configuring a Pi to use their screen. The guide can be accessed [here](https://www.waveshare.com/wiki/7.5inch_e-Paper_HAT_Manual). The "[Working With Raspberry Pi](https://www.waveshare.com/wiki/7.5inch_e-Paper_HAT_Manual#Working_With_Raspberry_Pi)" section pertains to this specific project.
-    - _Note:_ This guide is specific to Waveshare's 7.5" screen. If you are using a different screen size, refer to the wiki page for your specific screen's setup instructions.
+    - _Note:_ If you are using a different screen size, refer to the wiki page for your specific screen's setup instructions.
 
-2. After you have verified that the screen is working via Waveshare's demo, clone this repository to the Pi with:
-
+<!--2. After you have verified that the screen is working via Waveshare's demo, clone this repository to the Pi with:-->
+2. After verifying that the screen is working via Waveshare's demo, clone this repository to the Pi:
     ```sh
     git clone https://github.com/alextaschuk/Literary-Quote-Clock.git
     ```
 
     - _Note:_ Don't include the `--recursive` flag! This is only necessary for IT8951 screens.
 
+<!--3. Configure a virtual environment within the cloned repo:-->
 3. Configure a virtual environment within the cloned repo:
 
     1. `cd` into the cloned repo and initialize a venv:
-
         ```sh
         python3 -m venv venv
         ```
     
     2. Activate the venv:
-        
         ```sh
         source venv/bin/activate
         ```
     
     3. Install the clock's necessary packages:
-    
         ```sh
         pip install -r requirements.txt
         ```
@@ -213,18 +211,17 @@ For this type of screen, Greg Meyer's [IT8951](https://github.com/GregDMeyer/IT8
 
 5. (Optional) If you are using something other than the 7.5" screen, you will also need to download the correct EPD module from Waveshare and modify clock.py to use it instead of the 7.5" module.
 
-5. In the [clock.service](/scripts/clock.service) script, modify the `WorkingDirectory` variable to store the path to the cloned repo and the `ExecStart` variable to store the path to `clock.py` in the cloned repo. Then, move [clock.service](/scripts/clock.service) into `/etc/systemd/system`.
+6. In the [clock.service](/scripts/clock.service) script, modify the `WorkingDirectory` variable to store the path to the cloned repo and the `ExecStart` variable to store the path to `clock.py` in the cloned repo. Then, move [clock.service](/scripts/clock.service) into `/etc/systemd/system`.
 
     - For example, if the repo was cloned into a `Desktop/` directory, change the `WorkingDirectory` variable to `WorkingDirectory=/home/[username]/Desktop/Literary-Quote-Clock`. Similarly, change `ExecStart` to `ExecStart=/home/[username]/Desktop/Literary-Quote-Clock/venv/bin/python3 /home/[username]/Desktop/Literary-Quote-Clock/clock.py`.
 
-6. Reload the systemd manager so that it sees the new clock.service file:
-
+<!--7. Reload the systemd manager so that it sees the new clock.service file:-->
+7. Reload the systemd manager:
     ```sh
     sudo systemctl daemon-reload
     ```
 
-6. Start the clock with:
-
+8. Start the clock:
     ```sh
     sudo systemctl enable --now clock.service
     ```
@@ -251,26 +248,25 @@ This is an optional step to help with desync issues and automatically update the
 
 #### Python
 
-- To generate and save images of the quotes to an images/ directory:
-
+- Generate and save images of the quotes to an images/ directory:
     ```bash
     python3 image_generator.py
     ```
-    - _Note_: To save the images in a different directory, change the file path that `IMAGE_PATH` stores in [constants.py](/constants.py)
+    - _Note_: To save the images in a different directory, change `IMAGE_PATH` in [constants.py](/constants.py)
 
-- There is a simple test file to ensure the CSV file that contains the quotes has at least one quote for every minute of the day, that every quote has a valid timestring, etc. To validate the CSV file, run:
+- Run a validation test on the CSV file that contains the quotes:
     ```bash
     pytest tests/test_csv.py
     ```
 
 #### Clock Logs
 
-- To view the top (start) of the clock's logs:
+- View the top (start) of the clock's logs:
     ```bash
     journalctl -u clock.service
     ```
 
-- To view the clock's most recent logs: 
+- View the clock's most recent logs: 
     ```bash
     journalctl -e -u clock.service
     ```
@@ -298,7 +294,7 @@ The program wakes up at 13:31:59, and calls `display_quote()` to show the quote 
 
 I used [JohannesNE's CSV file](https://github.com/JohannesNE/literature-clock/blob/master/litclock_annotated.csv) as a starting point for gathering quotes, and have since made several modifications to the quotes in the file (see [Adding, Editing, and Finding Quotes](#adding-editing-and-finding-quotes)).
 
-An image is generated by parsing the cached CSV file and drawing the quote on a .bmp file. I originally used a self-modified version of elegantalchemist's [quote_to_image.py](https://github.com/elegantalchemist/literaryclock/blob/main/quote%20to%20image/quote_to_image.py) program to generate images of the quotes. The biggest modification I made to the image generation files is that it could handle italic and bold characters. However, the code was not very readable or maintainable, and I felt that there was a lot of refactoring needed. I opted to rewrite the entire thing, allowing for any future formatting additions or modifications to be easily added later down the line. The logic for converting a row from the CSV file into an image now exists in [image_generator.py](/image_generator.py), [writer.py](/writer.py), and [constants.py](/constants.py).
+An image is generated by parsing the cached CSV file and drawing the quote on a .bmp file. I originally used a self-modified version of elegantalchemist's [quote_to_image.py](https://github.com/elegantalchemist/literaryclock/blob/main/quote%20to%20image/quote_to_image.py) program to generate images of the quotes. The biggest modification I made to the image generation files is that it could handle italic and bold characters. However, the code was turning into something that was unmaintainable and needed significant refactoring. I opted to rewrite the program from scratch, allowing for any future formatting additions or modifications to be easily added later down the line. The logic for converting a row from the CSV file into an image primarily lives in [image_generator.py](/image_generator.py), with [writer.py](/writer.py) containing class definitions, and [constants.py](/constants.py) containing global variables.
 
 
 ## Formatting Text
@@ -314,7 +310,7 @@ In my case, each style of a font needs its own font file. Since each quote is pa
 
 Wrap a substring with this character to *italicize* it.
 
-For example, the CSV stores:
+For example, a `quote` column CSV stores:
 
 > Henry held out his hand for the note, which Victoria gave over in exchange for a Sweet Caporal. There were only four words: ◻Tomorrow morning. 2 o’clock◻.
 
@@ -338,9 +334,9 @@ There are some instances where preserving a quote's original formatting can help
 
 #### Newline: '`␤`' (Symbol For Newline, `U+2424`)
 
-Add this character to put the succeeding word(s) on a new line (equivalent to `\r\n`). Though this option makes very little difference, I've decided to keep it just in case.
+Add this character to put the succeeding word(s) on a new line (equivalent to `\n`). Though this option makes very little difference, I've decided to keep it just in case.
 
-For example, the CSV stores:
+For example, a `quote` column CSV stores:
 
 > He smiled to himself and went to his office and waited for the telephone call that he knew would come. ␤It came at two o’clock that afternoon.
 
@@ -352,9 +348,9 @@ For example, the CSV stores:
 
 #### Double Newline '`⇇`' (Leftwards Paired Arrows, `U+21C7`)
 
-Add this character to put a blank line between wrapped text and the next word (equivalent to `\r\n\r\n`).
+Add this character to put a blank line between wrapped text and the next word (equivalent to `\n\n`).
 
-For example, the CSV stores:
+For example, a `quote` column CSV stores:
 
 > A full one hundred meters down the slope, Kazuo Kiriyama didn't look back. Instead, he glanced down at his watch. ⇇The second hand had just made its seventh click past five.
 
@@ -366,7 +362,7 @@ For example, the CSV stores:
 ## Adding, Editing, and Finding Quotes
 <!--<h2 align="center">Adding, Editing, and Finding Quotes</h2>-->
 
-I have manually read through all ~3500 quotes in the original CSV and am in the process of modifying ~700 of them. There is a set of criteria that the quotes should conform to. I've made certain changes to quotes, which depend on what I think is "wrong" about the quote's context, formatting, etc.
+I have manually read through all ~3600 quotes in the original CSV and am in the process of modifying ~700 of them. There is a set of criteria that the quotes should conform to. I've made certain changes to quotes, which depend on what I think is "wrong" about the quote's context, formatting, etc.
 
 This section covers what I look for when evaluating if a quote needs to be modified or removed, a list of books that I have personally found quotes in while reading, and a list of times that are in need of better quotes.
 
