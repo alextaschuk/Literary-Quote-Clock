@@ -249,11 +249,21 @@ This is an optional step to help with desync issues and automatically update the
 ### Other Commands
 <!--<h3>Other Commands</h3>-->
 
-- To generate the quote images and save them to an `/images` directory:
+#### Python
+
+- To generate and save images of the quotes to an images/ directory:
 
     ```bash
     python3 image_generator.py
     ```
+    - _Note_: To save the images in a different directory, change the file path that `IMAGE_PATH` stores in [constants.py](/constants.py)
+
+- There is a simple test file to ensure the CSV file that contains the quotes has at least one quote for every minute of the day, that every quote has a valid timestring, etc. To validate the CSV file, run:
+    ```bash
+    pytest tests/test_csv.py
+    ```
+
+#### Clock Logs
 
 - To view the top (start) of the clock's logs:
     ```bash
@@ -264,6 +274,7 @@ This is an optional step to help with desync issues and automatically update the
     ```bash
     journalctl -e -u clock.service
     ```
+
 
 ## How the Clock Works
 <!--<h2 align="center">How the Clock Works</h2>-->
@@ -481,7 +492,7 @@ As I find quotes in the books I read in my free time, I add them to the CSV file
 | Stoner                         | John Williams        | 23                    |
 | All Quiet on the Western Front | Erich Maria Remarque | 20                    |
 | In Cold Blood                  | Truman Capote        | 84                    |
-| The Road                       | Cormac McCarthy      | 8                     |
+| The Road                       | Cormac McCarthy      | 7                     |
 | Butcher’s Crossing             | John Williams        | 16                    |
 | The Great Gatsby               | F. Scott Fitzgerald  | 51                    |
 | Before the Coffee Gets Cold    | Toshikazu Kawaguchi  | 8                     |
@@ -492,10 +503,10 @@ As I find quotes in the books I read in my free time, I add them to the CSV file
 | Children of Dune               | Frank Herbert        | 16                    |
 | God Emperor of Dune            | Frank Herbert        | 10                    |
 | Heretics of Dune               | Frank Herbert        | 11                    |
-| Chapterhouse: Dune             | Frank Herbert        | 3 (Currently Reading) |
-|                                | Total                | 323                   |
+| Chapterhouse: Dune             | Frank Herbert        | 5 (Currently Reading) |
+|                                | Total                | 324                   |
 
-- *Note*: There are a few quotes are used for AM and PM times, so the third column represents the total quotes used from each book, not the number of unique quotes.
+- *Note*: Some quotes contain more than one time string, so the third column represents the total quotes used from each book, not the number of unique quotes.
 
 ---
 
@@ -514,12 +525,12 @@ There are some minutes of the day that only have one quote as an option that I'd
 
 | 12:00 | 13:00 | 14:00 | 15:00 | 16:00 | 17:00 | 18:00 | 19:00 | 20:00 | 21:00 | 22:00 | 23:00 |
 | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- |
-| 12:09 | 13:18 | 14:18 | 15:29 | 16:16 | 17:75 | 18:04 | 19:31 | 20:13 | 21:09 | 22:19 | 23:24 |
-| 12:26 | 13:21 | 14:04 |       | 16:18 |       | 18:49 | 19:44 | 20:22 | 21:17 | 22:39 |       |
-| 12:31 | 13:26 |       |       | 16:21 |       | 19:46 | 20:39 | 21:43 |       | 22:49 |       |
-|       |       |       |       | 16:28 |       | 19:47 |       | 21:46 |       |       |       |
-|       |       |       |       | 16:29 |       | 19:52 |       | 21:52 |       |       |       |
-|       |       |       |       | 16:32 |       |       |       |       |       |       |       |
+| 12:09 | 13:18 | 14:18 | 15:29 | 16:16 | 17:34 | 18:04 | 19:31 | 20:13 | 21:09 | 22:19 | 23:24 |
+| 12:26 | 13:21 | 14:04 |       | 16:18 | 17:49 | 18:08 | 19:44 | 20:22 | 21:17 | 22:39 |       |
+| 12:31 | 13:26 |       |       | 16:21 |       | 18:21 | 19:46 | 20:39 | 21:43 | 22:49 |       |
+|       |       |       |       | 16:28 |       | 18:36 | 19:47 |       | 21:46 |       |       |
+|       |       |       |       | 16:29 |       | 18:49 | 19:52 |       | 21:52 |       |       |
+|       |       |       |       | 16:32 |       | 18:54 |       |       |       |       |       |
 
 
 ## Other Notes
