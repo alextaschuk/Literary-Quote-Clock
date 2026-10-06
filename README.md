@@ -310,7 +310,7 @@ In my case, each style of a font needs its own font file. Since each quote is pa
 
 Wrap a substring with this character to *italicize* it.
 
-For example, a `quote` column CSV stores:
+For example, a `quote` column in the CSV stores:
 
 > Henry held out his hand for the note, which Victoria gave over in exchange for a Sweet Caporal. There were only four words: ◻Tomorrow morning. 2 o’clock◻.
 
@@ -336,7 +336,7 @@ There are some instances where preserving a quote's original formatting can help
 
 Add this character to put the succeeding word(s) on a new line (equivalent to `\n`). Though this option makes very little difference, I've decided to keep it just in case.
 
-For example, a `quote` column CSV stores:
+For example, a `quote` column in the CSV stores:
 
 > He smiled to himself and went to his office and waited for the telephone call that he knew would come. ␤It came at two o’clock that afternoon.
 
@@ -350,7 +350,7 @@ For example, a `quote` column CSV stores:
 
 Add this character to put a blank line between wrapped text and the next word (equivalent to `\n\n`).
 
-For example, a `quote` column CSV stores:
+For example, a `quote` column in the CSV stores:
 
 > A full one hundred meters down the slope, Kazuo Kiriyama didn't look back. Instead, he glanced down at his watch. ⇇The second hand had just made its seventh click past five.
 
@@ -499,8 +499,8 @@ As I find quotes in the books I read in my free time, I add them to the CSV file
 | Children of Dune               | Frank Herbert        | 16                    |
 | God Emperor of Dune            | Frank Herbert        | 10                    |
 | Heretics of Dune               | Frank Herbert        | 11                    |
-| Chapterhouse: Dune             | Frank Herbert        | 5 (Currently Reading) |
-|                                | Total                | 324                   |
+| Chapterhouse: Dune             | Frank Herbert        | 6                     |
+|                                | Total                | 325                   |
 
 - *Note*: Some quotes contain more than one time string, so the third column represents the total quotes used from each book, not the number of unique quotes.
 
@@ -522,11 +522,11 @@ There are some minutes of the day that only have one quote as an option that I'd
 | 12:00 | 13:00 | 14:00 | 15:00 | 16:00 | 17:00 | 18:00 | 19:00 | 20:00 | 21:00 | 22:00 | 23:00 |
 | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- |
 | 12:09 | 13:18 | 14:18 | 15:29 | 16:16 | 17:34 | 18:04 | 19:31 | 20:13 | 21:09 | 22:19 | 23:24 |
-| 12:26 | 13:21 | 14:04 |       | 16:18 | 17:49 | 18:08 | 19:44 | 20:22 | 21:17 | 22:39 |       |
-| 12:31 | 13:26 |       |       | 16:21 |       | 18:21 | 19:46 | 20:39 | 21:43 | 22:49 |       |
-|       |       |       |       | 16:28 |       | 18:36 | 19:47 |       | 21:46 |       |       |
-|       |       |       |       | 16:29 |       | 18:49 | 19:52 |       | 21:52 |       |       |
-|       |       |       |       | 16:32 |       | 18:54 |       |       |       |       |       |
+| 12:26 | 13:21 | 14:04 |       | 16:18 | 17:49 | 18:08 | 19:38 | 20:22 | 21:17 | 22:39 |       |
+| 12:31 | 13:26 |       |       | 16:21 |       | 18:21 | 19:44 | 20:39 | 21:43 | 22:49 |       |
+|       |       |       |       | 16:28 |       | 18:36 | 19:46 |       | 21:46 |       |       |
+|       |       |       |       | 16:29 |       | 18:49 | 19:47 |       | 21:52 |       |       |
+|       |       |       |       | 16:32 |       | 18:54 | 19:52 |       |       |       |       |
 
 
 ## Other Notes
