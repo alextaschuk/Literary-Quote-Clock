@@ -1,59 +1,74 @@
 <h1 align="center">Literary Quote Clock</h1>
 
-I made a clock that displays the time using quotes from various books. All 1,440 minutes of the day have at least one corresponding quote, but many have multiple possible quotes that may be used (one is chosen at random). There are over 3,800 possible quotes.
-
-- _Note_: I rewrote this project in C++. The repo can be found [here](https://github.com/alextaschuk/Lit-Clock-Cpp-Rewrite).
-
 <p align="center">
     <img src="misc/demo/demo.jpg" alt="the clock in its frame with a quote that reads There's a train a seventeen minutes to two, said Didier. He blessed himself and got to his feet. He hesitated. 'What's the matter?' 'Shouldn't we say goodbye to Grandpa? He usually has a cheque for me.' —The Public Prosecutor, Jef Geeraerts" width="600"/>
 </p>
+
+I made a clock that displays the time using quotes from various books. All 1,440 minutes of the day have at least one corresponding quote, but many have multiple possible quotes that may be used (one is chosen at random). There are over 3,800 possible quotes.
+
+- _Note_: I rewrote this project in C++. The repo can be found [here](https://github.com/alextaschuk/Lit-Clock-Cpp-Rewrite).
 
 ## Table of Contents
 <details>
 <summary>Click to View</summary>
 
 1. [Materials](#materials)
+    1. [Using an EPD with an IT8951 Controller](#using-an-epd-with-an-it8951-controller)
+    2. [Using an EPD with a Non-IT8951 Controller](#using-an-epd-with-a-non-it8951-controller)
+    3. [Using a Kindle](#using-a-kindle)
 2. [How to Setup the Clock (Non-Kindle Only)](#how-to-setup-the-clock-non-kindle-only)
-3. [How the Clock Works](#how-the-clock-works)
-4. [Credits](#credits)
-5. [Formatting Text](#formatting-text)
-6. [Adding, Editing, and Finding Quotes](#adding-editing-and-finding-quotes)
-7. [Other Notes](#other-notes)
+    1. [IT8951-Based Screens](#it8951-based-screens)
+    2. [Non-IT8951-Based Screens](#non-it8951-based-screens)
+    3. [Additional Setup](#additional-setup)
+    4. [Other Commands](#other-commands)
+3. [Formatting Text](#formatting-text)
+    1. [Character Formatting](#character-formatting)
+    2. [Word Formatting](#word-formatting)
+4. [Adding, Editing, and Finding Quotes](#adding-editing-and-finding-quotes)
+    1. [Quote Validation & Modification Criteria](#quote-validation--modification-criteria)
+    2. [Times that Need a Better Quote](#times-that-need-a-better-quote)
+5. [Other Notes](#other-notes)
+    1. [Credits](#credits)
+    2. [Troubleshooting the Pi](#troubleshooting-the-pi)
+    3. [How the Clock Works](#how-the-clock-works)
+    4. [Books I Have Found Quotes In](#books-i-have-found-quotes-in)
+    5. [Miscellaneous](#miscellaneous)
 
 </details>
 
 ## Materials
 <!--<h2 align="center">Materials</h2>-->
+There are three ways to make the clock, depending on your hardware choices: an e-paper display (EPD) that uses an IT8951 controller[^1], an EPD that does not use an IT8951 controller, and a jailbroken Kindle.
 
-There are three ways to make the clock, depending on your hardware choices:
+### Using an EPD with an IT8951 Controller
 
-### IT8951 Screens
-
-*Jump to [setting up IT8951 screens](#it8951-based-screens)*
-
-IT8951 is a type of driver that is used to control and display things to an e-paper display (EPD). This is the hardware that I used to make an IT8951-based clock:
+This is the hardware that I used to make an IT8951-based clock:
 
 - [Waveshare 6-inch E-ink Display & HAT](https://www.waveshare.com/6inch-hd-e-paper-hat.htm)
 - [Raspberry Pi Model 3](https://www.raspberrypi.com/products/raspberry-pi-4-model-b/)
     - _Note:_ Any Model Pi should work, as long as the hat fits. Check Waveshare's documentation first.
 - The frame is currently a WIP.
 
-### Non-IT8951 Screens
+*Jump to [setting up IT8951 screens](#it8951-based-screens)*
 
-*Jump to [setting up non-IT8951 screens](#non-it8951-screens-1)*
+### Using an EPD with a Non-IT8951 Controller
 
 Most of Waveshare's EPDs do not use an IT8951 driver. This is the hardware that I used to make a non-IT8951-based clock:
 
 - [Waveshare 7.5 inch E-ink Display & HAT](https://www.waveshare.com/7.5inch-e-paper-hat.htm)
 - [Raspberry Pi Zero 2WH](https://www.raspberrypi.com/products/raspberry-pi-zero-2-w/)
   - _Note:_ Waveshare sells a [pre-soldered Pi](https://www.waveshare.com/product/raspberry-Pi/boards-kits/raspberry-Pi-zero-2-w-cat/raspberry-Pi-zero-2-w.htm?sku=21039), which is what I used.
-- The frame was handmade using walnut wood.
+- The frame was handmade using walnut wood (see the image at the top of the README).
 
-### Kindles
+*Jump to [setting up non-IT8951 screens](#non-it8951-screens-1)*
+
+### Using a Kindle
 
 All you need is a jailbroken Kindle that can run scriptlets. For instructions on how to install the clock on a jailbroken Kindle, check out the [README](/kindle_clock/README.md) in the */kindle_clock/* folder.
     
 - Pretty much every modern jailbreak (and probably most older ones, too) has this ability. All that is required to run scriptlets is [SH_integration](https://github.com/KindleModding/sh_integration).
+
+[^1]: IT8951 is a controller chip that serves as the EPD's timing controller, buffering image data and handling electrical signals for screen updates.
 
 
 ## How to Setup the Clock (Non-Kindle Only)
@@ -68,7 +83,7 @@ Prior to following the instructions below, make sure you have completed a basic 
 The next steps are dependent on the type of driver your screen  uses. For this documentation, I'll focus on setting up the 6" IT8951 screen and the 7.5" non-IT8951 screen, but it should be easy to adapt for other screens too. The functions within my clock work for both types of screen drivers, so you just need to follow the setup instructions that correspond to your screen.
 
 
-### IT8951-Based Screens 
+### IT8951-Based Screens
 
 For these screens, Greg Meyer's [IT8951](https://github.com/GregDMeyer/IT8951/tree/master) Python library will be used. It is the library that Waveshare recommends.
 
@@ -172,7 +187,7 @@ For these screens, Greg Meyer's [IT8951](https://github.com/GregDMeyer/IT8951/tr
 
 ***
 
-### Non-IT8951 Screens 
+### Non-IT8951-Based Screens
 
 1. Waveshare has provided a handy guide for configuring a Pi to use their screen. The guide can be accessed [here](https://www.waveshare.com/wiki/7.5inch_e-Paper_HAT_Manual). The "[Working With Raspberry Pi](https://www.waveshare.com/wiki/7.5inch_e-Paper_HAT_Manual#Working_With_Raspberry_Pi)" section pertains to this specific project.
     - _Note:_ If you are using a different screen size, refer to the wiki page for your specific screen's setup instructions.
@@ -272,37 +287,12 @@ This is an optional step to help with desync issues and automatically update the
     ```
 
 
-## How the Clock Works
-<!--<h2 align="center">How the Clock Works</h2>-->
-
-<p align="center">
-<img src="./misc/demo/startup-img.bmp" alt="The clock's startup image" width="400"/>
-</p>
-
-This project was a gift, so I wanted it to be as plug-and-play as possible. To achieve this, I created a simple systemd unit configuration file ([clock.service](/clock.service)) that starts the clock by running the [clock.py](/clock.py) file after the Pi connects to a WiFi network. It still takes about half a minute for the Pi's internal clock to be updated from this point, so the clock performs a full initialization on the screen to remove any ghosted Pixels and displays a startup image in the meantime, then goes to sleep for 30 seconds.
-
-All of the clock's logic lies in [clock.py](./clock.py), and all of the quotes are stored in [quotes.csv](./quotes.csv). When the clock is first run, the quotes are cached. The program runs in a continuous loop that calls the `main()` function once every minute. The clock maintains a buffer that contains three images, each a succeeding minute past the current minute of the hour. At the top of a minute—technically, the 59th second of the previous minute; you'll see what I mean—`display_quote()` is called, and the image at the front of the buffer is displayed to the screen. Then, `refresh_buffer()` is called, which removes the quote that was just displayed from the buffer and appends a new image for the time that is three minutes ahead of the next image to be displayed.
-
-Here's an example: Suppose that the clock's program is started at 13:31:15. After sleeping for 30 seconds (it is now 13:31:45), the first image to be displayed is generated outside of the `main()` function and is appended to the buffer (this is necessary because of how the buffer works). Then, the `main()` function is called. Inside of `main()`, `display_quote()` is called, to display the image for 13:31. Then, `refresh_buffer()` is called. Inside of this function, the image for 13:31 is removed from the buffer, and the buffer is populated with images for 13:32, 13:33, and 13:34. Assuming this whole process took 1 second, the time is now 13:31:46, so the program goes to sleep for 13 seconds.
-
-- If you're wondering why it slept for 13 seconds instead of 14 (since 60-46 = 14), this is because it takes ~1 second for the image shown on the screen to change, so the program wakes up at the 59th second of the minute instead of the 0th second of the next minute. This makes it look like the change is actually occurring at the 0th second of the next minute instead of the 1st second.
-
-The program wakes up at 13:31:59, and calls `display_quote()` to show the quote for 13:32 on the screen. Then, `refresh_buffer()` is called, which removes the image for 13:32 from the buffer and appends an image for 13:35. The program then sleeps until 13:32:59.
-
-## Credits
-<!--<h2 align="center">Credits</h2>-->
-
-I used [JohannesNE's CSV file](https://github.com/JohannesNE/literature-clock/blob/master/litclock_annotated.csv) as a starting point for gathering quotes, and have since made several modifications to the quotes in the file (see [Adding, Editing, and Finding Quotes](#adding-editing-and-finding-quotes)).
-
-An image is generated by parsing the cached CSV file and drawing the quote on a .bmp file. I originally used a self-modified version of elegantalchemist's [quote_to_image.py](https://github.com/elegantalchemist/literaryclock/blob/main/quote%20to%20image/quote_to_image.py) program to generate images of the quotes. The biggest modification I made to the image generation files is that it could handle italic and bold characters. However, the code was turning into something that was unmaintainable and needed significant refactoring. I opted to rewrite the program from scratch, allowing for any future formatting additions or modifications to be easily added later down the line. The logic for converting a row from the CSV file into an image primarily lives in [image_generator.py](/image_generator.py), with [writer.py](/writer.py) containing class definitions, and [constants.py](/constants.py) containing global variables.
-
-
 ## Formatting Text
 <!--<h2 align="center">Formatting Text</h2>-->
 
 ### Character Formatting
 
-JohannesNE's CSV file contains quotes that have italic characters, and their project is a website, so the formatting of text in a quote could easily be changed using the CSS `font-style` property to specify if the text should be normal or _italic_, and the `font-weight` property to specify how thick the text should be to make it **bold** (you can even combine them for text that is _**italicized and bolded**_).
+[JohannesNE's CSV file](https://github.com/JohannesNE/literature-clock/blob/master/litclock_annotated.csv)—which I used as a starting point for gathering quotes—contains quotes that have italic characters. Their project is a website of the literary quote clock, so the formatting of text in a quote could easily be changed using the CSS `font-style` property to specify if the text should be normal or _italic_, and the `font-weight` property to specify how thick the text should be to make it **bold**.
 
 In my case, each style of a font needs its own font file. Since each quote is parsed and drawn on a .bmp image character-by-character, my solution to formatting text is similar to how it is done in Markdown, where a substring of text can be wrapped with custom character delimiters to specify when different font styles should be applied.
 
@@ -325,6 +315,12 @@ Which will be formatted as:
 Wrap a substring with this character to **bold it**.
 
 There aren't any quotes yet where the bold delimiter has been needed, but I have added it as an option just in case.
+
+#### Italic and Bold
+
+Text can be wrapped with both the italic and bold delimiters to make it ***italic and bold***.
+
+There aren't any quotes yet where the bold delimiter has been needed, but I have added it as an option for future quotes.
 
 ---
 
@@ -477,6 +473,66 @@ I've made changes to character formatting, including:
 
 ---
 
+### Times that Need a Better Quote
+<!--<h3>Times In Need of a Better Quote</h3>-->
+
+There are some minutes of the day that only have one quote as an option that I'd like to remove, but can't since it's the only quote for that time. 
+
+| 00:00 | 01:00 | 02:00 | 03:00 | 04:00 | 05:00 | 06:00 | 07:00 | 08:00 | 09:00 | 10:00 | 11:00 |
+| ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- |
+| 00:57 |       |       |       |       | 05:26 | 06:02 | 07:08 | 08:02 | 09:08 | 10:16 | 11:28 |
+|       |       |       |       |       | 05:31 | 06:49 | 07:22 |       |       | 10:19 |       |
+|       |       |       |       |       |       |       | 07:36 |       |       |       |       |
+|       |       |       |       |       |       |       | 07:48 |       |       |       |       |
+
+| 12:00 | 13:00 | 14:00 | 15:00 | 16:00 | 17:00 | 18:00 | 19:00 | 20:00 | 21:00 | 22:00 | 23:00 |
+| ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- |
+| 12:09 | 13:18 | 14:04 | 15:29 | 16:16 | 17:34 | 18:04 | 19:44 | 20:22 | 21:09 | 22:49 | 23:24 |
+| 12:31 | 13:26 |       |       |       |       | 18:08 |       |       | 21:46 |       |       |
+|       |       |       |       |       |       | 18:21 |       |       | 21:52 |       |       |
+|       |       |       |       |       |       | 18:49 |       |       |       |       |       |
+
+---
+
+## Other Notes
+<!--<h2 align="center">Other Notes</h2>-->
+
+### Credits
+<!--<h3 align="center">Credits</h2>-->
+
+I used [JohannesNE's CSV file](https://github.com/JohannesNE/literature-clock/blob/master/litclock_annotated.csv) as a starting point for gathering quotes, and have since made several modifications to the quotes in the file (see [Adding, Editing, and Finding Quotes](#adding-editing-and-finding-quotes)).
+
+An image is generated by parsing the cached CSV file and drawing the quote on a .bmp file. I originally used a self-modified version of elegantalchemist's [quote_to_image.py](https://github.com/elegantalchemist/literaryclock/blob/main/quote%20to%20image/quote_to_image.py) program to generate images of the quotes. The biggest modification I made to the image generation files is that it could handle italic and bold characters. However, the code was turning into something that was unmaintainable and needed significant refactoring. I opted to rewrite the program from scratch, allowing for any future formatting additions or modifications to be easily added later down the line. The logic for converting a row from the CSV file into an image primarily lives in [image_generator.py](/image_generator.py), with [writer.py](/writer.py) containing class definitions, and [constants.py](/constants.py) containing global variables.
+
+### Troubleshooting the Pi
+<!--<h3>Troubleshooting the Pi</h3>-->
+
+The Raspberry Pi Zero 2W cannot connect to a 5 Ghz WiFi channel; it only works with 2.4 GHz. If you have issues connecting, try the following to troubleshoot:
+
+  1. Log into your modem and temporarily disable the 5 GHz channel, allowing the Pi to connect only to the 2.4 GHz channel. After it connects, you can re-enable the 5 GHz channel.
+     - _Note: You shouldn't have to do this every time you turn the Pi on. Once it connects to your WiFi on the 2.4 GHz channel for the first time, it should do so automatically every time moving forward._
+  2. Rename the 2.4 GHz channel to have a different SSID.
+     - E.g. `SSID-Name-2_4GHz`
+
+If you take the clock into a new timezone, the Pi's localization settings need to be changed manually. Otherwise the clock won't display the correct time.
+
+### How the Clock Works
+<!--<h3 align="center">How the Clock Works</h2>-->
+
+<p align="center">
+<img src="./misc/demo/startup-img.bmp" alt="The clock's startup image" width="400"/>
+</p>
+
+This project was a gift, so I wanted it to be as plug-and-play as possible. To achieve this, I created a simple systemd unit configuration file ([clock.service](/clock.service)) that starts the clock by running the [clock.py](/clock.py) file after the Pi connects to a WiFi network. It still takes about half a minute for the Pi's internal clock to be updated from this point, so the clock performs a full initialization on the screen to remove any ghosted Pixels and displays a startup image in the meantime, then goes to sleep for 30 seconds.
+
+All of the clock's logic lies in [clock.py](./clock.py), and all of the quotes are stored in [quotes.csv](./quotes.csv). When the clock is first run, the quotes are cached. The program runs in a continuous loop that calls the `main()` function once every minute. The clock maintains a buffer that contains three images, each a succeeding minute past the current minute of the hour. At the top of a minute—technically, the 59th second of the previous minute; you'll see what I mean—`display_quote()` is called, and the image at the front of the buffer is displayed to the screen. Then, `refresh_buffer()` is called, which removes the quote that was just displayed from the buffer and appends a new image for the time that is three minutes ahead of the next image to be displayed.
+
+Here's an example: Suppose that the clock's program is started at 13:31:15. After sleeping for 30 seconds (it is now 13:31:45), the first image to be displayed is generated outside of the `main()` function and is appended to the buffer (this is necessary because of how the buffer works). Then, the `main()` function is called. Inside of `main()`, `display_quote()` is called, to display the image for 13:31. Then, `refresh_buffer()` is called. Inside of this function, the image for 13:31 is removed from the buffer, and the buffer is populated with images for 13:32, 13:33, and 13:34. Assuming this whole process took 1 second, the time is now 13:31:46, so the program goes to sleep for 13 seconds.
+
+- If you're wondering why it slept for 13 seconds instead of 14 (since 60-46 = 14), this is because it takes ~1 second for the image shown on the screen to change, so the program wakes up at the 59th second of the minute instead of the 0th second of the next minute. This makes it look like the change is actually occurring at the 0th second of the next minute instead of the 1st second.
+
+The program wakes up at 13:31:59, and calls `display_quote()` to show the quote for 13:32 on the screen. Then, `refresh_buffer()` is called, which removes the image for 13:32 from the buffer and appends an image for 13:35. The program then sleeps until 13:32:59.
+
 ### Books I Have Found Quotes In
 <!--<h3>Adding My Own Quotes</h3>-->
 
@@ -500,46 +556,10 @@ As I find quotes in the books I read in my free time, I add them to the CSV file
 | God Emperor of Dune            | Frank Herbert        | 10                    |
 | Heretics of Dune               | Frank Herbert        | 11                    |
 | Chapterhouse: Dune             | Frank Herbert        | 6                     |
-| Augustus                       | John Williams        | 2 (Currently Reading) |
-|                                | Total                | 327                   |
+| Augustus                       | John Williams        | 4 (Currently Reading) |
+|                                | Total                | 329                   |
 
 - *Note*: Some quotes contain more than one time string, so the third column represents the total quotes used from each book, not the number of unique quotes.
-
----
-
-### Times that Need a Better Quote
-<!--<h3>Times In Need of a Better Quote</h3>-->
-
-There are some minutes of the day that only have one quote as an option that I'd like to remove, but can't since it's the only quote for that time. 
-
-| 00:00 | 01:00 | 02:00 | 03:00 | 04:00 | 05:00 | 06:00 | 07:00 | 08:00 | 09:00 | 10:00 | 11:00 |
-| ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- |
-| 00:57 |       |       |       |       | 05:26 | 06:02 | 07:08 | 08:02 | 09:08 | 10:16 | 11:28 |
-|       |       |       |       |       | 05:31 | 06:49 | 07:22 |       |       | 10:19 |       |
-|       |       |       |       |       |       |       | 07:36 |       |       |       |       |
-|       |       |       |       |       |       |       | 07:48 |       |       |       |       |
-
-| 12:00 | 13:00 | 14:00 | 15:00 | 16:00 | 17:00 | 18:00 | 19:00 | 20:00 | 21:00 | 22:00 | 23:00 |
-| ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- |
-| 12:09 | 13:18 | 14:04 | 15:29 | 16:16 | 17:34 | 18:04 | 19:44 | 20:22 | 21:09 | 22:49 | 23:24 |
-| 12:31 | 13:26 |       |       |       |       | 18:08 |       |       | 21:46 |       |       |
-|       |       |       |       |       |       | 18:21 |       |       | 21:52 |       |       |
-|       |       |       |       |       |       | 18:49 |       |       |       |       |       |
-
-
-## Other Notes
-<!--<h2 align="center">Other Notes</h2>-->
-
-<h3>Troubleshooting the Pi</h3>
-
-The Raspberry Pi Zero 2W cannot connect to a 5 Ghz WiFi channel; it only works with 2.4 GHz. If you have issues connecting, try the following to troubleshoot:
-
-  1. Log into your modem and temporarily disable the 5 GHz channel, allowing the Pi to connect only to the 2.4 GHz channel. After it connects, you can re-enable the 5 GHz channel.
-     - _Note: You shouldn't have to do this every time you turn the Pi on. Once it connects to your WiFi on the 2.4 GHz channel for the first time, it should do so automatically every time moving forward._
-  2. Rename the 2.4 GHz channel to have a different SSID.
-     - E.g. `SSID-Name-2_4GHz`
-
-If you take the clock into a new timezone, the Pi's localization settings need to be changed manually. Otherwise the clock won't display the correct time.
 
 ### Miscellaneous
 <!--<h3>Miscellaneous</h3>-->
