@@ -24,9 +24,11 @@ I made a clock that displays the time using quotes from various books. All 1,440
 3. [Formatting Text](#formatting-text)
     1. [Character Formatting](#character-formatting)
     2. [Word Formatting](#word-formatting)
-4. [Adding, Editing, and Finding Quotes](#adding-editing-and-finding-quotes)
+4. [Finding, Adding, and Editing Quotes](#finding-adding-and-editing-quotes)
     1. [Quote Validation & Modification Criteria](#quote-validation--modification-criteria)
-    2. [Times that Need a Better Quote](#times-that-need-a-better-quote)
+    2. [Using the Correct Characters for Punctuation Marks](#using-the-correct-characters-for-punctuation-marks)
+    3. [CSV Validation with Pytest](#csv-validation-with-pytest)
+    4. [Times that Need a Better Quote](#times-that-need-a-better-quote)
 5. [Other Notes](#other-notes)
     1. [Credits](#credits)
     2. [Troubleshooting the Pi](#troubleshooting-the-pi)
@@ -355,12 +357,178 @@ For example, a `quote` column in the CSV stores:
 </p>
 
 
-## Adding, Editing, and Finding Quotes
+## Finding, Adding, and Editing Quotes
 <!--<h2 align="center">Adding, Editing, and Finding Quotes</h2>-->
 
-I have manually read through all ~3600 quotes in the original CSV and am in the process of modifying ~700 of them. There is a set of criteria that the quotes should conform to. I've made certain changes to quotes, which depend on what I think is "wrong" about the quote's context, formatting, etc.
+This section outlines a set of criteria to follow when adding a new quote or evaluating if an existing quote should be modified or removed. Every quote for the clock should conform to these criteria (for the most part; some of the criteria are subjective).
 
-This section covers what I look for when evaluating if a quote needs to be modified or removed, a list of books that I have personally found quotes in while reading, and a list of times that are in need of better quotes.
+---
+
+### Quote Validation & Modification Criteria
+
+#### Can the quote be used for both the A.M. and P.M. times of the day?
+
+If I'm adding a quote and I know what time of day the timestring is for, then I will only add it for that time. Otherwise, if it's vague enough, I'll use it for A.M. and P.M.
+
+Example 1:
+> At **8 o’clock** on Thursday morning Arthur didn't feel very good.
+>
+> —_The Hitchhiker’s Guide to the Galaxy_, Douglas Adams
+  
+Clearly, this quote should only be used for 08:00. Check if there is also a row for the quote at 20:00. If there is, remove it.
+
+Example 2:
+> The front doorbell rang at **one minute to ten**, and Karl answered it.
+>
+> —_Best Kept Secret_, Jeffrey Archer
+
+This quote was only used for 9:59, but, unless you have read the book and know the context, it's vague enough that "__one minute to ten__" could refer to 9:59 or 21:59. For this example, I haven't read this book so I would update the CSV to use the quote for 21:59 too.
+
+---
+
+#### Does the quote mention more than one time of the day?
+
+If a quote has more than one possible timestring, add new rows at the correct spots in the CSV for the other timestrings, if they don't already exist.
+  
+Example 1:
+
+> My watch lay on the dressing-table close by; glancing at it, I saw that the time was **twenty-five minutes to seven**. I had been told that the family breakfasted at nine, so I had nearly two-and-a-half hours of leisure. Of course, I would go out, and enjoy the freshness of the morning.
+>
+> —_Ravensdene Court_, J.S. Fletcher
+
+This quote was used for 06:35, but it has an additional timestring for 09:00. However, 09:00 had no row that used this quote. Additionally, it is clear from the context of the quote that the time of day is morning, so the quote should only be added for 9:00 and not 21:00 nor 18:35. Using the quote for 09:00, it would look like this:
+
+> My watch lay on the dressing-table close by; glancing at it, I saw that the time was twenty-five minutes to seven. I had been told that the family breakfasted at **nine**, so I had nearly two-and-a-half hours of leisure. Of course, I would go out, and enjoy the freshness of the morning. 
+>
+> —_Ravensdene Court_, J.S. Fletcher
+
+Example 2:
+
+> “Both women who died were killed in the morning, a little bit before ten o’clock.” I closed my eyes, trying to picture the reports Genosa had given me. “Right… **nine forty-seven** and nine forty-eight. They died at the same time.”
+>
+> —_Blood Rites_, Jim Butcher
+
+> “Both women who died were killed in the morning, a little bit before ten o’clock.” I closed my eyes, trying to picture the reports Genosa had given me. “Right… nine forty-seven and **nine forty-eight**. They died at the same time.”
+>
+> —_Blood Rites_, Jim Butcher
+
+This quote was being used for both 09:47 and 09:48. It is best to avoid the possibility of having the same quote be displayed back to back, even though the time strings are different. There are three options on what to do in this situation:
+
+1. Use this quote for either 09:47 or 09:48, but not both (best).
+2. Split the quote up—not possible with this quote, since both time strings are in the same sentence.
+3. In the event that this quote was the only quote for 09:47 and 09:48 an exception is made and the quote may be used for both times.
+
+For this quote, option 1 would be selected: the quote would be used only for 09:48 because there are ten possible quotes for 09:47 and only one for 09:48 (not including the quote). Additionally, this quote should not be used for 10:00 (see [Does the quote specify an exact hour and minute?](#does-the-quote-specify-an-exact-hour-and-minute) for an explanation).
+
+---
+  
+#### Does the quote require more or less context  (i.e., a preceding and/or succeeding sentence), or would adding more context enhance the quote?
+
+Example 1:
+> There were only four words: ***Tomorrow morning. 2 o’clock***. —_Full Dark, No Stars_, Stephen King
+
+The context of this sentence is not clear to the reader by itself. The four words could be words that someone spoke, wrote, or read. However, when preceding sentence is added, the context becomes clear: 
+
+> Henry held out his hand for the note, which Victoria gave over in exchange for a Sweet Caporal. There were only four words: ***Tomorrow morning. 2 o’clock***.
+
+Now, it is clear to the reader that the four words were written on a note that a character named Victoria traded to someone named Henry for a pack of Sweet Caporals (a brand of cigarettes).
+
+Example 2:
+
+> It was **nine o’clock** when we finished breakfast and went out on the porch. —_The Great Gatsby_, F. Scott Fitzgerald
+
+By itself, this quote does not require more context to understand it. However, we can include the succeeding sentence to provide a bit more information to the reader:
+
+> It was **nine o’clock** when we finished breakfast and went out on the porch. The night had made a sharp difference in the weather, and there was an autumn flavor in the air. —_The Great Gatsby_, F. Scott Fitzgerald
+
+When deciding whether or not to add additional (albeit useless) context, it's important to consider the size of the clock's display. An extra sentence may enhance the quote, but depending on the overall length of the quote, the size of text on the display could be reduced making it harder to read the time. This is a very subjective decision, but I prefer to keep quotes between 4 and 8 lines long.
+
+---
+
+#### Does the quote specify an exact hour and minute?
+
+The strictness of this rule is dependent on a quote-to-quote basis and the wording that is used. If a quote's time string could be interpreted as within ±1 minute of the time that is mentioned, such as "just past [**time**]," "just before [**time**]," or something similar, the quote may be used for the minute before/after the time that is mentioned. If a quote's time string is vauge, but could be inclusive of a specific time such as "around [**time**]", the quote may be used for the **time** that is mentioned. The important thing is that all non-specific quotes that are usable should be consistent in when they're used.
+
+- "just past [**time**]" should only be used for the minute after the time that is mentioned.
+- "just before [**time**]" and "nearly [**time**]" should only be used for the minute before the time that is mentioned.
+
+Example 1:
+
+> Shuya held his watch up to the moonlight. The finely crafted old model K. Hattori diver’s watch (a gift, like most of his possessions, with him living in an orphanage) read **just past 2:40**.
+>
+> —_Battle Royale_, Koushun Takami
+
+This quote can be used for either 02:41, 02:40 (or both, in the event that it is the only option for both times), or 02:40 (in which case the time string should be "**2:40**").
+
+Example 2:
+
+> Raymond came back with Masson **around one-thirty**. His arm was bandaged up and he had an adhesive plaster on the corner of his mouth. The doctor had told him it was nothing, but Raymond looked pretty grim. Masson tried to make him laugh. But he still wouldn't say anything.
+>
+> —_The Stranger_, Albert Camus
+
+Prior to modification, this quote was used for 13:31. Vauge language such as "around" leaves too much room for interpretation and doesn't tell the reader what time it actually is. However, because "around" is inclusive of 13:30, it is valid to change the time string to be "**one-thirty**".
+
+> Raymond came back with Masson around **one-thirty**. His arm was bandaged up and he had an adhesive plaster on the corner of his mouth. The doctor had told him it was nothing, but Raymond looked pretty grim. Masson tried to make him laugh. But he still wouldn't say anything.
+>
+> —_The Stranger_, Albert Camus
+
+Example 3:
+
+> When Odell arrived back at the hotel **a few minutes after four**, the first thing he did was order a large flask of hot fruit punch before walking out onto the veranda to take up his post.
+>
+> —_Paths of Glory_, Jeffrey Archer
+
+This quote was used for 16:03. Similar to the previous example the word "few" it too vague for this to be a time string. However, the language of this time string specifies that the time is _after_ 16:00, and therefore should not be used for 16:00 either. 
+
+- Though this quote could be used for 16:00 instead (with the timestring being "**four**"), I'd opt to delete the quote since 16:00 already has several other options. If 16:00 only had a few quotes (< 3), I'd use it for that time.
+
+#### Is the timestring part of a journal entry, used to mark a new chapter, etc?
+
+This is completely subjective, but if it can be avoided, I don't use quotes where the timestring is used for things like timestamping the the start of a chapter or journal entry.
+
+Example 1:
+
+> Sunday, April 5
+>
+> **6:49 A.M.**
+>
+> Alexa Hampton was awakened by a sensation in her chest. The alarm wasn't set to go off for another eleven minutes, but she knew her sleep was finished.
+>
+> —_Syndrome_, Thomas Hoover
+
+Example 2:
+
+> **9:54** This is sheer torture. My arms have never ached so much in my entire life. The blankets weigh a ton, and the sheets won’t go straight and I have no idea how to do the wretched corners. How do chambermaids do it?
+>
+> —_The Undomestic Goddess_, Sophie Kinsella
+
+---
+
+### Using the Correct Characters for Punctuation Marks
+
+The double quotation mark (`"`, `U+0022`) should not be used. Instead, use the left double quotation mark (`“`, `U+201C`) and right double quotation mark (`”`, `U+201D`) for text, such as the opening and closing of a quotes.
+
+- Incorrect: 
+    > "It was **ten minutes past one**." "You are sure of that?" —_Death on the Nile_, Agatha Christie
+
+- Correct:
+    > “It was **ten minutes past one**.” “You are sure of that?” —_Death on the Nile_, Agatha Christie
+
+The single quotation mark/apostrophe (`'`, U+0027) should not be used. Instead, use the left single quotation mark (`‘`, `U+2018`) and right single quotation mark (`’`, `U+2019`).
+
+- Incorrect:
+    > He'd put a handful of dried raisins in a cloth in his pocket and at **noon** they sat in the dead grass by the side of the road and ate them. —_The Road_, Cormac McCarthy
+
+- Correct:
+    > He’d put a handful of dried raisins in a cloth in his pocket and at **noon** they sat in the dead grass by the side of the road and ate them. —_The Road_, Cormac McCarthy
+
+Other punctuation, such as em dashes (`—`, `U+2014`) and horizontal ellipsis (`…`, `U+2026`), should use the correct unicode character.
+
+- Incorrect (uses three full stops/periods):
+    > “Hickock, 33 years old, died first, at 12:41 A.M.; Smith, 36, died at 1:19 ...” —_In Cold Blood_, Truman Capote
+
+- Correct:
+    > “Hickock, 33 years old, died first, at 12:41 A.M.; Smith, 36, died at 1:19 …” —_In Cold Blood_, Truman Capote
 
 ---
 
@@ -374,124 +542,20 @@ To test the CSV, from the clock's root directory run:
 pytest tests/test_csv.py
 ```
 
-### Quote Validation & Modification Criteria
-
-#### Can the quote be used for both the A.M. and P.M. times of the day (e.g., 07:00 and 19:00)?
-
-Example 1:
-> At **8 o’clock** on Thursday morning Arthur didn't feel very good. —_The Hitchhiker’s Guide to the Galaxy_, Douglas Adams
-  
-Clearly, this quote should only be used for 08:00. Check if there is also a row for the quote at 20:00. If there is, remove it.
-
-Example 2:
-> The front doorbell rang at **one minute to ten**, and Karl answered it. —_Best Kept Secret_, Jeffrey Archer
-
-This quote is vague enough that it is not clear whether "__one minute to ten__" is referring to 9:59 or 21:59 (unless you have read the book, which I haven't). Update the CSV to use the quote for 21:59 too.
-
----
-
-#### Does the quote mention more than one time of the day?
-
-If it does, check if the additional time(s) also have this quote. Otherwise, add them as new rows.
-  
-Example 1:
-
-> My watch lay on the dressing-table close by; glancing at it, I saw that the time was **twenty-five minutes to seven**. I had been told that the family breakfasted at nine, so I had nearly two-and-a-half hours of leisure. Of course, I would go out, and enjoy the freshness of the morning. —_Ravensdene Court_, J.S. Fletcher
-
-This quote was used for 06:35, but it can also be used for 09:00. However, it didn't have a row for 09:00. Additionally, it is clear from the context of the quote that the time of day is morning, so the quote should only be added for 9:00 and not 21:00 too. Using the quote for 09:00, it would look like this:
-
-> My watch lay on the dressing-table close by; glancing at it, I saw that the time was twenty-five minutes to seven. I had been told that the family breakfasted at **nine**, so I had nearly two-and-a-half hours of leisure. Of course, I would go out, and enjoy the freshness of the morning. —_Ravensdene Court_, J.S. Fletcher
-
-Example 2:
-
-> Both women who died were killed in the morning, a little bit before ten o’clock.” I closed my eyes, trying to picture the reports Genosa had given me. “Right… **nine forty-seven** and nine forty-eight. They died at the same time.” —_Blood Rites_, Jim Butcher
-
-> Both women who died were killed in the morning, a little bit before ten o’clock.” I closed my eyes, trying to picture the reports Genosa had given me. “Right… nine forty-seven and **nine forty-eight**. They died at the same time.” —_Blood Rites_, Jim Butcher
-
-This quote was being used for both 09:47 and 09:48. It is best to avoid the possibility of having the same quote be displayed back to back, even though the time strings are different. There are three options on what to do in this situation:
-
-1. Use this quote for either 09:47 or 09:48, but not both (best).
-2. Split the quote up—not possible with this quote, since both time strings are in the same sentence.
-3. In the event that this quote was the only quote for 09:47 and 09:48 an exception is made and the quote may be used for both times.
-
-For this quote, option 1 would be selected: the quote would be used only for 09:48 because there are ten possible quotes for 09:47 and only one for 09:48 (not including the quote).
-
----
-  
-#### Does the quote require more or less context  (i.e., a preceding and/or succeeding sentence), or would adding more context enhance the quote?
-
-Example 1:
-> There were only four words: ***Tomorrow morning. 2 o’clock***. —_Full Dark, No Stars_, Stephen King
-
-The context of this sentence is not clear to the reader by itself. The four words could be words that someone spoke, wrote, or read. However, when we add the preceding sentence, the context becomes clear: 
-
-> Henry held out his hand for the note, which Victoria gave over in exchange for a Sweet Caporal. There were only four words: ***Tomorrow morning. 2 o’clock***.
-
-Now, it is clear to the reader that the four words were written on a note that a character named Victoria traded to someone named Henry for a pack of Sweet Caporals (cigarettes).
-
-Example 2:
-
-> It was **nine o’clock** when we finished breakfast and went out on the porch. —_The Great Gatsby_, F. Scott Fitzgerald
-
-By itself, this quote does not require more context to understand it. However, we can include the succeeding sentence to provide a bit more information to the reader:
-
-> It was **nine o’clock** when we finished breakfast and went out on the porch. The night had made a sharp difference in the weather, and there was an autumn flavor in the air. —_The Great Gatsby_, F. Scott Fitzgerald
-
----
-
-#### Does the quote specify an exact hour and minute?
-
-The strictness of this rule is dependent on a quote-to-quote basis and the wording that is used. If a quote's time string could be interpreted as within ±1 minute of the time that is mentioned, such as "just past [**time**]," "just before [**time**]," or something similar, the quote may be used for the minute before/after the time that is mentioned. If a quote's time string is vauge, but could be inclusive of a specific time such as "around [**time**]", the quote may be used for the **time** that is mentioned. The important thing is that all non-specific quotes that are usable should be consistent in when they're used.
-
-Example 1:
-
-> Shuya held his watch up to the moonlight. The finely crafted old model K. Hattori diver’s watch (a gift, like most of his possessions, with him living in an orphanage) read **just past 2:40**. —_Battle Royale_, Koushun Takami
-
-This quote can be used for either 02:41 or 02:40 (or both, in the event that it is the only option for both times). If used for 02:40, the time string should be "**2:40**". 
-
-Example 2:
-
-> Raymond came back with Masson **around one-thirty**. His arm was bandaged up and he had an adhesive plaster on the corner of his mouth. The doctor had told him it was nothing, but Raymond looked pretty grim. Masson tried to make him laugh. But he still wouldn't say anything. —_The Stranger_, Albert Camus
-
-Prior to modification, this quote was used for 13:31. Vauge language such as "around" leaves too much room for interpretation and doesn't tell the reader what time it actually is. However, because "around" is inclusive of 13:30, it is valid to change the time string to be "**one-thirty**".
-
-> Raymond came back with Masson around **one-thirty**. His arm was bandaged up and he had an adhesive plaster on the corner of his mouth. The doctor had told him it was nothing, but Raymond looked pretty grim. Masson tried to make him laugh. But he still wouldn't say anything. —_The Stranger_, Albert Camus
-
-Example 3:
-
-> When Odell arrived back at the hotel **a few minutes after four**, the first thing he did was order a large flask of hot fruit punch before walking out onto the veranda to take up his post. —_Paths of Glory_, Jeffrey Archer
-
-Similar to the previous example the word "few" it too vague for this to be a time string. However, the language of this time string specifies that the time is _after_ 16:00, and therefore should not be used for 16:00 either. 
-
-- In this case, I would delete the quote.
-
----
-
-There are also general formatting changes that I look for and apply as needed. This includes things such as fixes when a certain part of the quote that should/shouldn't be highlighted is or isn't:
-
-> A man driving a tractor saw her, four hundred yards from her house, **six minutes past two** in the afternoon. —_A Change of Climate_, Hilary Mantel
-
-This sentence should have "in the afternoon" as a part of the time quote because it specifies that the time is 14:06 and not 02:06.
-
-> A man driving a tractor saw her, four hundred yards from her house, **six minutes past two in the afternoon**. —_A Change of Climate_, Hilary Mantel
-
-I've made changes to character formatting, including:
-- Replacing instances of three full stops (`...`) with a proper horizontal ellipsis character (`…`, `U+2026`)
-- Replacing instances of two hyphens (`--`) with an em dash (`—`)
-- Replacing all instances of double quotation marks (`"`) with a left double quotation mark (`“`, `U+201C`) or a right double quotation mark (`”`, `U+201D`) for the opening and closing of quotes.
-- Replacing all instances of single quotation marks (`'`) with a left single quotation mark (`‘`, `U+2018`) or a right single quotation mark (`’`, `U+2019`) for the opening and closing of quotes.
+- _Note_: Additionally, [Rainbow CSV](https://marketplace.visualstudio.com/items?itemName=mechatroner.rainbow-csv) is a useful VS Code extension that makes it easier to identify which column a piece of text belongs to, and to quickly check if the CSV file is consistent.
 
 ---
 
 ### Times that Need a Better Quote
-<!--<h3>Times In Need of a Better Quote</h3>-->
+<!--<h3>Times that Need a Better Quote</h3>-->
 
-There are some minutes of the day that only have one quote as an option that I'd like to remove, but can't since it's the only quote for that time. 
+The tables below outline times that only have one quote, the quote doesn't match the criteria above, but it cannot be removed since it's the only option for that time. 
 
 | 00:00 | 01:00 | 02:00 | 03:00 | 04:00 | 05:00 | 06:00 | 07:00 | 08:00 | 09:00 | 10:00 | 11:00 |
 | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- |
-| 00:57 |       |       |       |       | 05:26 | 06:02 | 07:08 | 08:02 | 09:08 | 10:16 | 11:28 |
-|       |       |       |       |       | 05:31 | 06:49 | 07:22 |       | 09:38 | 10:19 |       |
+| 00:57 |       |       |       |       | 05:26 | 06:02 | 07:02 | 08:02 | 09:08 | 10:16 | 11:28 |
+|       |       |       |       |       | 05:31 | 06:49 | 07:08 |       | 09:38 | 10:19 |       |
+|       |       |       |       |       |       |       | 07:22 |       |       |       |       |
 |       |       |       |       |       |       |       | 07:36 |       |       |       |       |
 |       |       |       |       |       |       |       | 07:48 |       |       |       |       |
 
@@ -510,7 +574,7 @@ There are some minutes of the day that only have one quote as an option that I'd
 ### Credits
 <!--<h3 align="center">Credits</h2>-->
 
-I used [Johannes Enevoldsen's CSV file](https://githu   b.com/JohsEnevoldsen/literature-clock/blob/master/litclock_annotated.csv) as a starting point for gathering quotes, and have since made several modifications to the quotes in the file (see [Adding, Editing, and Finding Quotes](#adding-editing-and-finding-quotes)).
+I used [Johannes Enevoldsen's CSV file](https://github.com/JohsEnevoldsen/literature-clock/blob/master/litclock_annotated.csv) as a starting point for gathering quotes, and have since made several modifications to the quotes in the file (see [Adding, Editing, and Finding Quotes](#adding-editing-and-finding-quotes)).
 
 An image is generated by parsing the cached CSV file and drawing the quote on a .bmp file. I originally used a self-modified version of elegantalchemist's [quote_to_image.py](https://github.com/elegantalchemist/literaryclock/blob/main/quote%20to%20image/quote_to_image.py) program to generate images of the quotes. The biggest modification I made to the image generation files is that it could handle italic and bold characters, but the code turned into something that was unmaintainable and needed significant refactoring. I rewrote the program from scratch, allowing for any future formatting additions or modifications to be easily added later down the line. The logic for converting a row from the CSV file into an image primarily lives in [image_generator.py](/image_generator.py), with [writer.py](/writer.py) containing class definitions, and [constants.py](/constants.py) containing global variables.
 
